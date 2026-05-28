@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import {
   collection,
   query,
   orderBy,
-  limit,
   onSnapshot,
-  getCountFromServer,
-  where,
   type Timestamp,
 } from "firebase/firestore";
 import { Users, Building2, ArrowRight, Inbox, Loader2 } from "lucide-react";
@@ -18,13 +15,12 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { formatFirestoreDate, timeAgo, STATUS_META } from "@/lib/admin-helpers";
 import type { AppStatus } from "@/lib/admin-helpers";
 
-type RecentItem = {
+type DocLite = {
   id: string;
-  collection: "aspirantes" | "empresas";
+  status: AppStatus;
+  createdAt?: Timestamp;
   title: string;
   subtitle: string;
-  status: AppStatus;
-  createdAt: Timestamp | undefined;
 };
 
 export default function AdminDashboardPage() {
@@ -36,125 +32,98 @@ export default function AdminDashboardPage() {
 }
 
 function Dashboard() {
-  const [stats, setStats] = useState({
-    totalAspirantes: 0,
-    totalEmpresas: 0,
-    pendingAspirantes: 0,
-    pendingEmpresas: 0,
-    loading: true,
-  });
-  const [recent, setRecent] = useState<RecentItem[]>([]);
-  const [recentLoading, setRecentLoading] = useState(true);
+  const [aspirantes, setAspirantes] = useState<DocLite[]>([]);
+  const [empresas, setEmpresas] = useState<DocLite[]>([]);
+  const [loadingA, setLoadingA] = useState(true);
+  const [loadingE, setLoadingE] = useState(true);
 
-  // Fetch counts una sola vez (no en tiempo real, suficiente)
-  useEffect(() => {
-    (async () => {
-      try {
-        const aspirantesCol = collection(db, "aspirantes");
-        const empresasCol = collection(db, "empresas");
-        const [aTotal, aPending, eTotal, ePending] = await Promise.all([
-          getCountFromServer(aspirantesCol),
-          getCountFromServer(
-            query(aspirantesCol, where("status", "==", "pending")),
-          ),
-          getCountFromServer(empresasCol),
-          getCountFromServer(
-            query(empresasCol, where("status", "==", "pending")),
-          ),
-        ]);
-        setStats({
-          totalAspirantes: aTotal.data().count,
-          totalEmpresas: eTotal.data().count,
-          pendingAspirantes: aPending.data().count,
-          pendingEmpresas: ePending.data().count,
-          loading: false,
-        });
-      } catch (err) {
-        // Si la query con where falla (sin docs con status), los conteos
-        // simples siguen funcionando
-        console.error("Error fetching stats:", err);
-        setStats((s) => ({ ...s, loading: false }));
-      }
-    })();
-  }, []);
-
-  // Recent items en tiempo real (combina ambas colecciones)
+  // Subscripción reactiva a ambas colecciones (orden descendente por fecha).
+  // En vez de getCountFromServer con where (que tiene quirks de permisos en
+  // aggregation queries), contamos del lado cliente sobre el snapshot.
   useEffect(() => {
     const unsubs: Array<() => void> = [];
-    const buffer: { aspirantes: RecentItem[]; empresas: RecentItem[] } = {
-      aspirantes: [],
-      empresas: [],
-    };
-
-    const merge = () => {
-      const all = [...buffer.aspirantes, ...buffer.empresas];
-      all.sort((a, b) => {
-        const tA = a.createdAt?.toMillis() ?? 0;
-        const tB = b.createdAt?.toMillis() ?? 0;
-        return tB - tA;
-      });
-      setRecent(all.slice(0, 8));
-      setRecentLoading(false);
-    };
 
     unsubs.push(
       onSnapshot(
-        query(
-          collection(db, "aspirantes"),
-          orderBy("createdAt", "desc"),
-          limit(5),
-        ),
+        query(collection(db, "aspirantes"), orderBy("createdAt", "desc")),
         (snap) => {
-          buffer.aspirantes = snap.docs.map((d) => {
-            const data = d.data();
-            return {
-              id: d.id,
-              collection: "aspirantes",
-              title: (data.nombre as string) ?? "Sin nombre",
-              subtitle: (data.email as string) ?? "",
-              status: (data.status as AppStatus) ?? "pending",
-              createdAt: data.createdAt as Timestamp | undefined,
-            };
-          });
-          merge();
+          setAspirantes(
+            snap.docs.map((d) => {
+              const data = d.data();
+              return {
+                id: d.id,
+                status: (data.status as AppStatus) ?? "pending",
+                createdAt: data.createdAt as Timestamp | undefined,
+                title: (data.nombre as string) ?? "Sin nombre",
+                subtitle: (data.email as string) ?? "",
+              };
+            }),
+          );
+          setLoadingA(false);
         },
         (err) => {
           console.error("Aspirantes snapshot error:", err);
-          setRecentLoading(false);
+          setLoadingA(false);
         },
       ),
     );
 
     unsubs.push(
       onSnapshot(
-        query(
-          collection(db, "empresas"),
-          orderBy("createdAt", "desc"),
-          limit(5),
-        ),
+        query(collection(db, "empresas"), orderBy("createdAt", "desc")),
         (snap) => {
-          buffer.empresas = snap.docs.map((d) => {
-            const data = d.data();
-            return {
-              id: d.id,
-              collection: "empresas",
-              title: (data.empresa as string) ?? "Sin nombre",
-              subtitle: (data.contacto as string) ?? "",
-              status: (data.status as AppStatus) ?? "pending",
-              createdAt: data.createdAt as Timestamp | undefined,
-            };
-          });
-          merge();
+          setEmpresas(
+            snap.docs.map((d) => {
+              const data = d.data();
+              return {
+                id: d.id,
+                status: (data.status as AppStatus) ?? "pending",
+                createdAt: data.createdAt as Timestamp | undefined,
+                title: (data.empresa as string) ?? "Sin nombre",
+                subtitle: (data.contacto as string) ?? "",
+              };
+            }),
+          );
+          setLoadingE(false);
         },
         (err) => {
           console.error("Empresas snapshot error:", err);
-          setRecentLoading(false);
+          setLoadingE(false);
         },
       ),
     );
 
     return () => unsubs.forEach((u) => u());
   }, []);
+
+  const loading = loadingA || loadingE;
+
+  const stats = useMemo(() => {
+    return {
+      totalAspirantes: aspirantes.length,
+      pendingAspirantes: aspirantes.filter((d) => d.status === "pending").length,
+      totalEmpresas: empresas.length,
+      pendingEmpresas: empresas.filter((d) => d.status === "pending").length,
+    };
+  }, [aspirantes, empresas]);
+
+  const recent = useMemo(() => {
+    const all: Array<DocLite & { collection: "aspirantes" | "empresas" }> = [
+      ...aspirantes.slice(0, 8).map((d) => ({
+        ...d,
+        collection: "aspirantes" as const,
+      })),
+      ...empresas.slice(0, 8).map((d) => ({
+        ...d,
+        collection: "empresas" as const,
+      })),
+    ];
+    all.sort(
+      (a, b) =>
+        (b.createdAt?.toMillis() ?? 0) - (a.createdAt?.toMillis() ?? 0),
+    );
+    return all.slice(0, 8);
+  }, [aspirantes, empresas]);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -172,7 +141,7 @@ function Dashboard() {
         <StatCard
           title="Aspirantes totales"
           value={stats.totalAspirantes}
-          loading={stats.loading}
+          loading={loading}
           icon={<Users size={20} />}
           accent="var(--color-bg-teal)"
           href="/admin/aspirantes"
@@ -180,7 +149,7 @@ function Dashboard() {
         <StatCard
           title="Aspirantes pendientes"
           value={stats.pendingAspirantes}
-          loading={stats.loading}
+          loading={loading}
           icon={<Inbox size={20} />}
           accent="var(--color-bg-sky)"
           href="/admin/aspirantes?status=pending"
@@ -188,7 +157,7 @@ function Dashboard() {
         <StatCard
           title="Empresas totales"
           value={stats.totalEmpresas}
-          loading={stats.loading}
+          loading={loading}
           icon={<Building2 size={20} />}
           accent="var(--color-accent-soft)"
           href="/admin/empresas"
@@ -196,7 +165,7 @@ function Dashboard() {
         <StatCard
           title="Empresas pendientes"
           value={stats.pendingEmpresas}
-          loading={stats.loading}
+          loading={loading}
           icon={<Inbox size={20} />}
           accent="#fef3c7"
           href="/admin/empresas?status=pending"
@@ -214,7 +183,7 @@ function Dashboard() {
           </div>
         </div>
 
-        {recentLoading ? (
+        {loading ? (
           <div className="flex items-center justify-center py-10">
             <Loader2
               size={20}
@@ -223,7 +192,8 @@ function Dashboard() {
           </div>
         ) : recent.length === 0 ? (
           <div className="rounded-xl border-2 border-dashed border-[var(--color-bg-soft)] bg-[var(--color-bg-soft)] p-8 text-center text-sm text-[var(--color-fg-muted)]">
-            Aún no hay postulaciones. Cuando lleguen aparecerán aquí en tiempo real.
+            Aún no hay postulaciones. Cuando lleguen aparecerán aquí en tiempo
+            real.
           </div>
         ) : (
           <ul className="flex flex-col divide-y-2 divide-dashed divide-[var(--color-bg-soft)]">

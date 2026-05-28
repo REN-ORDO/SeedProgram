@@ -18,6 +18,8 @@ import {
   useMemo,
   useRef,
   useEffect,
+  useContext,
+  createContext,
   type ChangeEvent,
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -376,7 +378,7 @@ function PanelHeader({
   );
 }
 
-// Radio personalizado al estilo toon
+// Radio personalizado al estilo toon (consume FormCtx para persistir entre pasos)
 function Radio({
   name,
   value,
@@ -394,12 +396,12 @@ function Radio({
   otherName?: string;
   otherPlaceholder?: string;
 }) {
+  const ctx = useFormCtx();
   return (
     <label className={optionCls}>
       <input
+        {...radioProps(name, value, ctx)}
         type="radio"
-        name={name}
-        value={value}
         required={required}
         className="peer sr-only"
       />
@@ -411,8 +413,8 @@ function Radio({
       </span>
       {withOtherInput && otherName && (
         <input
+          {...textProps(otherName, ctx)}
           type="text"
-          name={otherName}
           placeholder={otherPlaceholder ?? "Especifica..."}
           className={cn(
             "ml-auto max-w-[220px] rounded-lg border-2 border-[var(--color-ink)] bg-white px-3 py-1.5",
@@ -483,6 +485,44 @@ function PanelMotion({
 }
 
 // ============================================================
+// Form Context — para persistir valores entre transiciones de paso
+// ============================================================
+
+type FormCtxValue = {
+  defaults: Record<string, string>;
+  onChange: (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => void;
+};
+
+const FormCtx = createContext<FormCtxValue | null>(null);
+
+function useFormCtx(): FormCtxValue {
+  const ctx = useContext(FormCtx);
+  if (!ctx) throw new Error("useFormCtx debe usarse dentro de FormCtx.Provider");
+  return ctx;
+}
+
+/** Helper que mergea defaults + onChange a inputs de texto/email/tel/select/textarea */
+function textProps(name: string, ctx: FormCtxValue) {
+  return {
+    name,
+    defaultValue: ctx.defaults[name] ?? "",
+    onChange: ctx.onChange,
+  };
+}
+
+/** Helper para radio buttons con restore */
+function radioProps(name: string, value: string, ctx: FormCtxValue) {
+  return {
+    name,
+    value,
+    defaultChecked: ctx.defaults[name] === value,
+    onChange: ctx.onChange,
+  };
+}
+
+// ============================================================
 // Componente principal
 // ============================================================
 
@@ -498,6 +538,18 @@ export function ApplicationForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Persistencia de valores entre transiciones de paso:
+   *   - valuesRef: source of truth, escrita en cada onChange (sin re-render)
+   *   - defaults: snapshot del ref pasado al Context, actualizado SOLO en
+   *     transiciones (para que el remount de un panel lea valores frescos
+   *     vía defaultValue/defaultChecked).
+   * Sin esto, AnimatePresence desmonta paneles y los datos se perderían
+   * (FormData solo captura lo del DOM actual).
+   */
+  const valuesRef = useRef<Record<string, string>>({});
+  const [defaults, setDefaults] = useState<Record<string, string>>({});
+
   // stepRef mirrors `step` para que handleSubmit pueda chequear el valor
   // real sin closures rancios. Se actualiza en useEffect (no en render).
   const stepRef = useRef(step);
@@ -511,6 +563,45 @@ export function ApplicationForm() {
   const lastTransitionAtRef = useRef(0);
   const TRANSITION_LOCK_MS = 600;
 
+  // ---- Captura de inputs del panel actual ----
+
+  const captureCurrentPanel = () => {
+    const panel = formRef.current?.querySelector<HTMLElement>(
+      "[data-active-panel]",
+    );
+    if (!panel) return;
+    const inputs = panel.querySelectorAll<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >("input[name], select[name], textarea[name]");
+    for (const el of Array.from(inputs)) {
+      if (el instanceof HTMLInputElement && el.type === "file") continue;
+      if (el instanceof HTMLInputElement && el.type === "radio") {
+        if (el.checked) valuesRef.current[el.name] = el.value;
+        continue;
+      }
+      // text/email/tel/select/textarea
+      valuesRef.current[el.name] = el.value;
+    }
+    // Sincronizar snapshot al state para que el Context tenga valores frescos
+    // cuando el próximo panel se monte.
+    setDefaults({ ...valuesRef.current });
+  };
+
+  // Handler global de cambios (registra en valuesRef sin re-render)
+  const handleFieldChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const el = e.target;
+    if (el instanceof HTMLInputElement && el.type === "file") return;
+    if (el instanceof HTMLInputElement && el.type === "radio") {
+      if (el.checked) valuesRef.current[el.name] = el.value;
+      return;
+    }
+    valuesRef.current[el.name] = el.value;
+  };
+
   const steps = useMemo(
     () => (role === "aspirante" ? ASPIRANTE_STEPS : EMPRESA_STEPS),
     [role],
@@ -520,6 +611,8 @@ export function ApplicationForm() {
 
   const goTo = (next: number, dir: Direction) => {
     if (next < 1 || next > steps.length) return;
+    // ANTES de cambiar de paso, capturar valores del panel actual
+    captureCurrentPanel();
     lastTransitionAtRef.current = Date.now();
     setDirection(dir);
     setStep(next);
@@ -536,6 +629,8 @@ export function ApplicationForm() {
     setSuccess(false);
     setErrorMsg(null);
     setCvFileName(null);
+    valuesRef.current = {};
+    setDefaults({}); // limpia el snapshot también
   };
 
   // ---- Validación por paso (lee el DOM del form actual) ----
@@ -687,13 +782,12 @@ export function ApplicationForm() {
     setErrorMsg(null);
 
     try {
-      const form = e.currentTarget;
-      const fd = new FormData(form);
-      const data: Record<string, unknown> = {};
-      for (const [key, value] of fd.entries()) {
-        if (value instanceof File) continue;
-        data[key] = value;
-      }
+      // Captura final del panel actual (paso 3) antes de armar payload
+      captureCurrentPanel();
+
+      // Usamos valuesRef, NO FormData — porque AnimatePresence desmonta
+      // los paneles anteriores y FormData solo vería el último.
+      const data: Record<string, unknown> = { ...valuesRef.current };
 
       if (role === "aspirante") {
         // Subir CV a Cloudinary primero (cualquier formato)
@@ -803,6 +897,8 @@ export function ApplicationForm() {
                 setSuccess(false);
                 setStep(1);
                 setCvFileName(null);
+                valuesRef.current = {};
+                setDefaults({});
                 formRef.current?.reset();
               }}
               className="toon-btn mt-8"
@@ -860,6 +956,12 @@ export function ApplicationForm() {
           </motion.div>
         </AnimatePresence>
 
+        <FormCtx.Provider
+          value={{
+            defaults,
+            onChange: handleFieldChange,
+          }}
+        >
         <form
           ref={formRef}
           onSubmit={handleSubmit}
@@ -992,6 +1094,7 @@ export function ApplicationForm() {
             </motion.p>
           )}
         </form>
+        </FormCtx.Provider>
       </motion.div>
     </div>
   );
@@ -1002,6 +1105,7 @@ export function ApplicationForm() {
 // ============================================================
 
 function AspiranteStep1() {
+  const ctx = useFormCtx();
   return (
     <>
       <PanelHeader
@@ -1017,8 +1121,8 @@ function AspiranteStep1() {
           Nombre completo<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
         <input
+          {...textProps("nombre", ctx)}
           type="text"
-          name="nombre"
           required
           autoComplete="name"
           inputMode="text"
@@ -1033,7 +1137,7 @@ function AspiranteStep1() {
           <label className={labelCls}>
             Ciudad<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
-          <select name="ciudad" required className={cn(inputCls, "cursor-pointer pr-11")}>
+          <select {...textProps("ciudad", ctx)} required className={cn(inputCls, "cursor-pointer pr-11")}>
             <option value="">Selecciona tu ciudad</option>
             <option>Barranquilla</option>
             <option>Bogotá</option>
@@ -1050,8 +1154,8 @@ function AspiranteStep1() {
             Dirección<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
+            {...textProps("direccion", ctx)}
             type="text"
-            name="direccion"
             required
             autoComplete="street-address"
             maxLength={200}
@@ -1067,8 +1171,8 @@ function AspiranteStep1() {
             WhatsApp<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
+            {...textProps("whatsapp", ctx)}
             type="tel"
-            name="whatsapp"
             required
             autoComplete="tel"
             inputMode="tel"
@@ -1082,8 +1186,8 @@ function AspiranteStep1() {
             Correo electrónico<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
+            {...textProps("email", ctx)}
             type="email"
-            name="email"
             required
             autoComplete="email"
             inputMode="email"
@@ -1106,6 +1210,7 @@ function AspiranteStep2({
   onCvChange: (e: ChangeEvent<HTMLInputElement>) => void;
   cvInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
+  const ctx = useFormCtx();
   return (
     <>
       <PanelHeader
@@ -1138,8 +1243,8 @@ function AspiranteStep2({
       <Field>
         <label className={labelCls}>¿Qué carrera o programa estudias?</label>
         <input
+          {...textProps("carrera", ctx)}
           type="text"
-          name="carrera"
           maxLength={150}
           placeholder="Si aplica"
           className={inputCls}
@@ -1257,6 +1362,7 @@ function AspiranteStep3() {
 }
 
 function EmpresaStep1() {
+  const ctx = useFormCtx();
   return (
     <>
       <PanelHeader
@@ -1275,8 +1381,8 @@ function EmpresaStep1() {
           <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
         <input
+          {...textProps("empresa", ctx)}
           type="text"
-          name="empresa"
           required
           autoComplete="organization"
           maxLength={150}
@@ -1291,8 +1397,8 @@ function EmpresaStep1() {
           <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
         <input
+          {...textProps("contacto", ctx)}
           type="text"
-          name="contacto"
           required
           autoComplete="name"
           maxLength={200}
@@ -1308,8 +1414,8 @@ function EmpresaStep1() {
             <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
+            {...textProps("email", ctx)}
             type="email"
-            name="email"
             required
             autoComplete="email"
             inputMode="email"
@@ -1323,8 +1429,8 @@ function EmpresaStep1() {
             Teléfono<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
+            {...textProps("telefono", ctx)}
             type="tel"
-            name="telefono"
             required
             autoComplete="tel"
             inputMode="tel"
@@ -1339,6 +1445,7 @@ function EmpresaStep1() {
 }
 
 function EmpresaStep2() {
+  const ctx = useFormCtx();
   return (
     <>
       <PanelHeader
@@ -1380,7 +1487,7 @@ function EmpresaStep2() {
           <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
         <textarea
-          name="reto"
+          {...textProps("reto", ctx)}
           required
           minLength={20}
           maxLength={2000}
