@@ -105,7 +105,7 @@ export function Nav() {
             </nav>
 
             <a
-              href="#aplicar"
+              href="/postular"
               data-cursor="Aplicar"
               className="hidden lg:inline-flex toon-btn"
               style={{ padding: "8px 18px", fontSize: 14 }}
@@ -170,7 +170,7 @@ export function Nav() {
                 </motion.a>
               ))}
               <a
-                href="#aplicar"
+                href="/postular"
                 onClick={() => setOpen(false)}
                 className="toon-btn mt-4 justify-center"
               >
