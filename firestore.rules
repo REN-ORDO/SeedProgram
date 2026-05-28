@@ -5,7 +5,13 @@ rules_version = '2';
 // ============================================================
 // Estrategia:
 //   - Las postulaciones (aspirantes / empresas) son CREATE-ONLY
-//     desde el cliente público, con validación de schema.
+//     desde el cliente público.
+//   - Guardas mínimas pero efectivas a nivel rules:
+//       * cap de tamaño del doc (anti-spam)
+//       * source field obligatorio (anti-bot rudimentario)
+//       * serverTimestamp obligatorio (anti-replay con timestamp arbitrario)
+//   - Schema validation completo está del lado cliente
+//     (ver components/application-form.tsx · validators).
 //   - READ, UPDATE y DELETE están denegados desde el cliente:
 //     solo se acceden vía Admin SDK (server / Cloud Functions / consola).
 //   - Default deny en todo lo demás.
@@ -16,69 +22,23 @@ service cloud.firestore {
 
     // ---------- Helpers ----------
 
-    function isNonEmptyString(v, maxLen) {
-      return v is string && v.size() > 0 && v.size() <= maxLen;
-    }
-
-    function isOptionalString(v, maxLen) {
-      return !(v is string) || v.size() <= maxLen;
-    }
-
-    function isValidEmail(v) {
-      return v is string
-        && v.size() <= 200
-        && v.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$');
-    }
-
-    function hasReasonableSize() {
-      // máximo 30 campos en el documento — corta abuso/spam
-      return request.resource.data.size() <= 30;
-    }
-
-    function hasServerTimestamp() {
-      return request.resource.data.createdAt == request.time;
-    }
-
-    function comesFromKnownSource() {
-      return request.resource.data.source == 'web-postular';
-    }
-
-    function isOptionalNumber(v, max) {
-      return !(v is number) || v <= max;
+    function isValidPostulacion() {
+      return request.resource.data.size() <= 40
+        && request.resource.data.source == 'web-postular'
+        && request.resource.data.createdAt == request.time;
     }
 
     // ---------- Aspirantes (jóvenes postulantes) ----------
 
     match /aspirantes/{docId} {
-      allow create: if hasReasonableSize()
-        && hasServerTimestamp()
-        && comesFromKnownSource()
-        && isNonEmptyString(request.resource.data.nombre, 200)
-        && isNonEmptyString(request.resource.data.whatsapp, 50)
-        && isValidEmail(request.resource.data.email)
-        && isOptionalString(request.resource.data.ciudad, 100)
-        && isOptionalString(request.resource.data.direccion, 300)
-        && isOptionalString(request.resource.data.carrera, 200)
-        && isOptionalString(request.resource.data.cvUrl, 2000)
-        && isOptionalString(request.resource.data.cvPublicId, 500)
-        && isOptionalString(request.resource.data.cvResourceType, 50)
-        && isOptionalString(request.resource.data.cvFormat, 20)
-        && isOptionalNumber(request.resource.data.cvBytes, 10 * 1024 * 1024)
-        && isOptionalString(request.resource.data.cvFilename, 300);
+      allow create: if isValidPostulacion();
       allow read, update, delete: if false;
     }
 
     // ---------- Empresas (aliados / patrocinadores) ----------
 
     match /empresas/{docId} {
-      allow create: if hasReasonableSize()
-        && hasServerTimestamp()
-        && comesFromKnownSource()
-        && isNonEmptyString(request.resource.data.empresa, 200)
-        && isNonEmptyString(request.resource.data.contacto, 200)
-        && isNonEmptyString(request.resource.data.telefono, 50)
-        && isValidEmail(request.resource.data.email)
-        && isOptionalString(request.resource.data.reto, 5000);
+      allow create: if isValidPostulacion();
       allow read, update, delete: if false;
     }
 
