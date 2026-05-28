@@ -1,0 +1,91 @@
+rules_version = '2';
+
+// ============================================================
+// Firestore Security Rules — Programa Semilla CooWeb
+// ============================================================
+// Estrategia:
+//   - Las postulaciones (aspirantes / empresas) son CREATE-ONLY
+//     desde el cliente público, con validación de schema.
+//   - READ, UPDATE y DELETE están denegados desde el cliente:
+//     solo se acceden vía Admin SDK (server / Cloud Functions / consola).
+//   - Default deny en todo lo demás.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+
+    function isNonEmptyString(v, maxLen) {
+      return v is string && v.size() > 0 && v.size() <= maxLen;
+    }
+
+    function isOptionalString(v, maxLen) {
+      return !(v is string) || v.size() <= maxLen;
+    }
+
+    function isValidEmail(v) {
+      return v is string
+        && v.size() <= 200
+        && v.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$');
+    }
+
+    function hasReasonableSize() {
+      // máximo 30 campos en el documento — corta abuso/spam
+      return request.resource.data.size() <= 30;
+    }
+
+    function hasServerTimestamp() {
+      return request.resource.data.createdAt == request.time;
+    }
+
+    function comesFromKnownSource() {
+      return request.resource.data.source == 'web-postular';
+    }
+
+    function isOptionalNumber(v, max) {
+      return !(v is number) || v <= max;
+    }
+
+    // ---------- Aspirantes (jóvenes postulantes) ----------
+
+    match /aspirantes/{docId} {
+      allow create: if hasReasonableSize()
+        && hasServerTimestamp()
+        && comesFromKnownSource()
+        && isNonEmptyString(request.resource.data.nombre, 200)
+        && isNonEmptyString(request.resource.data.whatsapp, 50)
+        && isValidEmail(request.resource.data.email)
+        && isOptionalString(request.resource.data.ciudad, 100)
+        && isOptionalString(request.resource.data.direccion, 300)
+        && isOptionalString(request.resource.data.carrera, 200)
+        && isOptionalString(request.resource.data.cvUrl, 2000)
+        && isOptionalString(request.resource.data.cvPublicId, 500)
+        && isOptionalString(request.resource.data.cvResourceType, 50)
+        && isOptionalString(request.resource.data.cvFormat, 20)
+        && isOptionalNumber(request.resource.data.cvBytes, 10 * 1024 * 1024)
+        && isOptionalString(request.resource.data.cvFilename, 300);
+      allow read, update, delete: if false;
+    }
+
+    // ---------- Empresas (aliados / patrocinadores) ----------
+
+    match /empresas/{docId} {
+      allow create: if hasReasonableSize()
+        && hasServerTimestamp()
+        && comesFromKnownSource()
+        && isNonEmptyString(request.resource.data.empresa, 200)
+        && isNonEmptyString(request.resource.data.contacto, 200)
+        && isNonEmptyString(request.resource.data.telefono, 50)
+        && isValidEmail(request.resource.data.email)
+        && isOptionalString(request.resource.data.reto, 5000);
+      allow read, update, delete: if false;
+    }
+
+    // ---------- Default deny ----------
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

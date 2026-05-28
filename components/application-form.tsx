@@ -24,8 +24,8 @@ import {
   Send,
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
+import { uploadCvToCloudinary } from "@/lib/cloudinary";
 import { cn } from "@/lib/utils";
 
 // ============================================================
@@ -392,16 +392,15 @@ export function ApplicationForm() {
       }
 
       if (role === "aspirante") {
-        // Subir CV a Storage primero
+        // Subir CV a Cloudinary primero
         const cvFile = cvInputRef.current?.files?.[0];
         if (cvFile) {
-          const safeName = cvFile.name.replace(/\s+/g, "-");
-          const path = `cvs/${Date.now()}-${safeName}`;
-          const fileRef = storageRef(storage, path);
-          await uploadBytes(fileRef, cvFile);
-          const url = await getDownloadURL(fileRef);
-          data.cvUrl = url;
-          data.cvPath = path;
+          const upload = await uploadCvToCloudinary(cvFile);
+          data.cvUrl = upload.secureUrl;
+          data.cvPublicId = upload.publicId;
+          data.cvResourceType = upload.resourceType;
+          data.cvFormat = upload.format;
+          data.cvBytes = upload.bytes;
           data.cvFilename = cvFile.name;
         }
 

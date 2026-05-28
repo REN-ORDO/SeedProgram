@@ -2,14 +2,16 @@
  * Firebase client SDK initialization.
  *
  * Estas claves son públicas por diseño en Firebase Web (no son secretos).
- * La seguridad real vive en las Security Rules de Firestore y Storage.
+ * La seguridad real vive en las Security Rules de Firestore.
  * Aun así, las leemos desde NEXT_PUBLIC_* para poder cambiar de proyecto
  * sin tocar código. Hay defaults para que `next build` no falle si falta
  * el .env (útil en CI / primera clonada).
+ *
+ * NOTA: el upload de CVs se hace en Cloudinary (ver lib/cloudinary.ts),
+ * no en Firebase Storage. Por eso aquí solo exportamos Firestore.
  */
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getFirestore, type Firestore } from "firebase/firestore";
-import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey:
@@ -36,7 +38,6 @@ const firebaseConfig = {
 const app: FirebaseApp = getApps().length ? getApps()[0]! : initializeApp(firebaseConfig);
 
 export const db: Firestore = getFirestore(app);
-export const storage: FirebaseStorage = getStorage(app);
 
 /**
  * Analytics solo se carga en el cliente y cuando el navegador lo soporta.
