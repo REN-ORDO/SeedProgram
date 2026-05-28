@@ -745,9 +745,12 @@ export function ApplicationForm() {
   // ---- File upload feedback ----
 
   const onCvChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] ?? null;
+    const file = e.target.files?.[0];
+    // Si no hay file (usuario canceló el picker), NO limpiamos el ref —
+    // mantenemos el CV previo. Solo asignamos cuando hay archivo nuevo.
+    if (!file) return;
     cvFileRef.current = file;
-    setCvFileName(file?.name ?? null);
+    setCvFileName(file.name);
   };
 
   // ---- Submit a Firebase ----
@@ -802,8 +805,11 @@ export function ApplicationForm() {
         // Subir CV a Cloudinary. Usamos cvFileRef (no cvInputRef.files) porque
         // el input se desmonta al navegar de paso y el File se perdería.
         const cvFile = cvFileRef.current ?? cvInputRef.current?.files?.[0];
+        console.log("[CV] cvFile presente?", !!cvFile, cvFile?.name);
         if (cvFile) {
+          console.log("[CV] Subiendo a Cloudinary...");
           const upload = await uploadCvToCloudinary(cvFile);
+          console.log("[CV] Upload OK:", upload);
           // Solo guardamos los campos que Cloudinary devolvió definidos.
           // Firestore RECHAZA valores undefined (sí acepta null).
           if (upload.secureUrl) data.cvUrl = upload.secureUrl;
@@ -812,8 +818,11 @@ export function ApplicationForm() {
           if (upload.format) data.cvFormat = upload.format;
           if (typeof upload.bytes === "number") data.cvBytes = upload.bytes;
           data.cvFilename = cvFile.name;
+        } else {
+          console.warn("[CV] No hay archivo adjunto al hacer submit");
         }
       }
+      console.log("[FORM] Payload final que va a Firestore:", data);
 
       // Limpieza final: nunca enviar undefined a Firestore.
       const cleanData = Object.fromEntries(
