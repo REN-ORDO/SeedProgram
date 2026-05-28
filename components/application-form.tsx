@@ -497,6 +497,17 @@ export function ApplicationForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
 
+  // stepRef mirrors `step` synchronously en cada render para que el
+  // handleSubmit pueda chequear el valor real (sin closures rancios).
+  const stepRef = useRef(step);
+  stepRef.current = step;
+
+  // Lock para evitar que un submit rebote justo después de un cambio
+  // de paso (cuando el botón "Continuar" se transforma en "Enviar" en
+  // la misma posición DOM y un doble-click cae en el segundo).
+  const lastTransitionAtRef = useRef(0);
+  const TRANSITION_LOCK_MS = 600;
+
   const steps = useMemo(
     () => (role === "aspirante" ? ASPIRANTE_STEPS : EMPRESA_STEPS),
     [role],
@@ -506,6 +517,7 @@ export function ApplicationForm() {
 
   const goTo = (next: number, dir: Direction) => {
     if (next < 1 || next > steps.length) return;
+    lastTransitionAtRef.current = Date.now();
     setDirection(dir);
     setStep(next);
     if (typeof window !== "undefined") {
@@ -651,9 +663,19 @@ export function ApplicationForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Guardia extra: solo permite submit en el último paso
-    if (step < steps.length) {
-      goTo(step + 1, "forward");
+
+    // Defensa 1: si acabamos de cambiar de paso (en los últimos ~600ms),
+    // ignorar el submit. Esto evita que un doble-click o el rebote del
+    // click sobre "Continuar" caiga sobre el botón submit recién renderizado.
+    if (Date.now() - lastTransitionAtRef.current < TRANSITION_LOCK_MS) {
+      return;
+    }
+
+    // Defensa 2: usar stepRef (sincrono) en vez del `step` cerrado.
+    // Si por cualquier razón handleSubmit corre con un closure viejo,
+    // el ref refleja el step real.
+    if (stepRef.current < steps.length) {
+      goTo(stepRef.current + 1, "forward");
       return;
     }
     if (!validateCurrentPanel()) return;
@@ -898,7 +920,11 @@ export function ApplicationForm() {
             )}
 
             {step < steps.length ? (
-              <Magnetic strength={0.25} className="ml-auto">
+              <Magnetic
+                key="btn-next"
+                strength={0.25}
+                className="ml-auto"
+              >
                 <button
                   type="button"
                   onClick={handleNext}
@@ -916,7 +942,11 @@ export function ApplicationForm() {
                 </button>
               </Magnetic>
             ) : (
-              <Magnetic strength={0.25} className="ml-auto">
+              <Magnetic
+                key="btn-submit"
+                strength={0.25}
+                className="ml-auto"
+              >
                 <button
                   type="submit"
                   disabled={submitting}
