@@ -26,7 +26,7 @@ import { auth } from "@/lib/firebase";
 
 // Lista de emails con acceso al admin panel.
 // Si actualizas esto, actualiza también firestore.rules.
-const ADMIN_EMAILS = ["sg@cooweb.co"];
+const ADMIN_EMAILS = ["admin@cooweb.co"];
 
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;

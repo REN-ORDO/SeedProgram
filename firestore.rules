@@ -21,7 +21,7 @@ service cloud.firestore {
       return request.auth != null
         && request.auth.token.email_verified == true
         && request.auth.token.email in [
-          'sg@cooweb.co'
+          'admin@cooweb.co'
           // agregá más admins acá si hacen falta
         ];
     }
@@ -32,7 +32,7 @@ service cloud.firestore {
     function isAdminEvenUnverified() {
       return request.auth != null
         && request.auth.token.email in [
-          'sg@cooweb.co'
+          'admin@cooweb.co'
         ];
     }
 
