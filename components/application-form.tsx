@@ -537,6 +537,10 @@ export function ApplicationForm() {
 
   const formRef = useRef<HTMLFormElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
+  // Guardamos el File object aparte. El input se desmonta al cambiar de paso
+  // y los browsers no permiten re-asignar files vía JS, así que el ref del
+  // input pierde el archivo. Este ref persiste entre transiciones.
+  const cvFileRef = useRef<File | null>(null);
 
   /**
    * Persistencia de valores entre transiciones de paso:
@@ -629,6 +633,7 @@ export function ApplicationForm() {
     setSuccess(false);
     setErrorMsg(null);
     setCvFileName(null);
+    cvFileRef.current = null;
     valuesRef.current = {};
     setDefaults({}); // limpia el snapshot también
   };
@@ -672,7 +677,10 @@ export function ApplicationForm() {
           }
         }
       } else if (el instanceof HTMLInputElement && el.type === "file") {
-        if (!el.files || el.files.length === 0) {
+        // El input se desmonta al navegar, así que también aceptamos el ref.
+        const hasFile =
+          (el.files && el.files.length > 0) || cvFileRef.current !== null;
+        if (!hasFile) {
           setErrorMsg("Por favor adjunta tu hoja de vida.");
           return false;
         }
@@ -737,7 +745,8 @@ export function ApplicationForm() {
   // ---- File upload feedback ----
 
   const onCvChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0] ?? null;
+    cvFileRef.current = file;
     setCvFileName(file?.name ?? null);
   };
 
@@ -790,8 +799,9 @@ export function ApplicationForm() {
       const data: Record<string, unknown> = { ...valuesRef.current };
 
       if (role === "aspirante") {
-        // Subir CV a Cloudinary primero (cualquier formato)
-        const cvFile = cvInputRef.current?.files?.[0];
+        // Subir CV a Cloudinary. Usamos cvFileRef (no cvInputRef.files) porque
+        // el input se desmonta al navegar de paso y el File se perdería.
+        const cvFile = cvFileRef.current ?? cvInputRef.current?.files?.[0];
         if (cvFile) {
           const upload = await uploadCvToCloudinary(cvFile);
           // Solo guardamos los campos que Cloudinary devolvió definidos.
@@ -897,6 +907,7 @@ export function ApplicationForm() {
                 setSuccess(false);
                 setStep(1);
                 setCvFileName(null);
+                cvFileRef.current = null;
                 valuesRef.current = {};
                 setDefaults({});
                 formRef.current?.reset();
