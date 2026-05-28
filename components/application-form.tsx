@@ -33,7 +33,11 @@ import {
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadCvToCloudinary } from "@/lib/cloudinary";
+import { Magnetic } from "@/components/magnetic";
 import { cn } from "@/lib/utils";
+
+// Easing canónico del sitio
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 // ============================================================
 // Types
@@ -95,20 +99,55 @@ function Stepper({
         const isDone = current > step.id;
         return (
           <div key={step.id} className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <div
+            <motion.div
+              animate={
+                isActive
+                  ? { scale: [1, 1.08, 1], rotate: -3 }
+                  : isDone
+                    ? { scale: 1, rotate: 0 }
+                    : { scale: 1, rotate: 0 }
+              }
+              transition={
+                isActive
+                  ? {
+                      scale: { duration: 0.6, ease: EASE, times: [0, 0.5, 1] },
+                      rotate: { type: "spring", stiffness: 240, damping: 14 },
+                    }
+                  : { duration: 0.35, ease: EASE }
+              }
               className={cn(
                 "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-ink)]",
-                "shadow-[3px_3px_0_var(--color-ink)] font-display text-sm font-bold transition-all duration-300",
-                isActive && "bg-[var(--color-accent)] text-white -rotate-3",
+                "shadow-[3px_3px_0_var(--color-ink)] font-display text-sm font-bold",
+                isActive && "bg-[var(--color-accent)] text-white",
                 isDone && "bg-[var(--color-bg-teal)] text-[var(--color-ink)]",
                 !isActive && !isDone && "bg-white text-[var(--color-ink)]",
               )}
             >
-              {isDone ? <Check size={16} strokeWidth={3} /> : step.id}
-            </div>
+              <AnimatePresence mode="wait" initial={false}>
+                {isDone ? (
+                  <motion.span
+                    key="check"
+                    initial={{ scale: 0, rotate: -90 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 16 }}
+                  >
+                    <Check size={16} strokeWidth={3} />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="num"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {step.id}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.div>
             <span
               className={cn(
-                "hidden font-display text-sm font-semibold whitespace-nowrap sm:block",
+                "hidden font-display text-sm font-semibold whitespace-nowrap transition-colors duration-300 sm:block",
                 isActive ? "text-[var(--color-ink)]" : "text-[var(--color-fg-subtle)]",
                 isDone && "text-[var(--color-fg-muted)]",
               )}
@@ -117,11 +156,11 @@ function Stepper({
             </span>
             {i < steps.length - 1 && (
               <div className="relative mx-1 h-[3px] w-6 min-w-4 sm:w-10 overflow-hidden border-y-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)]">
-                <div
-                  className={cn(
-                    "absolute inset-0 origin-left bg-[var(--color-accent)] transition-transform duration-500",
-                    isDone ? "scale-x-100" : "scale-x-0",
-                  )}
+                <motion.div
+                  initial={false}
+                  animate={{ scaleX: isDone ? 1 : 0 }}
+                  transition={{ duration: 0.55, ease: EASE }}
+                  className="absolute inset-0 origin-left bg-[var(--color-accent)]"
                 />
               </div>
             )}
@@ -139,40 +178,65 @@ function RoleSelector({
   role: Role;
   onChange: (r: Role) => void;
 }) {
+  const opts = [
+    { id: "aspirante" as Role, label: "Soy aspirante", icon: "🌱" },
+    { id: "empresa" as Role, label: "Soy empresa", icon: "🏢" },
+  ];
   return (
-    <div className="mb-9 flex justify-center">
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: EASE }}
+      className="mb-9 flex justify-center"
+    >
       <div className="inline-flex rounded-full border-2 border-[var(--color-ink)] bg-white p-1.5 shadow-[6px_6px_0_var(--color-ink)]">
-        {(
-          [
-            { id: "aspirante" as Role, label: "Soy aspirante", icon: "🌱" },
-            { id: "empresa" as Role, label: "Soy empresa", icon: "🏢" },
-          ]
-        ).map((opt) => (
+        {opts.map((opt) => (
           <button
             key={opt.id}
             type="button"
             onClick={() => onChange(opt.id)}
             className={cn(
-              "inline-flex items-center gap-2 rounded-full px-5 py-3 font-body text-sm font-semibold transition-colors",
+              "relative inline-flex items-center gap-2 rounded-full px-5 py-3 font-body text-sm font-semibold transition-colors",
               role === opt.id
-                ? "bg-[var(--color-ink)] text-white"
+                ? "text-white"
                 : "text-[var(--color-fg-muted)] hover:text-[var(--color-ink)]",
             )}
           >
-            <span className="text-base">{opt.icon}</span>
-            <span className="hidden xs:inline sm:inline">{opt.label}</span>
-            <span className="inline xs:hidden sm:hidden">
+            {role === opt.id && (
+              <motion.span
+                layoutId="role-pill"
+                className="absolute inset-0 rounded-full bg-[var(--color-ink)]"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10 text-base">{opt.icon}</span>
+            <span className="relative z-10 hidden xs:inline sm:inline">{opt.label}</span>
+            <span className="relative z-10 inline xs:hidden sm:hidden">
               {opt.id === "aspirante" ? "Aspirante" : "Empresa"}
             </span>
           </button>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
+/**
+ * Field con animación de entrada en stagger.
+ * El padre (panel) controla el timing con `staggerChildren`.
+ */
 function Field({ children }: { children: React.ReactNode }) {
-  return <div className="mb-5">{children}</div>;
+  return (
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 14 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+      }}
+      className="mb-5"
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 function Hand({ children }: { children: React.ReactNode }) {
@@ -274,10 +338,34 @@ function PanelMotion({
       <motion.div
         key={step}
         custom={direction}
-        initial={{ opacity: 0, x: direction === "forward" ? 36 : -36 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: direction === "forward" ? -36 : 36 }}
-        transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
+        initial="hidden"
+        animate="show"
+        exit="exit"
+        variants={{
+          hidden: {
+            opacity: 0,
+            x: direction === "forward" ? 36 : -36,
+            filter: "blur(2px)",
+          },
+          show: {
+            opacity: 1,
+            x: 0,
+            filter: "blur(0px)",
+            transition: {
+              duration: 0.4,
+              ease: EASE,
+              when: "beforeChildren",
+              staggerChildren: 0.07,
+              delayChildren: 0.05,
+            },
+          },
+          exit: {
+            opacity: 0,
+            x: direction === "forward" ? -36 : 36,
+            filter: "blur(2px)",
+            transition: { duration: 0.25, ease: EASE },
+          },
+        }}
       >
         {children}
       </motion.div>
@@ -482,38 +570,74 @@ export function ApplicationForm() {
 
   if (success) {
     return (
-      <div className="toon-card mx-auto max-w-2xl p-10 text-center sm:p-12">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: EASE }}
+        className="toon-card relative mx-auto max-w-2xl overflow-hidden p-10 text-center sm:p-12"
+      >
+        {/* Confetti-ish dots de fondo */}
+        <motion.span
+          className="pointer-events-none absolute -top-8 -left-6 h-20 w-20 rounded-full bg-[var(--color-bg-sky)] opacity-60"
+          animate={{ y: [0, -10, 0], rotate: [0, 6, 0] }}
+          transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.span
+          className="pointer-events-none absolute -bottom-6 -right-4 h-16 w-16 rounded-full bg-[var(--color-bg-teal)] opacity-60"
+          animate={{ y: [0, 8, 0], rotate: [0, -8, 0] }}
+          transition={{ duration: 6.4, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+        />
+
         <motion.div
-          initial={{ scale: 0, rotate: -5 }}
+          initial={{ scale: 0, rotate: -90 }}
           animate={{ scale: 1, rotate: -5 }}
-          transition={{ type: "spring", stiffness: 200, damping: 14 }}
-          className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-accent)] text-white shadow-[6px_6px_0_var(--color-ink)]"
+          transition={{ type: "spring", stiffness: 220, damping: 14, delay: 0.1 }}
+          className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-accent)] text-white shadow-[6px_6px_0_var(--color-ink)]"
         >
           <Check size={36} strokeWidth={3.5} />
         </motion.div>
-        <h2 className="font-display text-3xl font-bold leading-tight tracking-tight text-[var(--color-heading)]">
+        <motion.h2
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE, delay: 0.25 }}
+          className="relative font-display text-3xl font-bold leading-tight tracking-tight text-[var(--color-heading)]"
+        >
           ¡Gracias por <Hand>escribirnos</Hand>!
-        </h2>
-        <p className="mx-auto mt-3 max-w-md text-[15px] text-[var(--color-fg-muted)]">
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE, delay: 0.35 }}
+          className="relative mx-auto mt-3 max-w-md text-[15px] text-[var(--color-fg-muted)]"
+        >
           {role === "aspirante"
             ? "Recibimos tu postulación. Si haces match con el batch, te contactamos pronto. 🌱"
             : "Recibimos tu solicitud. Un mentor senior te contactará en menos de 48 horas."}
-        </p>
-        <button
-          type="button"
-          onClick={() => {
-            setSuccess(false);
-            setStep(1);
-            setCvFileName(null);
-            formRef.current?.reset();
-          }}
-          className="toon-btn mt-8"
-          style={{ background: "var(--color-accent-soft)" }}
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE, delay: 0.45 }}
+          className="relative"
         >
-          Enviar otra postulación
-          <ArrowRight size={16} />
-        </button>
-      </div>
+          <Magnetic strength={0.25}>
+            <button
+              type="button"
+              onClick={() => {
+                setSuccess(false);
+                setStep(1);
+                setCvFileName(null);
+                formRef.current?.reset();
+              }}
+              className="toon-btn mt-8"
+              style={{ background: "var(--color-accent-soft)" }}
+            >
+              Enviar otra postulación
+              <ArrowRight size={16} />
+            </button>
+          </Magnetic>
+        </motion.div>
+      </motion.div>
     );
   }
 
@@ -525,18 +649,40 @@ export function ApplicationForm() {
     <div className="mx-auto w-full max-w-2xl">
       <RoleSelector role={role} onChange={changeRole} />
 
-      <div className="toon-card relative p-7 sm:p-10">
-        {/* Sticker decorativo */}
-        <div
-          className="absolute -top-4 right-6 inline-flex rotate-[4deg] items-center gap-1 rounded-full border-2 border-[var(--color-ink)] px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider shadow-[3px_3px_0_var(--color-ink)]"
-          style={{
-            background:
-              role === "aspirante" ? "var(--color-accent)" : "var(--color-bg-sky)",
-            color: role === "aspirante" ? "#fff" : "var(--color-ink)",
-          }}
-        >
-          {role === "aspirante" ? "¡Gratis!" : "+48h respuesta"}
-        </div>
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
+        className="toon-card relative p-7 sm:p-10"
+      >
+        {/* Sticker decorativo con floater */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={role}
+            initial={{ opacity: 0, scale: 0.6, rotate: 14 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              rotate: [4, 7, 4],
+              y: [0, -4, 0],
+            }}
+            exit={{ opacity: 0, scale: 0.6, rotate: -8 }}
+            transition={{
+              opacity: { duration: 0.3 },
+              scale: { type: "spring", stiffness: 280, damping: 14 },
+              rotate: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+              y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+            }}
+            className="absolute -top-4 right-6 inline-flex items-center gap-1 rounded-full border-2 border-[var(--color-ink)] px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider shadow-[3px_3px_0_var(--color-ink)]"
+            style={{
+              background:
+                role === "aspirante" ? "var(--color-accent)" : "var(--color-bg-sky)",
+              color: role === "aspirante" ? "#fff" : "var(--color-ink)",
+            }}
+          >
+            {role === "aspirante" ? "¡Gratis!" : "+48h respuesta"}
+          </motion.div>
+        </AnimatePresence>
 
         <form
           ref={formRef}
@@ -564,12 +710,28 @@ export function ApplicationForm() {
             </div>
           </PanelMotion>
 
-          {/* Mensaje de error */}
-          {errorMsg && (
-            <div className="mt-5 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 shadow-[3px_3px_0_#ef4444]">
-              {errorMsg}
-            </div>
-          )}
+          {/* Mensaje de error con AnimatePresence */}
+          <AnimatePresence>
+            {errorMsg && (
+              <motion.div
+                key="err"
+                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                animate={{ opacity: 1, height: "auto", marginTop: 20 }}
+                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                transition={{ duration: 0.35, ease: EASE }}
+                className="overflow-hidden"
+              >
+                <motion.div
+                  initial={{ x: 0 }}
+                  animate={{ x: [0, -6, 6, -4, 4, 0] }}
+                  transition={{ duration: 0.5, ease: EASE }}
+                  className="rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 shadow-[3px_3px_0_#ef4444]"
+                >
+                  {errorMsg}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Navegación */}
           <div className="mt-8 flex flex-wrap gap-3 border-t-2 border-dashed border-[var(--color-bg-soft)] pt-6">
@@ -586,46 +748,67 @@ export function ApplicationForm() {
             )}
 
             {step < steps.length ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="toon-btn ml-auto"
-                style={{ background: "var(--color-ink)", color: "#fff" }}
-              >
-                Continuar
-                <ArrowRight size={16} />
-              </button>
+              <Magnetic strength={0.25} className="ml-auto">
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="toon-btn"
+                  style={{ background: "var(--color-ink)", color: "#fff" }}
+                >
+                  Continuar
+                  <motion.span
+                    animate={{ x: [0, 3, 0] }}
+                    transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                    className="inline-flex"
+                  >
+                    <ArrowRight size={16} />
+                  </motion.span>
+                </button>
+              </Magnetic>
             ) : (
-              <button
-                type="submit"
-                disabled={submitting}
-                className="toon-btn ml-auto disabled:opacity-60"
-                style={{ background: "var(--color-ink)", color: "#fff" }}
-              >
-                {submitting ? (
-                  <>
-                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Enviando...
-                  </>
-                ) : (
-                  <>
-                    {role === "aspirante" ? "Enviar postulación" : "Enviar solicitud"}
-                    <Send size={16} />
-                  </>
-                )}
-              </button>
+              <Magnetic strength={0.25} className="ml-auto">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="toon-btn disabled:opacity-60"
+                  style={{ background: "var(--color-ink)", color: "#fff" }}
+                >
+                  {submitting ? (
+                    <>
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      {role === "aspirante" ? "Enviar postulación" : "Enviar solicitud"}
+                      <motion.span
+                        animate={{ rotate: [0, -8, 0, 8, 0] }}
+                        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                        className="inline-flex"
+                      >
+                        <Send size={16} />
+                      </motion.span>
+                    </>
+                  )}
+                </button>
+              </Magnetic>
             )}
           </div>
 
           {step === steps.length && (
-            <p className="mt-4 text-center text-xs text-[var(--color-fg-subtle)]">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+              className="mt-4 text-center text-xs text-[var(--color-fg-subtle)]"
+            >
               {role === "aspirante"
                 ? "Al enviar aceptas el tratamiento de datos según nuestra política de privacidad."
                 : "Te contactaremos en menos de 48 horas para coordinar una llamada."}
-            </p>
+            </motion.p>
           )}
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }
