@@ -81,21 +81,21 @@ export function CTA() {
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Magnetic strength={0.3}>
               <a
-                href="#"
+                href="/postular"
                 data-cursor="Postular"
                 className="toon-btn"
                 style={{ background: "var(--color-accent-soft)" }}
               >
-                Avísame cuando abra
+                Postularme al programa
                 <ArrowRight size={16} />
               </a>
             </Magnetic>
             <a
-              href="#"
-              data-cursor="Mentor"
+              href="/postular"
+              data-cursor="Empresa"
               className="toon-btn toon-btn--white"
             >
-              Hablar con un mentor
+              Apadrinar un talento
             </a>
           </div>
         </Reveal>
