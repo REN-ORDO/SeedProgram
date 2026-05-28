@@ -184,6 +184,8 @@ function Portrait({ t }: { t: Testimonio }) {
           alt={`Retrato toon de ${t.name}`}
           fill
           sizes="(min-width: 768px) 40vw, 90vw"
+          quality={100}
+          unoptimized
           className="object-cover"
         />
       ) : (
