@@ -8,12 +8,19 @@
  *  - Empresa:   datos · diagnóstico del reto · modalidad de apoyo
  *
  * Submit → Firestore (colecciones `aspirantes` / `empresas`).
- * CV de aspirante → Firebase Storage bajo `cvs/`.
+ * CV de aspirante → Cloudinary (cualquier formato, ver lib/cloudinary.ts).
  *
  * Estilo: usa los tokens .theme-toon + helpers .toon-* de globals.css.
  */
 
-import { useState, useMemo, useRef, type ChangeEvent, type FormEvent } from "react";
+import {
+  useState,
+  useMemo,
+  useRef,
+  type ChangeEvent,
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
@@ -329,15 +336,32 @@ export function ApplicationForm() {
     if (!panel) return true;
 
     const required = panel.querySelectorAll<HTMLElement>("[required]");
+    const validatedRadioGroups = new Set<string>();
+
     for (const el of Array.from(required)) {
       if (el instanceof HTMLInputElement && el.type === "radio") {
+        if (validatedRadioGroups.has(el.name)) continue;
+        validatedRadioGroups.add(el.name);
+
         const group = panel.querySelectorAll<HTMLInputElement>(
           `input[name="${el.name}"]`,
         );
-        const checked = Array.from(group).some((r) => r.checked);
-        if (!checked) {
+        const checkedRadio = Array.from(group).find((r) => r.checked);
+        if (!checkedRadio) {
           setErrorMsg("Por favor selecciona una opción antes de continuar.");
           return false;
+        }
+        // Si la opción seleccionada es "otro" (o tiene un text input asociado),
+        // requerir que el text input esté lleno.
+        if (checkedRadio.value === "otro" || checkedRadio.value === "referido") {
+          const otherInput = checkedRadio
+            .closest("label")
+            ?.querySelector<HTMLInputElement>('input[type="text"]');
+          if (otherInput && !otherInput.value.trim()) {
+            otherInput.focus();
+            setErrorMsg("Especifica la opción seleccionada antes de continuar.");
+            return false;
+          }
         }
       } else if (el instanceof HTMLInputElement && el.type === "file") {
         if (!el.files || el.files.length === 0) {
@@ -375,8 +399,29 @@ export function ApplicationForm() {
 
   // ---- Submit a Firebase ----
 
+  /**
+   * Bloquea el Enter key en pasos intermedios.
+   * Evita submits accidentales cuando el usuario escribe en un input
+   * y presiona Enter (default behavior del form).
+   */
+  const handleKeyDown = (e: ReactKeyboardEvent<HTMLFormElement>) => {
+    if (e.key !== "Enter") return;
+    // Permitir Enter en textarea (saltos de línea naturales)
+    if (e.target instanceof HTMLTextAreaElement) return;
+    // En pasos intermedios: bloquear submit, avanzar paso
+    if (step < steps.length) {
+      e.preventDefault();
+      handleNext();
+    }
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Guardia extra: solo permite submit en el último paso
+    if (step < steps.length) {
+      goTo(step + 1, "forward");
+      return;
+    }
     if (!validateCurrentPanel()) return;
 
     setSubmitting(true);
@@ -392,7 +437,7 @@ export function ApplicationForm() {
       }
 
       if (role === "aspirante") {
-        // Subir CV a Cloudinary primero
+        // Subir CV a Cloudinary primero (cualquier formato)
         const cvFile = cvInputRef.current?.files?.[0];
         if (cvFile) {
           const upload = await uploadCvToCloudinary(cvFile);
@@ -419,9 +464,12 @@ export function ApplicationForm() {
 
       setSuccess(true);
     } catch (err) {
+      // Mostramos el mensaje real para poder diagnosticar en producción
+      const message =
+        err instanceof Error ? err.message : "Error desconocido";
       console.error("Error guardando postulación:", err);
       setErrorMsg(
-        "Hubo un problema enviando tu postulación. Intenta de nuevo en unos segundos.",
+        `Hubo un problema enviando tu postulación: ${message}`,
       );
     } finally {
       setSubmitting(false);
@@ -490,7 +538,12 @@ export function ApplicationForm() {
           {role === "aspirante" ? "¡Gratis!" : "+48h respuesta"}
         </div>
 
-        <form ref={formRef} onSubmit={handleSubmit} noValidate>
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          onKeyDown={handleKeyDown}
+          noValidate
+        >
           <Stepper steps={steps} current={step} />
 
           <PanelMotion step={`${role}-${step}` as unknown as number} direction={direction}>
@@ -727,7 +780,7 @@ function AspiranteStep2({
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate font-display text-[15px] font-bold text-[var(--color-ink)]">
-              {cvFileName ?? "Cargar CV (PDF o Word)"}
+              {cvFileName ?? "Cargar CV (cualquier formato)"}
             </div>
             <div className="font-handwritten text-base font-semibold leading-tight text-[var(--color-accent-strong)]">
               ¡queremos conocer tu potencial!
@@ -738,7 +791,6 @@ function AspiranteStep2({
             ref={cvInputRef}
             type="file"
             name="cv"
-            accept=".pdf,.doc,.docx"
             onChange={onCvChange}
             required
             className="hidden"
