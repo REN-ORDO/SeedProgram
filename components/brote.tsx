@@ -59,17 +59,17 @@ export function Brote() {
     <div className="relative aspect-[1/1.1] w-full">
       {!reduce && (
         <>
-          <span className="animate-float absolute left-[8%] top-[12%] h-1 w-1 rounded-full bg-[--color-accent] opacity-50" />
+          <span className="animate-float absolute left-[8%] top-[12%] h-1 w-1 rounded-full bg-[var(--color-accent)] opacity-50" />
           <span
-            className="animate-float absolute right-[14%] top-[28%] h-1 w-1 rounded-full bg-[--color-accent-2] opacity-50"
+            className="animate-float absolute right-[14%] top-[28%] h-1 w-1 rounded-full bg-[var(--color-accent-2)] opacity-50"
             style={{ animationDelay: "1.2s" }}
           />
           <span
-            className="animate-float absolute left-[18%] top-[58%] h-1 w-1 rounded-full bg-[--color-accent-soft] opacity-60"
+            className="animate-float absolute left-[18%] top-[58%] h-1 w-1 rounded-full bg-[var(--color-accent-soft)] opacity-60"
             style={{ animationDelay: "2.4s" }}
           />
           <span
-            className="animate-float absolute right-[22%] bottom-[14%] h-1 w-1 rounded-full bg-[--color-accent] opacity-50"
+            className="animate-float absolute right-[22%] bottom-[14%] h-1 w-1 rounded-full bg-[var(--color-accent)] opacity-50"
             style={{ animationDelay: "3.6s" }}
           />
         </>

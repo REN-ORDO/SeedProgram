@@ -9,7 +9,7 @@ export function CTA() {
     <section
       id="aplicar"
       aria-label="Convocatoria"
-      className="relative isolate overflow-hidden px-6 py-28 md:px-10 md:py-36 toon-section toon-section--deep"
+      className="relative isolate overflow-hidden px-5 py-20 md:px-10 md:py-36 toon-section toon-section--deep"
     >
       {/* Decorative stickers */}
       <svg
@@ -46,8 +46,8 @@ export function CTA() {
             style={{ background: "var(--color-accent-soft)" }}
           >
             <span className="relative flex h-2 w-2">
-              <span className="absolute inset-0 animate-ping rounded-full bg-[--color-ink] opacity-50" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[--color-ink]" />
+              <span className="absolute inset-0 animate-ping rounded-full bg-[var(--color-ink)] opacity-50" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--color-ink)]" />
             </span>
             Batch 9 · Próximamente
           </span>

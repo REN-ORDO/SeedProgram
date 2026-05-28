@@ -21,12 +21,12 @@ export function Cultura() {
     <section
       id="cultura"
       aria-label="Cultura"
-      className="relative px-6 py-24 md:px-10 md:py-32 toon-section toon-section--soft"
+      className="relative px-5 py-16 md:px-10 md:py-32 toon-section toon-section--soft"
     >
       <div className="mx-auto max-w-6xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
           <span className="font-bold text-[--color-ink]">04</span>
-          <span className="h-[2px] w-12 bg-[--color-ink]" />
+          <span className="h-[2px] w-12 bg-[var(--color-ink)]" />
           <span>Manifiesto · ADN</span>
         </Reveal>
 

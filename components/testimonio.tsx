@@ -44,7 +44,7 @@ export function TestimonioSection() {
     <section
       aria-label="Historia"
       aria-roledescription="carousel"
-      className="relative px-6 py-24 md:px-10 md:py-32"
+      className="relative px-5 py-16 md:px-10 md:py-32"
       style={{ background: "var(--color-bg)" }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -52,7 +52,7 @@ export function TestimonioSection() {
       onBlur={() => setPaused(false)}
     >
       <div className="mx-auto max-w-6xl">
-        <Reveal className="mb-8 flex items-center justify-between gap-4">
+        <Reveal className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
             <span className="font-bold text-[--color-ink]">·</span>
             <span>Historias</span>
@@ -61,7 +61,7 @@ export function TestimonioSection() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 self-end sm:self-auto">
             <button
               type="button"
               aria-label="Historia anterior"
@@ -95,7 +95,7 @@ export function TestimonioSection() {
               type="button"
               aria-label="Siguiente historia"
               onClick={next}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-[--color-accent] text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-[var(--color-accent)] text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             >
               <ChevronRight size={18} strokeWidth={3} />
             </button>
@@ -118,7 +118,7 @@ export function TestimonioSection() {
                   {t.name} · {t.badge}
                 </div>
                 <div className="mt-1 inline-flex items-center gap-2 text-xs font-mono text-[--color-fg-subtle]">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-[--color-accent]" />
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
                   {t.tenure}
                 </div>
               </div>

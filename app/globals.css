@@ -165,7 +165,8 @@
   }
 }
 
-/* === Toon / neobrutalism playful helpers (outside @layer for v4) === */
+/* === Toon / neobrutalism playful helpers === */
+@layer components {
 .toon-card {
   background: var(--color-surface);
   border: var(--toon-border);
@@ -228,6 +229,7 @@
 
 .font-handwritten { font-family: var(--font-handwritten), cursive; }
 .text-handwritten { font-family: var(--font-handwritten), cursive; font-weight: 600; }
+}
 
 @layer utilities {
   .grain::before {

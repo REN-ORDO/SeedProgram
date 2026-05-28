@@ -11,12 +11,12 @@ export function Plan() {
     <section
       id="plan"
       aria-label="Plan de 4 semanas"
-      className="relative px-6 py-24 md:px-10 md:py-32 toon-section toon-section--sky"
+      className="relative px-5 py-16 md:px-10 md:py-32 toon-section toon-section--sky"
     >
       <div className="mx-auto max-w-6xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
           <span className="font-bold text-[--color-ink]">03</span>
-          <span className="h-[2px] w-12 bg-[--color-ink]" />
+          <span className="h-[2px] w-12 bg-[var(--color-ink)]" />
           <span>Plan base</span>
         </Reveal>
         <div className="mb-14 max-w-3xl">

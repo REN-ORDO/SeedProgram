@@ -67,7 +67,7 @@ export default function FuentesPage() {
         </h1>
         <p className="mt-4 max-w-2xl text-[--color-fg-muted]">
           Misma frase de referencia en 6 candidatas. Elige cuál usar como
-          <code className="mx-1 rounded bg-[--color-bg-elev] px-1.5 py-0.5 font-mono text-sm">--font-display</code>
+          <code className="mx-1 rounded bg-[var(--color-bg-elev)] px-1.5 py-0.5 font-mono text-sm">--font-display</code>
           de la web.
         </p>
       </header>
@@ -76,7 +76,7 @@ export default function FuentesPage() {
         {candidates.map((c) => (
           <section
             key={c.name}
-            className="rounded-2xl border border-[--color-border] bg-[--color-bg-elev]/40 p-8 backdrop-blur-md md:p-10"
+            className="rounded-2xl border border-[--color-border] bg-[var(--color-bg-elev)]/40 p-8 backdrop-blur-md md:p-10"
           >
             <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="font-mono text-sm uppercase tracking-[0.15em] text-[--color-accent]">
@@ -104,7 +104,7 @@ export default function FuentesPage() {
       <footer className="mt-20 border-t border-[--color-border] pt-8 text-sm text-[--color-fg-muted]">
         <p>
           Cuando decidas, dime el nombre y la aplico globalmente en
-          <code className="mx-1 rounded bg-[--color-bg-elev] px-1.5 py-0.5 font-mono text-xs">app/globals.css</code>.
+          <code className="mx-1 rounded bg-[var(--color-bg-elev)] px-1.5 py-0.5 font-mono text-xs">app/globals.css</code>.
         </p>
       </footer>
     </main>

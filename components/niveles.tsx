@@ -11,13 +11,13 @@ export function Niveles() {
     <section
       id="niveles"
       aria-label="Niveles"
-      className="relative px-6 py-24 md:px-10 md:py-32"
+      className="relative px-5 py-16 md:px-10 md:py-32"
       style={{ background: "var(--color-bg)" }}
     >
       <div className="mx-auto max-w-5xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
           <span className="font-bold text-[--color-ink]">02</span>
-          <span className="h-[2px] w-12 bg-[--color-ink]" />
+          <span className="h-[2px] w-12 bg-[var(--color-ink)]" />
           <span>Hoja de ruta</span>
         </Reveal>
         <Reveal delay={0.05}>

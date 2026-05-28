@@ -3,7 +3,7 @@ import { Monogram } from "@/components/monogram";
 export function Footer() {
   return (
     <footer
-      className="border-t-2 border-[--color-ink] px-6 py-16 md:px-10"
+      className="border-t-2 border-[--color-ink] px-5 py-12 md:px-10 md:py-16"
       style={{ background: "var(--color-bg-soft)" }}
     >
       <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-4">

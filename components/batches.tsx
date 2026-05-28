@@ -10,13 +10,13 @@ export function Batches() {
     <section
       id="batches"
       aria-label="Batches"
-      className="relative px-6 py-24 md:px-10 md:py-32"
+      className="relative px-5 py-16 md:px-10 md:py-32"
       style={{ background: "var(--color-bg)" }}
     >
       <div className="mx-auto max-w-6xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
           <span className="font-bold text-[--color-ink]">05</span>
-          <span className="h-[2px] w-12 bg-[--color-ink]" />
+          <span className="h-[2px] w-12 bg-[var(--color-ink)]" />
           <span>Próximas convocatorias</span>
         </Reveal>
 
@@ -165,7 +165,7 @@ function ProximamenteBanner() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute right-[-30px] top-7 z-20 rotate-[12deg] whitespace-nowrap border-2 border-[--color-ink] bg-[--color-ink] px-5 py-1.5 font-display text-sm font-extrabold uppercase tracking-widest text-[--color-accent-soft] shadow-[4px_4px_0_var(--color-ink)] md:text-base"
+      className="pointer-events-none absolute right-2 top-6 z-20 rotate-[10deg] whitespace-nowrap border-2 border-[--color-ink] bg-[var(--color-ink)] px-3 py-1 font-display text-[11px] font-extrabold uppercase tracking-widest text-[--color-accent-soft] shadow-[3px_3px_0_var(--color-ink)] md:right-[-30px] md:top-7 md:rotate-[12deg] md:px-5 md:py-1.5 md:text-base md:shadow-[4px_4px_0_var(--color-ink)]"
     >
       Próximamente
     </div>

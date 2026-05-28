@@ -153,7 +153,7 @@ export function Hero() {
     <section
       id="inicio"
       aria-label="Inicio"
-      className="relative isolate overflow-hidden px-6 pt-28 pb-24 md:px-10 md:pt-36 md:pb-32"
+      className="relative isolate overflow-hidden px-5 pt-24 pb-16 md:px-10 md:pt-36 md:pb-32"
       style={{ background: "var(--color-bg)" }}
     >
       {/* Floating decorative stickers — background */}
@@ -170,29 +170,29 @@ export function Hero() {
         <LeafSVG className="h-full w-full" fill="#BAE6FD" rotate={-14} />
       </Floater>
 
-      {/* Extra leaves — flock */}
+      {/* Extra leaves — flock (mobile-thinned with `hidden sm:block`) */}
       <Floater reduce={!!reduce} className="absolute top-12 left-1/3 h-10 w-10 opacity-80" dur={6} amp={14} delay={0.2} rotateRange={12}>
         <LeafSVG className="h-full w-full" fill="#2DD4BF" rotate={45} />
       </Floater>
-      <Floater reduce={!!reduce} className="absolute top-1/2 left-4 h-9 w-9 opacity-80 md:left-12" dur={5.8} amp={11} delay={1.6} rotateRange={9}>
+      <Floater reduce={!!reduce} className="absolute top-1/2 left-4 hidden h-9 w-9 opacity-80 sm:block md:left-12" dur={5.8} amp={11} delay={1.6} rotateRange={9}>
         <LeafSVG className="h-full w-full" fill="#7DD3FC" rotate={-30} />
       </Floater>
-      <Floater reduce={!!reduce} className="absolute top-1/3 right-1/4 h-8 w-8 opacity-75" dur={6.8} amp={9} delay={0.9} rotateRange={14}>
+      <Floater reduce={!!reduce} className="absolute top-1/3 right-1/4 hidden h-8 w-8 opacity-75 sm:block" dur={6.8} amp={9} delay={0.9} rotateRange={14}>
         <LeafSVG className="h-full w-full" fill="#5EEAD4" rotate={60} />
       </Floater>
       <Floater reduce={!!reduce} className="absolute bottom-1/3 right-4 h-11 w-11 opacity-85 md:right-16" dur={5.4} amp={13} delay={2.0} rotateRange={7}>
         <LeafSVG className="h-full w-full" fill="#38BDF8" rotate={-50} />
       </Floater>
-      <Floater reduce={!!reduce} className="absolute top-1/2 right-1/2 h-7 w-7 opacity-70" dur={7.2} amp={8} delay={0.5} rotateRange={11}>
+      <Floater reduce={!!reduce} className="absolute top-1/2 right-1/2 hidden h-7 w-7 opacity-70 sm:block" dur={7.2} amp={8} delay={0.5} rotateRange={11}>
         <LeafSVG className="h-full w-full" fill="#BAE6FD" rotate={15} />
       </Floater>
-      <Floater reduce={!!reduce} className="absolute bottom-44 left-1/2 h-8 w-8 opacity-75" dur={6.2} amp={10} delay={1.4} rotateRange={9}>
+      <Floater reduce={!!reduce} className="absolute bottom-44 left-1/2 hidden h-8 w-8 opacity-75 sm:block" dur={6.2} amp={10} delay={1.4} rotateRange={9}>
         <LeafSVG className="h-full w-full" fill="#0D9488" rotate={-20} />
       </Floater>
       <Floater reduce={!!reduce} className="absolute top-3/4 left-1/4 h-9 w-9 opacity-80" dur={5.6} amp={12} delay={0.7} rotateRange={10}>
         <LeafSVG className="h-full w-full" fill="#5EEAD4" rotate={70} />
       </Floater>
-      <Floater reduce={!!reduce} className="absolute top-16 right-1/2 h-6 w-6 opacity-65" dur={4.6} amp={9} delay={1.9} rotateRange={13}>
+      <Floater reduce={!!reduce} className="absolute top-16 right-1/2 hidden h-6 w-6 opacity-65 sm:block" dur={4.6} amp={9} delay={1.9} rotateRange={13}>
         <LeafSVG className="h-full w-full" fill="#2DD4BF" rotate={-65} />
       </Floater>
 
@@ -209,8 +209,8 @@ export function Hero() {
         >
           <span className="toon-pill">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inset-0 animate-ping rounded-full bg-[--color-accent] opacity-70" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[--color-accent]" />
+              <span className="absolute inset-0 animate-ping rounded-full bg-[var(--color-accent)] opacity-70" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--color-accent)]" />
             </span>
             Batch 9 · Próximamente
           </span>
@@ -221,11 +221,11 @@ export function Hero() {
           initial={reduce ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="toon-card relative px-7 py-10 md:px-12 md:py-14"
+          className="toon-card relative px-5 py-8 md:px-12 md:py-14"
         >
           {/* Corner sticker */}
           <Sticker
-            className="absolute -top-5 -right-5 text-sm md:-top-6 md:-right-6"
+            className="absolute -top-4 right-2 text-xs md:-top-6 md:-right-6 md:text-sm"
             bg="#5EEAD4"
             rotate={8}
           >

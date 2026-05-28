@@ -91,7 +91,7 @@ export function Nav() {
                     {isActive && (
                       <motion.span
                         layoutId="nav-active"
-                        className="absolute inset-0 rounded-full border-2 border-[--color-ink] bg-[--color-accent-soft]"
+                        className="absolute inset-0 rounded-full border-2 border-[--color-ink] bg-[var(--color-accent-soft)]"
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
                     )}
@@ -133,7 +133,7 @@ export function Nav() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-[--color-bg] lg:hidden"
+            className="fixed inset-0 z-[60] bg-[var(--color-bg)] lg:hidden"
           >
             <div className="flex items-center justify-between border-b-2 border-[--color-ink] p-6">
               <div className="flex items-center gap-2.5">
@@ -158,7 +158,7 @@ export function Nav() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 + i * 0.06, duration: 0.4 }}
-                  className="group flex items-baseline justify-between rounded-2xl border-2 border-[--color-ink] bg-white px-5 py-4 shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5 hover:bg-[--color-accent-soft]"
+                  className="group flex items-baseline justify-between rounded-2xl border-2 border-[--color-ink] bg-white px-5 py-4 shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5 hover:bg-[var(--color-accent-soft)]"
                 >
                   <span className="flex items-baseline gap-3">
                     <span className="font-mono text-xs text-[--color-fg-subtle]">{item.index}</span>
