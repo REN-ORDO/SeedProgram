@@ -675,26 +675,30 @@ export function ApplicationForm() {
         const cvFile = cvInputRef.current?.files?.[0];
         if (cvFile) {
           const upload = await uploadCvToCloudinary(cvFile);
-          data.cvUrl = upload.secureUrl;
-          data.cvPublicId = upload.publicId;
-          data.cvResourceType = upload.resourceType;
-          data.cvFormat = upload.format;
-          data.cvBytes = upload.bytes;
+          // Solo guardamos los campos que Cloudinary devolvió definidos.
+          // Firestore RECHAZA valores undefined (sí acepta null).
+          if (upload.secureUrl) data.cvUrl = upload.secureUrl;
+          if (upload.publicId) data.cvPublicId = upload.publicId;
+          if (upload.resourceType) data.cvResourceType = upload.resourceType;
+          if (upload.format) data.cvFormat = upload.format;
+          if (typeof upload.bytes === "number") data.cvBytes = upload.bytes;
           data.cvFilename = cvFile.name;
         }
-
-        await addDoc(collection(db, "aspirantes"), {
-          ...data,
-          createdAt: serverTimestamp(),
-          source: "web-postular",
-        });
-      } else {
-        await addDoc(collection(db, "empresas"), {
-          ...data,
-          createdAt: serverTimestamp(),
-          source: "web-postular",
-        });
       }
+
+      // Limpieza final: nunca enviar undefined a Firestore.
+      const cleanData = Object.fromEntries(
+        Object.entries(data).filter(([, v]) => v !== undefined),
+      );
+
+      const payload = {
+        ...cleanData,
+        createdAt: serverTimestamp(),
+        source: "web-postular",
+      };
+
+      const collectionName = role === "aspirante" ? "aspirantes" : "empresas";
+      await addDoc(collection(db, collectionName), payload);
 
       setSuccess(true);
     } catch (err) {

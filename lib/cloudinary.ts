@@ -20,7 +20,12 @@ export type CloudinaryUploadResult = {
   publicId: string;
   resourceType: string;
   bytes: number;
-  format: string;
+  /**
+   * Cloudinary no siempre devuelve `format` (depende del resource_type
+   * y del archivo). Para .pdf/.jpg/.png viene como "pdf"/"jpg"/"png",
+   * pero para raw files genéricos puede venir undefined.
+   */
+  format?: string;
   originalFilename: string;
 };
 
@@ -61,7 +66,7 @@ export async function uploadCvToCloudinary(
     public_id: string;
     resource_type: string;
     bytes: number;
-    format: string;
+    format?: string;
     original_filename: string;
   };
 
