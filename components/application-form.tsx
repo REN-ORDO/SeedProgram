@@ -40,6 +40,114 @@ import { cn } from "@/lib/utils";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 // ============================================================
+// Validadores por campo
+// ============================================================
+// Cada validador recibe el valor (ya trimmed) y devuelve:
+//   null  → valor válido
+//   string → mensaje de error a mostrar
+// Solo se aplican si el valor NO está vacío (la check de "required"
+// se hace por separado antes).
+
+type Validator = (value: string) => string | null;
+
+const RX = {
+  // Letras (incluye tildes / ñ vía \p{L}) + espacios + apóstrofes + guion
+  onlyLetters: /^[\p{L}\s'’\-]+$/u,
+  // Letras + números + espacios + caracteres comunes en nombres legales/programas
+  alphanumName: /^[\p{L}\p{N}\s'’\-.,&·/]+$/u,
+  // Email — regex pragmática (no perfecta pero suficiente)
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  // Teléfono: solo dígitos, espacios, +, -, paréntesis, puntos
+  phoneChars: /^[\d\s+\-().]+$/,
+} as const;
+
+const validators: Record<string, Validator> = {
+  nombre: (v) => {
+    if (v.length < 3) return "El nombre es muy corto.";
+    if (v.length > 100) return "El nombre es muy largo.";
+    if (!RX.onlyLetters.test(v))
+      return "El nombre solo puede tener letras, espacios y guiones.";
+    if (!/\s/.test(v)) return "Escribe tu nombre completo (nombre y apellido).";
+    return null;
+  },
+  direccion: (v) => {
+    if (v.length < 5) return "La dirección es muy corta.";
+    if (v.length > 200) return "La dirección es muy larga.";
+    return null;
+  },
+  whatsapp: (v) => {
+    if (!RX.phoneChars.test(v))
+      return "El WhatsApp solo puede tener números, espacios, + - ( ).";
+    const digits = v.replace(/\D/g, "");
+    if (digits.length < 7) return "El WhatsApp es muy corto.";
+    if (digits.length > 15) return "El WhatsApp es muy largo.";
+    return null;
+  },
+  telefono: (v) => {
+    if (!RX.phoneChars.test(v))
+      return "El teléfono solo puede tener números, espacios, + - ( ).";
+    const digits = v.replace(/\D/g, "");
+    if (digits.length < 7) return "El teléfono es muy corto.";
+    if (digits.length > 15) return "El teléfono es muy largo.";
+    return null;
+  },
+  email: (v) => {
+    if (v.length > 200) return "El correo es muy largo.";
+    if (!RX.email.test(v)) return "El correo no tiene un formato válido.";
+    return null;
+  },
+  carrera: (v) => {
+    if (v.length > 150) return "El nombre del programa es muy largo.";
+    return null;
+  },
+  empresa: (v) => {
+    if (v.length < 2) return "El nombre de la empresa es muy corto.";
+    if (v.length > 150) return "El nombre de la empresa es muy largo.";
+    if (!RX.alphanumName.test(v))
+      return "El nombre tiene caracteres no permitidos.";
+    return null;
+  },
+  contacto: (v) => {
+    if (v.length < 3) return "El nombre del contacto es muy corto.";
+    if (v.length > 200) return "El nombre del contacto es muy largo.";
+    return null;
+  },
+  reto: (v) => {
+    if (v.length < 20)
+      return "Cuéntanos un poco más sobre el reto (mínimo 20 caracteres).";
+    if (v.length > 2000) return "El texto es muy largo (máximo 2000 caracteres).";
+    return null;
+  },
+  // Campos "otro" — solo limitamos length, ya validamos no-vacío arriba
+  estudia_otro: (v) =>
+    v.length > 100 ? "El texto es muy largo." : null,
+  interes_otro: (v) =>
+    v.length > 100 ? "El texto es muy largo." : null,
+  origen_referido: (v) =>
+    v.length > 100 ? "El nombre es muy largo." : null,
+  origen_otro: (v) =>
+    v.length > 100 ? "El texto es muy largo." : null,
+  area_otro: (v) =>
+    v.length > 100 ? "El texto es muy largo." : null,
+  modalidad_otro: (v) =>
+    v.length > 100 ? "El texto es muy largo." : null,
+};
+
+// Labels amigables para mensaje genérico de "campo requerido"
+const fieldLabels: Record<string, string> = {
+  nombre: "el nombre completo",
+  ciudad: "la ciudad",
+  direccion: "la dirección",
+  whatsapp: "el WhatsApp",
+  telefono: "el teléfono",
+  email: "el correo electrónico",
+  carrera: "la carrera",
+  empresa: "el nombre de la empresa",
+  contacto: "la persona de contacto",
+  reto: "la descripción del reto",
+};
+
+// ============================================================
 // Types
 // ============================================================
 
@@ -423,6 +531,7 @@ export function ApplicationForm() {
     const panel = form.querySelector<HTMLElement>("[data-active-panel]");
     if (!panel) return true;
 
+    // 1) Validar campos requeridos vacíos + formatos de los campos requeridos
     const required = panel.querySelectorAll<HTMLElement>("[required]");
     const validatedRadioGroups = new Set<string>();
 
@@ -439,9 +548,10 @@ export function ApplicationForm() {
           setErrorMsg("Por favor selecciona una opción antes de continuar.");
           return false;
         }
-        // Si la opción seleccionada es "otro" (o tiene un text input asociado),
-        // requerir que el text input esté lleno.
-        if (checkedRadio.value === "otro" || checkedRadio.value === "referido") {
+        if (
+          checkedRadio.value === "otro" ||
+          checkedRadio.value === "referido"
+        ) {
           const otherInput = checkedRadio
             .closest("label")
             ?.querySelector<HTMLInputElement>('input[type="text"]');
@@ -457,16 +567,52 @@ export function ApplicationForm() {
           return false;
         }
       } else if (
-        (el instanceof HTMLInputElement ||
-          el instanceof HTMLSelectElement ||
-          el instanceof HTMLTextAreaElement) &&
-        !el.value.trim()
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLSelectElement ||
+        el instanceof HTMLTextAreaElement
       ) {
-        el.focus();
-        setErrorMsg("Faltan campos requeridos en este paso.");
-        return false;
+        const value = el.value.trim();
+        if (!value) {
+          el.focus();
+          const label = fieldLabels[el.name] ?? "este campo";
+          setErrorMsg(`Por favor completa ${label}.`);
+          return false;
+        }
+        // Validación de formato (si hay validador para este name)
+        const validator = validators[el.name];
+        if (validator) {
+          const err = validator(value);
+          if (err) {
+            el.focus();
+            setErrorMsg(err);
+            return false;
+          }
+        }
       }
     }
+
+    // 2) Validar formato de campos OPCIONALES que SÍ tienen valor
+    //    (ej: "carrera" opcional pero si la escriben mal, avisar)
+    const allInputs = panel.querySelectorAll<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >("input[name], select[name], textarea[name]");
+    for (const el of Array.from(allInputs)) {
+      if (el.hasAttribute("required")) continue; // ya validado arriba
+      if (el instanceof HTMLInputElement && el.type === "radio") continue;
+      if (el instanceof HTMLInputElement && el.type === "file") continue;
+      const value = el.value.trim();
+      if (!value) continue;
+      const validator = validators[el.name];
+      if (validator) {
+        const err = validator(value);
+        if (err) {
+          el.focus();
+          setErrorMsg(err);
+          return false;
+        }
+      }
+    }
+
     setErrorMsg(null);
     return true;
   };
@@ -836,6 +982,9 @@ function AspiranteStep1() {
           type="text"
           name="nombre"
           required
+          autoComplete="name"
+          inputMode="text"
+          maxLength={100}
           placeholder="Ej: María Fernanda López"
           className={inputCls}
         />
@@ -866,6 +1015,8 @@ function AspiranteStep1() {
             type="text"
             name="direccion"
             required
+            autoComplete="street-address"
+            maxLength={200}
             placeholder="Calle, número, barrio"
             className={inputCls}
           />
@@ -881,6 +1032,9 @@ function AspiranteStep1() {
             type="tel"
             name="whatsapp"
             required
+            autoComplete="tel"
+            inputMode="tel"
+            maxLength={20}
             placeholder="300 123 4567"
             className={inputCls}
           />
@@ -893,6 +1047,9 @@ function AspiranteStep1() {
             type="email"
             name="email"
             required
+            autoComplete="email"
+            inputMode="email"
+            maxLength={200}
             placeholder="tu@correo.com"
             className={inputCls}
           />
@@ -945,6 +1102,7 @@ function AspiranteStep2({
         <input
           type="text"
           name="carrera"
+          maxLength={150}
           placeholder="Si aplica"
           className={inputCls}
         />
@@ -1082,6 +1240,8 @@ function EmpresaStep1() {
           type="text"
           name="empresa"
           required
+          autoComplete="organization"
+          maxLength={150}
           placeholder="Ej: Acme S.A.S."
           className={inputCls}
         />
@@ -1096,6 +1256,8 @@ function EmpresaStep1() {
           type="text"
           name="contacto"
           required
+          autoComplete="name"
+          maxLength={200}
           placeholder="Ej: Juan Pérez — CTO"
           className={inputCls}
         />
@@ -1111,6 +1273,9 @@ function EmpresaStep1() {
             type="email"
             name="email"
             required
+            autoComplete="email"
+            inputMode="email"
+            maxLength={200}
             placeholder="tu@empresa.com"
             className={inputCls}
           />
@@ -1123,6 +1288,9 @@ function EmpresaStep1() {
             type="tel"
             name="telefono"
             required
+            autoComplete="tel"
+            inputMode="tel"
+            maxLength={20}
             placeholder="+57 300 123 4567"
             className={inputCls}
           />
@@ -1176,11 +1344,13 @@ function EmpresaStep2() {
         <textarea
           name="reto"
           required
+          minLength={20}
+          maxLength={2000}
           placeholder="Ej: Pasamos mucho tiempo respondiendo preguntas frecuentes de clientes..."
           className={cn(inputCls, "min-h-[120px] resize-y leading-relaxed")}
         />
         <span className="mt-2 block text-[13px] text-[var(--color-fg-subtle)]">
-          ¿Qué problema crees que podría resolverse con tecnología o IA?
+          ¿Qué problema crees que podría resolverse con tecnología o IA? (mínimo 20 caracteres)
         </span>
       </Field>
     </>
