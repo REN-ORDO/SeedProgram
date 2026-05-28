@@ -17,6 +17,7 @@ import {
   useState,
   useMemo,
   useRef,
+  useEffect,
   type ChangeEvent,
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -497,10 +498,12 @@ export function ApplicationForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
 
-  // stepRef mirrors `step` synchronously en cada render para que el
-  // handleSubmit pueda chequear el valor real (sin closures rancios).
+  // stepRef mirrors `step` para que handleSubmit pueda chequear el valor
+  // real sin closures rancios. Se actualiza en useEffect (no en render).
   const stepRef = useRef(step);
-  stepRef.current = step;
+  useEffect(() => {
+    stepRef.current = step;
+  }, [step]);
 
   // Lock para evitar que un submit rebote justo después de un cambio
   // de paso (cuando el botón "Continuar" se transforma en "Enviar" en
@@ -717,6 +720,7 @@ export function ApplicationForm() {
         ...cleanData,
         createdAt: serverTimestamp(),
         source: "web-postular",
+        status: "pending" as const,
       };
 
       const collectionName = role === "aspirante" ? "aspirantes" : "empresas";

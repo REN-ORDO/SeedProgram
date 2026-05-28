@@ -12,6 +12,7 @@
  */
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { getAuth, type Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey:
@@ -38,6 +39,7 @@ const firebaseConfig = {
 const app: FirebaseApp = getApps().length ? getApps()[0]! : initializeApp(firebaseConfig);
 
 export const db: Firestore = getFirestore(app);
+export const auth: Auth = getAuth(app);
 
 /**
  * Analytics solo se carga en el cliente y cuando el navegador lo soporta.

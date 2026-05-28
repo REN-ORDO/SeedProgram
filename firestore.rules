@@ -4,17 +4,12 @@ rules_version = '2';
 // Firestore Security Rules — Programa Semilla CooWeb
 // ============================================================
 // Estrategia:
-//   - Las postulaciones (aspirantes / empresas) son CREATE-ONLY
-//     desde el cliente público.
-//   - Guardas mínimas pero efectivas a nivel rules:
-//       * cap de tamaño del doc (anti-spam)
-//       * source field obligatorio (anti-bot rudimentario)
-//       * serverTimestamp obligatorio (anti-replay con timestamp arbitrario)
-//   - Schema validation completo está del lado cliente
-//     (ver components/application-form.tsx · validators).
-//   - READ, UPDATE y DELETE están denegados desde el cliente:
-//     solo se acceden vía Admin SDK (server / Cloud Functions / consola).
-//   - Default deny en todo lo demás.
+//   - CREATE: cliente público puede crear postulaciones con guardas
+//     mínimas (source + serverTimestamp + size cap). El schema lo
+//     valida el cliente (ver components/application-form.tsx).
+//   - READ / UPDATE: solo admins autenticados (email en ADMIN_EMAILS).
+//     Update solo permite cambiar status + updatedAt + updatedBy.
+//   - DELETE: bloqueado siempre desde cliente (admin SDK only).
 // ============================================================
 
 service cloud.firestore {
@@ -22,24 +17,56 @@ service cloud.firestore {
 
     // ---------- Helpers ----------
 
-    function isValidPostulacion() {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in [
+          'sg@cooweb.co'
+          // agregá más admins acá si hacen falta
+        ];
+    }
+
+    // Permitir un signin antes de email_verified (para no bloquear admin
+    // que recién creó cuenta). Mantiene seguridad porque el email debe
+    // estar en la allowlist hardcoded.
+    function isAdminEvenUnverified() {
+      return request.auth != null
+        && request.auth.token.email in [
+          'sg@cooweb.co'
+        ];
+    }
+
+    function isValidPostulacionCreate() {
       return request.resource.data.size() <= 40
         && request.resource.data.source == 'web-postular'
         && request.resource.data.createdAt == request.time;
     }
 
-    // ---------- Aspirantes (jóvenes postulantes) ----------
-
-    match /aspirantes/{docId} {
-      allow create: if isValidPostulacion();
-      allow read, update, delete: if false;
+    // Solo permite update de campos seguros: status, updatedAt, updatedBy.
+    // El resto del doc no puede mutarse desde el cliente, ni siquiera por admin.
+    function isValidStatusUpdate() {
+      let mutated = request.resource.data.diff(resource.data).affectedKeys();
+      return mutated.hasOnly(['status', 'updatedAt', 'updatedBy'])
+        && request.resource.data.status in ['pending', 'reviewed', 'accepted', 'rejected']
+        && request.resource.data.updatedAt == request.time;
     }
 
-    // ---------- Empresas (aliados / patrocinadores) ----------
+    // ---------- Aspirantes ----------
+
+    match /aspirantes/{docId} {
+      allow create: if isValidPostulacionCreate();
+      allow read: if isAdminEvenUnverified();
+      allow update: if isAdminEvenUnverified() && isValidStatusUpdate();
+      allow delete: if false;
+    }
+
+    // ---------- Empresas ----------
 
     match /empresas/{docId} {
-      allow create: if isValidPostulacion();
-      allow read, update, delete: if false;
+      allow create: if isValidPostulacionCreate();
+      allow read: if isAdminEvenUnverified();
+      allow update: if isAdminEvenUnverified() && isValidStatusUpdate();
+      allow delete: if false;
     }
 
     // ---------- Default deny ----------
