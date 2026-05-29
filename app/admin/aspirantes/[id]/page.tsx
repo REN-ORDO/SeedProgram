@@ -43,18 +43,35 @@ const sections: FieldSection[] = [
     fields: [
       {
         key: "interes",
-        label: "Motivación",
+        label: "Motivación principal",
         format: (v) => {
           const map: Record<string, string> = {
-            tecnologia: "Aprender tecnología e IA",
-            empresas: "Conectar con empresas",
-            innovacion: "Resolver problemas con innovación",
-            otro: "Otro",
+            primera_oportunidad:
+              "Primera oportunidad real en tech",
+            autodidacta:
+              "Ya aprende solo, busca mentoría Senior + estructura",
+            cambio_carrera:
+              "Cambio de carrera hacia desarrollo de software",
+            impacto: "Crear tecnología con impacto real",
+            otro: "Otro (ver respuesta extendida)",
+            // Backward compat con docs viejos
+            tecnologia: "Aprender tecnología e IA (legacy)",
+            empresas: "Conectar con empresas (legacy)",
+            innovacion: "Resolver problemas con innovación (legacy)",
           };
           return v ? map[String(v)] ?? String(v) : "—";
         },
       },
-      { key: "interes_otro", label: "Otro (motivación)" },
+      {
+        key: "interes_otro",
+        label: "Respuesta abierta (motivación)",
+        format: (v) =>
+          v ? (
+            <span className="whitespace-pre-wrap">{String(v)}</span>
+          ) : (
+            "—"
+          ),
+      },
       {
         key: "origen",
         label: "¿Cómo nos conoció?",

@@ -664,12 +664,43 @@ export function ApplicationForm() {
           checkedRadio.value === "otro" ||
           checkedRadio.value === "referido"
         ) {
-          const otherInput = checkedRadio
-            .closest("label")
-            ?.querySelector<HTMLInputElement>('input[type="text"]');
-          if (otherInput && !otherInput.value.trim()) {
-            otherInput.focus();
-            setErrorMsg("Especifica la opción seleccionada antes de continuar.");
+          // Buscar primero en el mismo label (patrón legacy inline input)
+          let related: HTMLInputElement | HTMLTextAreaElement | null =
+            checkedRadio
+              .closest("label")
+              ?.querySelector<HTMLInputElement>('input[type="text"]') ?? null;
+
+          // Si no está en el label, buscar textarea/input hermano con el
+          // nombre patrón {name}_otro o {name}_referido (patrón expandido).
+          if (!related) {
+            const suffix =
+              checkedRadio.value === "otro" ? "_otro" : "_referido";
+            related = panel.querySelector<HTMLTextAreaElement>(
+              `textarea[name="${checkedRadio.name}${suffix}"]`,
+            );
+            if (!related) {
+              related = panel.querySelector<HTMLInputElement>(
+                `input[type="text"][name="${checkedRadio.name}${suffix}"]`,
+              );
+            }
+          }
+
+          if (related && !related.value.trim()) {
+            related.focus();
+            setErrorMsg(
+              "Especifica la opción seleccionada antes de continuar.",
+            );
+            return false;
+          }
+          // Validación de longitud mínima para el textarea de motivación
+          if (
+            related instanceof HTMLTextAreaElement &&
+            related.value.trim().length < 20
+          ) {
+            related.focus();
+            setErrorMsg(
+              "Cuéntanos un poco más (mínimo 20 caracteres). Tu motivación es lo más importante para nosotros.",
+            );
             return false;
           }
         }
@@ -1295,46 +1326,96 @@ function AspiranteStep2({
 }
 
 function AspiranteStep3() {
+  const ctx = useFormCtx();
+  // Estado local SOLO para gestionar el expand del textarea de "Otro".
+  // El valor real se escribe en valuesRef vía ctx.onChange (Radio's onChange).
+  const [interesVal, setInteresVal] = useState<string>(
+    ctx.defaults.interes ?? "",
+  );
+
   return (
     <>
       <PanelHeader
         title="Tu motivación"
         desc={
           <>
-            Último paso — <Hand>cuéntanos qué te trae aquí</Hand>.
+            La parte <Hand>más importante</Hand>: cuéntanos por qué este programa, por qué ahora.
           </>
         }
       />
 
       <Field>
         <label className={labelCls}>
-          ¿Por qué te interesa unirte?<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
+          ¿Qué te motiva a postular al Programa Semilla?<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
-        <div className="flex flex-col gap-2.5">
+        <div
+          className="flex flex-col gap-2.5"
+          onChange={(e: ChangeEvent<HTMLDivElement>) => {
+            const t = e.target as HTMLInputElement;
+            if (t.name === "interes") setInteresVal(t.value);
+          }}
+        >
           <Radio
             name="interes"
-            value="tecnologia"
-            label="Quiero aprender sobre tecnología e IA"
+            value="primera_oportunidad"
+            label="Quiero entrar al mundo tech y necesito mi primera oportunidad real"
             required
           />
           <Radio
             name="interes"
-            value="empresas"
-            label="Busco conectar con empresas y el mundo laboral"
+            value="autodidacta"
+            label="Ya aprendo por mi cuenta y busco mentoría Senior + estructura"
           />
           <Radio
             name="interes"
-            value="innovacion"
-            label="Me apasiona resolver problemas reales con innovación"
+            value="cambio_carrera"
+            label="Quiero hacer un cambio de carrera hacia desarrollo de software"
+          />
+          <Radio
+            name="interes"
+            value="impacto"
+            label="Me apasiona crear tecnología que tenga impacto real"
           />
           <Radio
             name="interes"
             value="otro"
-            label="Otro"
-            withOtherInput
-            otherName="interes_otro"
+            label="Otro — quiero contarte en mis propias palabras"
           />
         </div>
+
+        {/* Textarea expandido cuando se selecciona "otro" */}
+        <AnimatePresence initial={false}>
+          {interesVal === "otro" && (
+            <motion.div
+              key="otro-textarea"
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: "auto", marginTop: 14 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="rounded-2xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)] p-4 shadow-[3px_3px_0_var(--color-ink)]">
+                <label className="mb-2 block font-display text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-strong)]">
+                  Cuéntanos en tus palabras
+                </label>
+                <textarea
+                  {...textProps("interes_otro", ctx)}
+                  placeholder="¿Qué te motiva a postular? ¿Qué buscas obtener? ¿Por qué CooWeb? — esta respuesta nos ayuda a entender quién eres."
+                  minLength={20}
+                  maxLength={1000}
+                  rows={5}
+                  className={cn(
+                    inputCls,
+                    "min-h-[140px] resize-y leading-relaxed",
+                  )}
+                />
+                <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-[var(--color-fg-subtle)]">
+                  <span>Mínimo 20 caracteres. Sé honesto/a — no hay respuesta correcta.</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Field>
 
       <Field>
