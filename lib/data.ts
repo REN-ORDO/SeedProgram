@@ -338,6 +338,18 @@ export const testimonios: Testimonio[] = [
     photo: "/img-antonio.png",
     accent: "#BAE6FD",
   },
+  {
+    id: "anderson-prado",
+    name: "Anderson Prado",
+    badge: "Ex-Semilla · hoy Semi Senior Developer",
+    tenure: "Llegó por un concurso universitario · hoy lidera equipos",
+    headline: "De concurso universitario a liderar equipos.",
+    body: "Llegó al semillero ganando un concurso universitario, dando sus primeros pasos en el desarrollo profesional. Trabajó en proyectos reales con distintos clientes, aprendiendo de profesionales con amplia trayectoria. Hoy es Semi Senior Developer y lidera equipos en proyectos para clientes de distintos países.",
+    quote:
+      "Cada proyecto, cada cliente y cada mentor aportó a mi crecimiento técnico y profesional. Hoy lidero equipos en proyectos internacionales.",
+    photo: "/img-ander.png",
+    accent: "#0D9488",
+  },
 ];
 
 // Back-compat — first testimonio
