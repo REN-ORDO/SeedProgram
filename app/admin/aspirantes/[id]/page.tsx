@@ -43,31 +43,42 @@ const sections: FieldSection[] = [
     fields: [
       {
         key: "interes",
-        label: "Motivación principal",
+        label: "Motivación (respuesta abierta)",
         format: (v) => {
-          const map: Record<string, string> = {
-            primera_oportunidad:
-              "Primera oportunidad real en tech",
-            autodidacta:
-              "Ya aprende solo, busca mentoría Senior + estructura",
-            cambio_carrera:
-              "Cambio de carrera hacia desarrollo de software",
+          if (!v) return "—";
+          // Backward compat: docs viejos guardaban un keyword (tecnologia,
+          // empresas, innovacion, primera_oportunidad, etc.). Si matchea
+          // uno conocido, lo traducimos. Si no, asumimos texto libre.
+          const legacyMap: Record<string, string> = {
+            tecnologia: "Aprender tecnología e IA",
+            empresas: "Conectar con empresas y mundo laboral",
+            innovacion: "Resolver problemas con innovación",
+            primera_oportunidad: "Primera oportunidad real en tech",
+            autodidacta: "Ya aprende solo, busca mentoría Senior",
+            cambio_carrera: "Cambio de carrera hacia desarrollo",
             impacto: "Crear tecnología con impacto real",
-            otro: "Otro (ver respuesta extendida)",
-            // Backward compat con docs viejos
-            tecnologia: "Aprender tecnología e IA (legacy)",
-            empresas: "Conectar con empresas (legacy)",
-            innovacion: "Resolver problemas con innovación (legacy)",
+            otro: "Otro (ver legacy interes_otro)",
           };
-          return v ? map[String(v)] ?? String(v) : "—";
+          const s = String(v);
+          if (legacyMap[s])
+            return (
+              <span className="italic text-[var(--color-fg-subtle)]">
+                {legacyMap[s]} (legacy)
+              </span>
+            );
+          return <span className="whitespace-pre-wrap">{s}</span>;
         },
       },
+      // Mostramos interes_otro solo para preservar respuestas de docs viejos
+      // que tenían la opción "Otro" del esquema previo.
       {
         key: "interes_otro",
-        label: "Respuesta abierta (motivación)",
+        label: "Legacy: respuesta extendida (docs viejos)",
         format: (v) =>
           v ? (
-            <span className="whitespace-pre-wrap">{String(v)}</span>
+            <span className="whitespace-pre-wrap italic text-[var(--color-fg-subtle)]">
+              {String(v)}
+            </span>
           ) : (
             "—"
           ),

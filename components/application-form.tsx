@@ -121,10 +121,15 @@ const validators: Record<string, Validator> = {
     if (v.length > 2000) return "El texto es muy largo (máximo 2000 caracteres).";
     return null;
   },
+  // Motivación (textarea libre — es el signal más importante para hiring)
+  interes: (v) => {
+    if (v.length < 20)
+      return "Cuéntanos un poco más sobre tu motivación (mínimo 20 caracteres).";
+    if (v.length > 1500) return "Es muy largo (máximo 1500 caracteres).";
+    return null;
+  },
   // Campos "otro" — solo limitamos length, ya validamos no-vacío arriba
   estudia_otro: (v) =>
-    v.length > 100 ? "El texto es muy largo." : null,
-  interes_otro: (v) =>
     v.length > 100 ? "El texto es muy largo." : null,
   origen_referido: (v) =>
     v.length > 100 ? "El nombre es muy largo." : null,
@@ -148,6 +153,7 @@ const fieldLabels: Record<string, string> = {
   empresa: "el nombre de la empresa",
   contacto: "la persona de contacto",
   reto: "la descripción del reto",
+  interes: "tu motivación",
 };
 
 // ============================================================
@@ -1327,11 +1333,6 @@ function AspiranteStep2({
 
 function AspiranteStep3() {
   const ctx = useFormCtx();
-  // Estado local SOLO para gestionar el expand del textarea de "Otro".
-  // El valor real se escribe en valuesRef vía ctx.onChange (Radio's onChange).
-  const [interesVal, setInteresVal] = useState<string>(
-    ctx.defaults.interes ?? "",
-  );
 
   return (
     <>
@@ -1339,83 +1340,31 @@ function AspiranteStep3() {
         title="Tu motivación"
         desc={
           <>
-            La parte <Hand>más importante</Hand>: cuéntanos por qué este programa, por qué ahora.
+            La parte <Hand>más importante</Hand> — cuéntanos en tus palabras por qué este programa, por qué ahora.
           </>
         }
       />
 
       <Field>
         <label className={labelCls}>
-          ¿Qué te motiva a postular al Programa Semilla?<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
+          ¿Qué te motiva a postular al Programa Semilla?
+          <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
-        <div
-          className="flex flex-col gap-2.5"
-          onChange={(e: ChangeEvent<HTMLDivElement>) => {
-            const t = e.target as HTMLInputElement;
-            if (t.name === "interes") setInteresVal(t.value);
-          }}
-        >
-          <Radio
-            name="interes"
-            value="primera_oportunidad"
-            label="Quiero entrar al mundo tech y necesito mi primera oportunidad real"
-            required
-          />
-          <Radio
-            name="interes"
-            value="autodidacta"
-            label="Ya aprendo por mi cuenta y busco mentoría Senior + estructura"
-          />
-          <Radio
-            name="interes"
-            value="cambio_carrera"
-            label="Quiero hacer un cambio de carrera hacia desarrollo de software"
-          />
-          <Radio
-            name="interes"
-            value="impacto"
-            label="Me apasiona crear tecnología que tenga impacto real"
-          />
-          <Radio
-            name="interes"
-            value="otro"
-            label="Otro — quiero contarte en mis propias palabras"
-          />
-        </div>
-
-        {/* Textarea expandido cuando se selecciona "otro" */}
-        <AnimatePresence initial={false}>
-          {interesVal === "otro" && (
-            <motion.div
-              key="otro-textarea"
-              initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: "auto", marginTop: 14 }}
-              exit={{ opacity: 0, height: 0, marginTop: 0 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="rounded-2xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)] p-4 shadow-[3px_3px_0_var(--color-ink)]">
-                <label className="mb-2 block font-display text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-strong)]">
-                  Cuéntanos en tus palabras
-                </label>
-                <textarea
-                  {...textProps("interes_otro", ctx)}
-                  placeholder="¿Qué te motiva a postular? ¿Qué buscas obtener? ¿Por qué CooWeb? — esta respuesta nos ayuda a entender quién eres."
-                  minLength={20}
-                  maxLength={1000}
-                  rows={5}
-                  className={cn(
-                    inputCls,
-                    "min-h-[140px] resize-y leading-relaxed",
-                  )}
-                />
-                <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-[var(--color-fg-subtle)]">
-                  <span>Mínimo 20 caracteres. Sé honesto/a — no hay respuesta correcta.</span>
-                </div>
-              </div>
-            </motion.div>
+        <textarea
+          {...textProps("interes", ctx)}
+          placeholder="¿Qué buscas obtener? ¿En qué momento de tu vida estás? ¿Por qué CooWeb y no otro programa? Tomate el tiempo — esta respuesta es la que más leemos."
+          required
+          minLength={20}
+          maxLength={1500}
+          rows={6}
+          className={cn(
+            inputCls,
+            "min-h-[180px] resize-y leading-relaxed",
           )}
-        </AnimatePresence>
+        />
+        <span className="mt-2 block text-[13px] text-[var(--color-fg-subtle)]">
+          Mínimo 20 caracteres. No hay respuesta correcta — sé honesto/a.
+        </span>
       </Field>
 
       <Field>
