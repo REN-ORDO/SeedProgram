@@ -240,20 +240,13 @@
 .toon-section--soft { background: var(--color-bg-soft); }
 .toon-section--deep { background: var(--color-bg-deep); color: #fff; }
 
-/* Sección oscura premium (empresas). Texto claro a nivel sección;
-   las cards internas re-afirman ink oscuro en su propio scope. */
+/* Sección oscura premium (empresas). Solo el fondo + el texto suelto
+   (eyebrow, título de sección) van en claro. Las cards internas tienen
+   fondo claro y manejan sus propios colores oscuros en el JSX. */
 .toon-section--navy {
   background: #0c4a6e;
-  --color-ink: #ffffff;
-  --color-fg-muted: #bae6fd;
-  --color-fg-subtle: #7dd3fc;
   color: #fff;
-}
-/* Las cards sobre navy llevan fondo claro → su borde/sombra/texto
-   vuelven a ink oscuro para conservar el look neobrutalism. */
-.toon-section--navy .toon-card {
-  --color-ink: #0f172a;
-  --color-fg-muted: #475569;
+  --color-fg-subtle: #7dd3fc;
 }
 
 .font-handwritten { font-family: var(--font-handwritten), cursive; }
