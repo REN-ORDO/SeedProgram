@@ -105,6 +105,14 @@ export function Nav() {
             </nav>
 
             <a
+              href="/empresas"
+              data-cursor="Empresas"
+              className="hidden lg:inline-flex items-center rounded-full px-3 py-1.5 text-sm font-semibold text-[--color-fg-muted] transition-colors hover:text-[--color-ink]"
+            >
+              Para empresas
+            </a>
+
+            <a
               href="/postular"
               data-cursor="Aplicar"
               className="hidden lg:inline-flex toon-btn"
@@ -170,9 +178,21 @@ export function Nav() {
                 </motion.a>
               ))}
               <a
+                href="/empresas"
+                onClick={() => setOpen(false)}
+                className="group mt-4 flex items-baseline justify-between rounded-2xl border-2 border-[--color-ink] bg-white px-5 py-4 shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5 hover:bg-[var(--color-accent-soft)]"
+              >
+                <span className="font-display text-2xl font-bold text-[--color-ink]">
+                  Para empresas
+                </span>
+                <span className="text-2xl text-[--color-ink] transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </a>
+              <a
                 href="/postular"
                 onClick={() => setOpen(false)}
-                className="toon-btn mt-4 justify-center"
+                className="toon-btn mt-2 justify-center"
               >
                 Postularme →
               </a>

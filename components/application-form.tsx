@@ -702,6 +702,17 @@ function SelectField({
 export function ApplicationForm() {
   const [role, setRole] = useState<Role>("aspirante");
   const [step, setStep] = useState(1);
+
+  // Preselección de rol vía query (?rol=empresa) — deep-link desde /empresas.
+  // Se sincroniza tras montar (no en el init) para que el HTML del server y la
+  // primera render del cliente coincidan y no haya hydration mismatch. Usamos
+  // window (no useSearchParams) para no requerir un Suspense boundary.
+  useEffect(() => {
+    const rol = new URLSearchParams(window.location.search).get("rol");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync URL→estado al montar
+    if (rol === "empresa") setRole("empresa");
+  }, []);
+
   const [direction, setDirection] = useState<Direction>("forward");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
