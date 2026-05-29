@@ -573,37 +573,18 @@ export function ApplicationForm() {
     const panel = formRef.current?.querySelector<HTMLElement>(
       "[data-active-panel]",
     );
-    if (!panel) {
-      console.warn("[SEMILLA · capture] no se encontró active panel");
-      return;
-    }
+    if (!panel) return;
     const inputs = panel.querySelectorAll<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >("input[name], select[name], textarea[name]");
-    let captured = 0;
     for (const el of Array.from(inputs)) {
-      if (el instanceof HTMLInputElement && el.type === "file") {
-        console.log(
-          "[SEMILLA · capture] file input encontrado:",
-          el.name,
-          "el.files?",
-          el.files?.length,
-          "cvFileRef?",
-          cvFileRef.current?.name,
-        );
-        continue;
-      }
+      if (el instanceof HTMLInputElement && el.type === "file") continue;
       if (el instanceof HTMLInputElement && el.type === "radio") {
-        if (el.checked) {
-          valuesRef.current[el.name] = el.value;
-          captured++;
-        }
+        if (el.checked) valuesRef.current[el.name] = el.value;
         continue;
       }
       valuesRef.current[el.name] = el.value;
-      captured++;
     }
-    console.log("[SEMILLA · capture]", captured, "campos capturados. valuesRef:", { ...valuesRef.current });
     setDefaults({ ...valuesRef.current });
   };
 
@@ -696,15 +677,6 @@ export function ApplicationForm() {
         // El input se desmonta al navegar, así que también aceptamos el ref.
         const hasFile =
           (el.files && el.files.length > 0) || cvFileRef.current !== null;
-        console.log(
-          "[SEMILLA · validate file]",
-          "el.files length:",
-          el.files?.length,
-          "cvFileRef:",
-          cvFileRef.current?.name,
-          "hasFile:",
-          hasFile,
-        );
         if (!hasFile) {
           setErrorMsg("Por favor adjunta tu hoja de vida.");
           return false;
@@ -761,12 +733,7 @@ export function ApplicationForm() {
   };
 
   const handleNext = () => {
-    console.log("[SEMILLA · handleNext] step actual:", stepRef.current, "cvFileRef:", cvFileRef.current?.name);
-    if (!validateCurrentPanel()) {
-      console.warn("[SEMILLA · handleNext] validación FALLÓ");
-      return;
-    }
-    console.log("[SEMILLA · handleNext] validación OK, avanzando");
+    if (!validateCurrentPanel()) return;
     goTo(step + 1, "forward");
   };
 
@@ -776,14 +743,11 @@ export function ApplicationForm() {
 
   const onCvChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    console.log("[SEMILLA · onCvChange] file?", !!file, file?.name, "size:", file?.size);
-    if (!file) {
-      console.log("[SEMILLA · onCvChange] picker cancelado, MANTENGO ref:", cvFileRef.current?.name);
-      return;
-    }
+    // Si no hay file (usuario canceló el picker), NO limpiamos el ref —
+    // mantenemos el CV previo. Solo asignamos cuando hay archivo nuevo.
+    if (!file) return;
     cvFileRef.current = file;
     setCvFileName(file.name);
-    console.log("[SEMILLA · onCvChange] ref SET:", cvFileRef.current?.name);
   };
 
   // ---- Submit a Firebase ----
@@ -806,22 +770,20 @@ export function ApplicationForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("[SEMILLA · SUBMIT] dispatched. step:", stepRef.current, "cvFileRef:", cvFileRef.current?.name);
 
+    // Defensa 1: si acabamos de cambiar de paso (en los últimos ~600ms),
+    // ignorar el submit. Esto evita que un doble-click o el rebote del
+    // click sobre "Continuar" caiga sobre el botón submit recién renderizado.
     if (Date.now() - lastTransitionAtRef.current < TRANSITION_LOCK_MS) {
-      console.warn("[SEMILLA · SUBMIT] bloqueado por transition lock");
       return;
     }
 
+    // Defensa 2: usar stepRef (sincrono) en vez del `step` cerrado.
     if (stepRef.current < steps.length) {
-      console.warn("[SEMILLA · SUBMIT] no estoy en último paso, avanzo en vez de enviar");
       goTo(stepRef.current + 1, "forward");
       return;
     }
-    if (!validateCurrentPanel()) {
-      console.warn("[SEMILLA · SUBMIT] validación final FALLÓ");
-      return;
-    }
+    if (!validateCurrentPanel()) return;
 
     setSubmitting(true);
     setErrorMsg(null);
@@ -838,11 +800,8 @@ export function ApplicationForm() {
         // Subir CV a Cloudinary. Usamos cvFileRef (no cvInputRef.files) porque
         // el input se desmonta al navegar de paso y el File se perdería.
         const cvFile = cvFileRef.current ?? cvInputRef.current?.files?.[0];
-        console.log("[CV] cvFile presente?", !!cvFile, cvFile?.name);
         if (cvFile) {
-          console.log("[CV] Subiendo a Cloudinary...");
           const upload = await uploadCvToCloudinary(cvFile);
-          console.log("[CV] Upload OK:", upload);
           // Solo guardamos los campos que Cloudinary devolvió definidos.
           // Firestore RECHAZA valores undefined (sí acepta null).
           if (upload.secureUrl) data.cvUrl = upload.secureUrl;
@@ -851,11 +810,8 @@ export function ApplicationForm() {
           if (upload.format) data.cvFormat = upload.format;
           if (typeof upload.bytes === "number") data.cvBytes = upload.bytes;
           data.cvFilename = cvFile.name;
-        } else {
-          console.warn("[CV] No hay archivo adjunto al hacer submit");
         }
       }
-      console.log("[FORM] Payload final que va a Firestore:", data);
 
       // Limpieza final: nunca enviar undefined a Firestore.
       const cleanData = Object.fromEntries(
