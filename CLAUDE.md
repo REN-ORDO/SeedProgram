@@ -49,7 +49,7 @@ No test suite exists yet.
 ## 2. Equipo
 
 - **Líder:** Sebastián (REN-ORDO) — dirige decisiones, prioridades, revisión final.
-- **Devs:** 2 colaboradores adicionales (roles por definir).
+- **Devs:** 3 colaboradores adicionales (roles por definir).
 - **Flujo:** Líder aprueba diseño antes de implementar. PRs revisados por líder.
 
 ---
