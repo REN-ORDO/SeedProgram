@@ -1,10 +1,41 @@
-# CLAUDE.md — SeedProgram
+# CLAUDE.md
 
-Project context for Claude Code. Read first.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ---
 
-## 1. Proyecto
+## Commands
+
+```bash
+npm run dev       # Dev server at localhost:3000 (Next.js Turbopack)
+npm run build     # Production build
+npm run lint      # ESLint check
+npm run start     # Serve production build
+```
+
+No test suite exists yet.
+
+---
+
+## Architecture
+
+**Stack:** Next.js 15 App Router · React 19 · Tailwind CSS v4 · Framer Motion · TypeScript
+
+**Routes:**
+- `/` — single-page landing, all sections rendered in `app/page.tsx`
+- `/fuentes` — internal typography test page, not part of the product
+
+**Data flow:** All content lives in `lib/data.ts` as typed arrays (`pilares`, `niveles`, `batches`, `testimonios`, `metrics`, etc.). Section components import directly from there — no API calls, no CMS. To change copy, update `lib/data.ts`.
+
+**Component pattern:** Each landing section is a standalone file in `components/` (e.g. `hero.tsx`, `pilares.tsx`). Scroll reveal animations use the shared `components/reveal.tsx` wrapper (Framer Motion). The `components/magnetic.tsx` and `components/cursor-spotlight.tsx` are interaction enhancements, not content.
+
+**Styling:** Tailwind v4 with custom theme tokens defined in `app/globals.css` via `@theme`. Two named themes: `theme-toon` (neobrutalism with hand-drawn shadows, currently active) and `theme-dark`. All color usage must stay within the documented palette families — see §4 below. Use `cn()` from `lib/utils.ts` for conditional classnames.
+
+**Fonts:** Loaded in `app/layout.tsx` via `next/font/google`. CSS variables: `--font-sans` (Inter), `--font-display` (Space Grotesk), `--font-mono` (JetBrains Mono), `--font-handwritten` (Caveat).
+
+---
+
+## 1. Proyecto (contexto)
 
 **Nombre:** SeedProgram — Web Informativa Programa Semilla CooWeb
 **Tipo:** Sitio web informativo (landing/multipage)
@@ -18,7 +49,7 @@ Project context for Claude Code. Read first.
 ## 2. Equipo
 
 - **Líder:** Sebastián (REN-ORDO) — dirige decisiones, prioridades, revisión final.
-- **Devs:** 2 colaboradores adicionales (roles por definir).
+- **Devs:** 3 colaboradores adicionales (roles por definir).
 - **Flujo:** Líder aprueba diseño antes de implementar. PRs revisados por líder.
 
 ---
@@ -186,13 +217,14 @@ Comparar propuestas contra:
 
 ---
 
-## 7. Stack Sugerido (a confirmar)
+## 7. Stack
 
-- **Framework:** Next.js (App Router) — SEO, multipage, Vercel deploy.
-- **Estilo:** Tailwind CSS + tokens de paleta arriba.
-- **Componentes:** shadcn/ui para base, custom para hero/timeline.
+- **Framework:** Next.js 15 App Router — SEO, multipage, Vercel deploy.
+- **Estilo:** Tailwind CSS v4 + tokens en `app/globals.css`.
+- **Animaciones:** Framer Motion (scroll reveal, magnetic, loading screen).
+- **Iconos:** lucide-react.
 - **Deploy:** Vercel.
-- **Forms:** server action → email/Sheet/Notion (a definir).
+- **Forms:** server action → destino por definir (email/Sheet/Notion).
 
 ---
 
@@ -213,9 +245,10 @@ Si se implementa: usar API propia (no exponer key cliente), considerar Claude/An
 
 - ✅ Contenido extraído (`programa-semilla-cooweb.md`)
 - ✅ Conceptualización + paleta (este archivo)
-- ⏳ Líder escoge propuesta A/B/C
-- ⏳ Setup repo (Next.js + Tailwind)
-- ⏳ Implementación landing v1
+- ✅ Stack configurado (Next.js + Tailwind v4)
+- ✅ Landing v1 implementada — tema `theme-toon` activo (neobrutalism)
+- ⏳ Formulario de postulación (server action → destino por definir)
+- ⏳ Páginas internas (silabus detallado, batch individual)
 
 ---
 

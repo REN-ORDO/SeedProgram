@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/lib/auth-context";
+import { PlantCursor } from "@/components/plant-cursor";
 
 export const metadata: Metadata = {
   title: "Admin · Programa Semilla CooWeb",
@@ -11,5 +12,10 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthProvider>{children}</AuthProvider>;
+  return (
+    <AuthProvider>
+      <PlantCursor />
+      {children}
+    </AuthProvider>
+  );
 }

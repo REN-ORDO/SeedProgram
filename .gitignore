@@ -21,11 +21,15 @@ yarn-error.log*
 .pnpm-debug.log*
 
 .env*
+!.env.example
 
 .vercel
 
 *.tsbuildinfo
 next-env.d.ts
+
+# Local Claude rules (not versioned)
+CLAUDE.local.md
 
 # Playwright MCP & screenshots
 /.playwright-mcp/
