@@ -32,11 +32,20 @@ import {
   FileUp,
   Building2,
   Send,
+  History,
+  X,
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadCvToCloudinary } from "@/lib/cloudinary";
 import { Magnetic } from "@/components/magnetic";
+import {
+  saveDraft,
+  loadDraft,
+  clearDraft,
+  draftAge,
+  type FormDraft,
+} from "@/lib/form-draft";
 import { cn } from "@/lib/utils";
 
 // Easing canónico del sitio
@@ -541,6 +550,11 @@ export function ApplicationForm() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cvFileName, setCvFileName] = useState<string | null>(null);
 
+  // Borrador detectado al montar (banner "Tienes un borrador guardado").
+  const [draftPrompt, setDraftPrompt] = useState<FormDraft | null>(null);
+  // Nombre del CV que tenía un borrador restaurado — recordatorio de re-subir.
+  const [cvReminderName, setCvReminderName] = useState<string | null>(null);
+
   const formRef = useRef<HTMLFormElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
   // Guardamos el File object aparte. El input se desmonta al cambiar de paso
@@ -573,6 +587,30 @@ export function ApplicationForm() {
   const lastTransitionAtRef = useRef(0);
   const TRANSITION_LOCK_MS = 600;
 
+  // ---- Persistencia de borrador (localStorage) ----
+
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Al montar: si hay un borrador válido (< 48h) lo ofrecemos vía banner.
+  // setState-in-effect es intencional acá: leer localStorage solo es seguro
+  // en cliente (no SSR), y hacerlo en effect evita hydration mismatch.
+  useEffect(() => {
+    const d = loadDraft();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (d) setDraftPrompt(d);
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, []);
+
+  // Guarda el borrador con debounce (evita escribir en cada keystroke).
+  const persistDraftDebounced = () => {
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      saveDraft({ role, values: valuesRef.current, cvFileName });
+    }, 600);
+  };
+
   // ---- Captura de inputs del panel actual ----
 
   const captureCurrentPanel = () => {
@@ -592,6 +630,7 @@ export function ApplicationForm() {
       valuesRef.current[el.name] = el.value;
     }
     setDefaults({ ...valuesRef.current });
+    persistDraftDebounced();
   };
 
   // Handler global de cambios (registra en valuesRef sin re-render)
@@ -604,9 +643,11 @@ export function ApplicationForm() {
     if (el instanceof HTMLInputElement && el.type === "file") return;
     if (el instanceof HTMLInputElement && el.type === "radio") {
       if (el.checked) valuesRef.current[el.name] = el.value;
+      persistDraftDebounced();
       return;
     }
     valuesRef.current[el.name] = el.value;
+    persistDraftDebounced();
   };
 
   const steps = useMemo(
@@ -637,8 +678,30 @@ export function ApplicationForm() {
     setErrorMsg(null);
     setCvFileName(null);
     cvFileRef.current = null;
+    setCvReminderName(null);
     valuesRef.current = {};
     setDefaults({}); // limpia el snapshot también
+  };
+
+  // ---- Borrador: restaurar / descartar ----
+
+  const restoreDraft = () => {
+    if (!draftPrompt) return;
+    valuesRef.current = { ...draftPrompt.values };
+    setDefaults({ ...draftPrompt.values });
+    setRole(draftPrompt.role);
+    setStep(1); // siempre arranca en paso 1
+    setDirection("forward");
+    // El CV no se puede restaurar (File no serializable) → recordatorio.
+    setCvReminderName(draftPrompt.cvFileName);
+    setCvFileName(null);
+    cvFileRef.current = null;
+    setDraftPrompt(null);
+  };
+
+  const discardDraft = () => {
+    clearDraft();
+    setDraftPrompt(null);
   };
 
   // ---- Validación por paso (lee el DOM del form actual) ----
@@ -785,6 +848,7 @@ export function ApplicationForm() {
     if (!file) return;
     cvFileRef.current = file;
     setCvFileName(file.name);
+    setCvReminderName(null); // ya re-adjuntó, ocultar recordatorio
   };
 
   // ---- Submit a Firebase ----
@@ -865,6 +929,9 @@ export function ApplicationForm() {
       const collectionName = role === "aspirante" ? "aspirantes" : "empresas";
       await addDoc(collection(db, collectionName), payload);
 
+      // Postulación enviada con éxito → limpiar borrador persistido.
+      clearDraft();
+      setCvReminderName(null);
       setSuccess(true);
     } catch (err) {
       // Mostramos el mensaje real para poder diagnosticar en producción
@@ -965,6 +1032,54 @@ export function ApplicationForm() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
+      {/* Banner de borrador guardado */}
+      <AnimatePresence>
+        {draftPrompt && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto", marginBottom: 20 }}
+            exit={{ opacity: 0, y: -10, height: 0, marginBottom: 0 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="overflow-hidden"
+          >
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-sky)] p-4 shadow-[4px_4px_0_var(--color-ink)]">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-white">
+                <History size={18} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-display text-sm font-bold text-[var(--color-ink)]">
+                  Tienes un borrador guardado
+                </div>
+                <div className="text-xs text-[var(--color-ink)]/70">
+                  Lo guardamos {draftAge(draftPrompt.savedAt)} ·{" "}
+                  {draftPrompt.role === "aspirante" ? "Aspirante" : "Empresa"}
+                  {draftPrompt.cvFileName
+                    ? " · tendrás que volver a adjuntar el CV"
+                    : ""}
+                </div>
+              </div>
+              <div className="flex flex-shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={restoreDraft}
+                  className="inline-flex items-center gap-1.5 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-accent)] px-4 py-2 font-display text-xs font-bold text-white shadow-[2px_2px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-ink)]"
+                >
+                  Continuar
+                </button>
+                <button
+                  type="button"
+                  onClick={discardDraft}
+                  aria-label="Descartar borrador"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-white text-[var(--color-ink)] transition-transform hover:-translate-y-0.5"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <RoleSelector role={role} onChange={changeRole} />
 
       <motion.div
@@ -1024,6 +1139,7 @@ export function ApplicationForm() {
                   cvFileName={cvFileName}
                   onCvChange={onCvChange}
                   cvInputRef={cvInputRef}
+                  cvReminderName={cvReminderName}
                 />
               )}
               {role === "aspirante" && step === 3 && <AspiranteStep3 />}
@@ -1251,10 +1367,12 @@ function AspiranteStep2({
   cvFileName,
   onCvChange,
   cvInputRef,
+  cvReminderName,
 }: {
   cvFileName: string | null;
   onCvChange: (e: ChangeEvent<HTMLInputElement>) => void;
   cvInputRef: React.RefObject<HTMLInputElement | null>;
+  cvReminderName?: string | null;
 }) {
   const ctx = useFormCtx();
   return (
@@ -1326,6 +1444,12 @@ function AspiranteStep2({
             className="hidden"
           />
         </label>
+        {cvReminderName && !cvFileName && (
+          <span className="mt-2 block rounded-lg border-2 border-amber-400 bg-amber-50 px-3 py-2 text-[13px] font-medium text-amber-800">
+            Tenías “{cvReminderName}” adjunto antes — por seguridad no podemos
+            guardar archivos, vuelve a subirlo.
+          </span>
+        )}
       </Field>
     </>
   );
