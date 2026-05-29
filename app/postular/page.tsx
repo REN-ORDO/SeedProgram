@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ApplicationForm } from "@/components/application-form";
+import { LoadingScreen } from "@/components/loading-screen";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -12,6 +13,7 @@ export default function PostularPage() {
 
   return (
     <main className="relative min-h-dvh px-5 pb-24 pt-28 md:px-8 md:pt-32">
+      <LoadingScreen />
       {/* Decoración 1: blob sky arriba-derecha con floater */}
       <motion.div
         aria-hidden
