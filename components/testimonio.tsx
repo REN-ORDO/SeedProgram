@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sprout } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { testimonios, type Testimonio } from "@/lib/data";
 
@@ -199,8 +199,17 @@ function Portrait({ t }: { t: Testimonio }) {
       )}
 
       <div className="absolute top-5 left-5 z-10">
-        <span className="toon-pill" style={{ background: "#fff" }}>
-          🌱 {t.badge.split("·").slice(-1)[0].trim()}
+        <span
+          className="toon-pill inline-flex items-center gap-1.5"
+          style={{ background: "#fff" }}
+        >
+          <Sprout
+            size={14}
+            strokeWidth={2.5}
+            aria-hidden
+            className="text-[var(--color-accent-strong)]"
+          />
+          {t.badge.split("·").slice(-1)[0].trim()}
         </span>
       </div>
 

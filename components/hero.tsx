@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ArrowDown } from "lucide-react";
+import { ArrowRight, ArrowDown, Sprout } from "lucide-react";
 import { Counter } from "@/components/counter";
 import { Magnetic } from "@/components/magnetic";
 import { metrics, taglines } from "@/lib/data";
@@ -229,7 +229,10 @@ export function Hero() {
             bg="#5EEAD4"
             rotate={8}
           >
-            🌱 Programa Semilla
+            <span className="inline-flex items-center gap-1.5">
+              <Sprout size={14} strokeWidth={2.5} aria-hidden />
+              Programa Semilla
+            </span>
           </Sticker>
 
           <h1
