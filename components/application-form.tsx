@@ -573,21 +573,37 @@ export function ApplicationForm() {
     const panel = formRef.current?.querySelector<HTMLElement>(
       "[data-active-panel]",
     );
-    if (!panel) return;
+    if (!panel) {
+      console.warn("[SEMILLA · capture] no se encontró active panel");
+      return;
+    }
     const inputs = panel.querySelectorAll<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >("input[name], select[name], textarea[name]");
+    let captured = 0;
     for (const el of Array.from(inputs)) {
-      if (el instanceof HTMLInputElement && el.type === "file") continue;
-      if (el instanceof HTMLInputElement && el.type === "radio") {
-        if (el.checked) valuesRef.current[el.name] = el.value;
+      if (el instanceof HTMLInputElement && el.type === "file") {
+        console.log(
+          "[SEMILLA · capture] file input encontrado:",
+          el.name,
+          "el.files?",
+          el.files?.length,
+          "cvFileRef?",
+          cvFileRef.current?.name,
+        );
         continue;
       }
-      // text/email/tel/select/textarea
+      if (el instanceof HTMLInputElement && el.type === "radio") {
+        if (el.checked) {
+          valuesRef.current[el.name] = el.value;
+          captured++;
+        }
+        continue;
+      }
       valuesRef.current[el.name] = el.value;
+      captured++;
     }
-    // Sincronizar snapshot al state para que el Context tenga valores frescos
-    // cuando el próximo panel se monte.
+    console.log("[SEMILLA · capture]", captured, "campos capturados. valuesRef:", { ...valuesRef.current });
     setDefaults({ ...valuesRef.current });
   };
 
@@ -680,6 +696,15 @@ export function ApplicationForm() {
         // El input se desmonta al navegar, así que también aceptamos el ref.
         const hasFile =
           (el.files && el.files.length > 0) || cvFileRef.current !== null;
+        console.log(
+          "[SEMILLA · validate file]",
+          "el.files length:",
+          el.files?.length,
+          "cvFileRef:",
+          cvFileRef.current?.name,
+          "hasFile:",
+          hasFile,
+        );
         if (!hasFile) {
           setErrorMsg("Por favor adjunta tu hoja de vida.");
           return false;
@@ -736,7 +761,12 @@ export function ApplicationForm() {
   };
 
   const handleNext = () => {
-    if (!validateCurrentPanel()) return;
+    console.log("[SEMILLA · handleNext] step actual:", stepRef.current, "cvFileRef:", cvFileRef.current?.name);
+    if (!validateCurrentPanel()) {
+      console.warn("[SEMILLA · handleNext] validación FALLÓ");
+      return;
+    }
+    console.log("[SEMILLA · handleNext] validación OK, avanzando");
     goTo(step + 1, "forward");
   };
 
@@ -746,11 +776,14 @@ export function ApplicationForm() {
 
   const onCvChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    // Si no hay file (usuario canceló el picker), NO limpiamos el ref —
-    // mantenemos el CV previo. Solo asignamos cuando hay archivo nuevo.
-    if (!file) return;
+    console.log("[SEMILLA · onCvChange] file?", !!file, file?.name, "size:", file?.size);
+    if (!file) {
+      console.log("[SEMILLA · onCvChange] picker cancelado, MANTENGO ref:", cvFileRef.current?.name);
+      return;
+    }
     cvFileRef.current = file;
     setCvFileName(file.name);
+    console.log("[SEMILLA · onCvChange] ref SET:", cvFileRef.current?.name);
   };
 
   // ---- Submit a Firebase ----
@@ -773,22 +806,22 @@ export function ApplicationForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log("[SEMILLA · SUBMIT] dispatched. step:", stepRef.current, "cvFileRef:", cvFileRef.current?.name);
 
-    // Defensa 1: si acabamos de cambiar de paso (en los últimos ~600ms),
-    // ignorar el submit. Esto evita que un doble-click o el rebote del
-    // click sobre "Continuar" caiga sobre el botón submit recién renderizado.
     if (Date.now() - lastTransitionAtRef.current < TRANSITION_LOCK_MS) {
+      console.warn("[SEMILLA · SUBMIT] bloqueado por transition lock");
       return;
     }
 
-    // Defensa 2: usar stepRef (sincrono) en vez del `step` cerrado.
-    // Si por cualquier razón handleSubmit corre con un closure viejo,
-    // el ref refleja el step real.
     if (stepRef.current < steps.length) {
+      console.warn("[SEMILLA · SUBMIT] no estoy en último paso, avanzo en vez de enviar");
       goTo(stepRef.current + 1, "forward");
       return;
     }
-    if (!validateCurrentPanel()) return;
+    if (!validateCurrentPanel()) {
+      console.warn("[SEMILLA · SUBMIT] validación final FALLÓ");
+      return;
+    }
 
     setSubmitting(true);
     setErrorMsg(null);
