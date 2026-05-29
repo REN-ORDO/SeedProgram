@@ -57,6 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email.trim(), password);
+    // Marca el splash de bienvenida para mostrarlo una vez al entrar al panel.
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("admin-just-logged-in", "1");
+    }
   };
 
   const signOut = async () => {

@@ -26,6 +26,7 @@ import {
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Monogram } from "@/components/monogram";
+import { LoadingScreen } from "@/components/loading-screen";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -39,6 +40,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [showSplash, setShowSplash] = useState(false);
 
   // Si no hay user, mandar a login
   useEffect(() => {
@@ -46,6 +48,19 @@ export function AdminShell({ children }: { children: ReactNode }) {
       router.replace("/admin/login");
     }
   }, [loading, user, router]);
+
+  // Splash de bienvenida: solo una vez, justo tras iniciar sesión.
+  // El flag lo setea signIn(); lo consumimos y limpiamos aquí. Se lee tras
+  // montar (no en el init) para que SSR y la primera render del cliente
+  // coincidan y no haya hydration mismatch.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (sessionStorage.getItem("admin-just-logged-in") === "1") {
+      sessionStorage.removeItem("admin-just-logged-in");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- consume flag de sessionStorage al montar
+      setShowSplash(true);
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -86,6 +101,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh bg-[var(--color-bg)]">
+      {/* Splash de bienvenida — solo una vez tras iniciar sesión */}
+      {showSplash && <LoadingScreen />}
+
       {/* Sidebar desktop */}
       <aside className="hidden w-64 flex-col border-r-2 border-[var(--color-ink)] bg-white p-5 lg:flex">
         <SidebarContent pathname={pathname} user={user} signOut={signOut} />
