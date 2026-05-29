@@ -5,7 +5,7 @@
  * Recibe configuración de columnas + filtros.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   collection,
@@ -15,7 +15,15 @@ import {
   type Timestamp,
   type DocumentData,
 } from "firebase/firestore";
-import { Loader2, Download, Search, Filter, ArrowRight } from "lucide-react";
+import {
+  Loader2,
+  Download,
+  Search,
+  Filter,
+  ArrowRight,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 import { db } from "@/lib/firebase";
 import {
   STATUS_META,
@@ -40,13 +48,114 @@ export type PostulacionRow = {
   [key: string]: unknown;
 };
 
-const STATUS_FILTERS: Array<{ value: "all" | AppStatus; label: string }> = [
-  { value: "all", label: "Todos" },
-  { value: "pending", label: "Pendientes" },
-  { value: "reviewed", label: "Revisados" },
-  { value: "accepted", label: "Aceptados" },
-  { value: "rejected", label: "Rechazados" },
+const STATUS_FILTERS: Array<{
+  value: "all" | AppStatus;
+  label: string;
+  dot: string;
+}> = [
+  { value: "all", label: "Todos", dot: "var(--color-ink)" },
+  { value: "pending", label: "Pendientes", dot: "var(--color-fg-subtle)" },
+  { value: "reviewed", label: "Revisados", dot: "#38BDF8" },
+  { value: "accepted", label: "Aceptados", dot: "var(--color-accent)" },
+  { value: "rejected", label: "Rechazados", dot: "#ef4444" },
 ];
+
+function StatusFilterDropdown({
+  value,
+  onChange,
+}: {
+  value: "all" | AppStatus;
+  onChange: (v: "all" | AppStatus) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = STATUS_FILTERS.find((f) => f.value === value) ?? STATUS_FILTERS[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="inline-flex w-full min-w-[180px] items-center gap-2.5 rounded-xl border-2 border-[var(--color-ink)] bg-white py-2.5 pl-3.5 pr-3 font-display text-sm font-semibold text-[var(--color-ink)] shadow-[3px_3px_0_var(--color-ink)] outline-none transition-shadow focus:shadow-[5px_5px_0_var(--color-accent)]"
+      >
+        <Filter size={15} className="text-[var(--color-fg-subtle)]" />
+        <span
+          className="h-2.5 w-2.5 shrink-0 rounded-full border border-[var(--color-ink)]"
+          style={{ background: selected.dot }}
+        />
+        <span className="flex-1 text-left">{selected.label}</span>
+        <ChevronDown
+          size={16}
+          className={cn(
+            "shrink-0 text-[var(--color-ink)] transition-transform",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute right-0 z-30 mt-2 w-full min-w-[200px] overflow-hidden rounded-xl border-2 border-[var(--color-ink)] bg-white shadow-[5px_5px_0_var(--color-ink)]"
+        >
+          {STATUS_FILTERS.map((f) => {
+            const active = f.value === value;
+            return (
+              <li key={f.value} role="option" aria-selected={active}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(f.value);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left font-display text-sm font-semibold transition-colors",
+                    active
+                      ? "bg-[var(--color-bg-teal)] text-[var(--color-ink)]"
+                      : "text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-soft)] hover:text-[var(--color-ink)]",
+                  )}
+                >
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full border border-[var(--color-ink)]"
+                    style={{ background: f.dot }}
+                  />
+                  <span className="flex-1">{f.label}</span>
+                  {active && (
+                    <Check
+                      size={15}
+                      strokeWidth={3}
+                      className="shrink-0 text-[var(--color-ink)]"
+                    />
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export function PostulacionList({
   collectionName,
@@ -153,26 +262,10 @@ export function PostulacionList({
             className="w-full rounded-xl border-2 border-[var(--color-ink)] bg-white px-4 py-2.5 pl-10 text-sm shadow-[3px_3px_0_var(--color-ink)] outline-none focus:shadow-[5px_5px_0_var(--color-accent)]"
           />
         </div>
-        <div className="inline-flex items-center gap-1.5 rounded-full border-2 border-[var(--color-ink)] bg-white p-1 shadow-[3px_3px_0_var(--color-ink)]">
-          <Filter
-            size={14}
-            className="ml-2 text-[var(--color-fg-subtle)]"
-          />
-          {STATUS_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setStatusFilter(f.value)}
-              className={cn(
-                "rounded-full px-3 py-1.5 font-display text-xs font-semibold transition-colors",
-                statusFilter === f.value
-                  ? "bg-[var(--color-ink)] text-white"
-                  : "text-[var(--color-fg-muted)] hover:text-[var(--color-ink)]",
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <StatusFilterDropdown
+          value={statusFilter}
+          onChange={setStatusFilter}
+        />
       </div>
 
       {/* Tabla */}
