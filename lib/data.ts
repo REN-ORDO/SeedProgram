@@ -346,3 +346,122 @@ export const taglines = [
   "Liderazgo",
   "Propósito Social",
 ];
+
+// ============================================================
+// Landing de Empresas Patrocinadoras (/empresas)
+// Fuente: "Empresas semillero.docx"
+// ============================================================
+
+export const empresaHero = {
+  eyebrow: "Empresas patrocinadoras",
+  title: "Transforma un reto técnico en una oportunidad de impacto social.",
+  highlight: "impacto social",
+  subtitle:
+    "Conviértete en Empresa Patrocinadora del Semillero CooWeb: resuelve un “dolor” técnico de tu negocio mientras impulsas al próximo talento digital.",
+  ctaPrimary: "Solicitar diagnóstico gratuito",
+  ctaSecondary: "Ver cómo funciona",
+};
+
+export const empresaProblema = {
+  title: "Esa tarea que llevas meses posponiendo.",
+  body: "Toda empresa en crecimiento tiene procesos por optimizar, webs por mejorar o ideas por prototipar que se quedan en el tintero por falta de manos o presupuesto. Creamos un modelo donde tu empresa aporta un estímulo económico educativo para nuestros jóvenes y, a cambio, nuestro equipo resuelve una necesidad técnica real de tu negocio.",
+};
+
+export type EmpresaPaso = {
+  num: string;
+  title: string;
+  desc: string;
+};
+
+export const empresaPasos: EmpresaPaso[] = [
+  {
+    num: "01",
+    title: "Postulas tu “dolor” técnico",
+    desc: "Nos cuentas qué proceso quieres automatizar, qué landing necesitas lanzar o qué problema digital quieres solucionar.",
+  },
+  {
+    num: "02",
+    title: "Evaluamos la viabilidad",
+    desc: "Nuestro equipo Senior analiza tu caso para asegurar que el reto sea compatible con las habilidades de los estudiantes en etapa práctica.",
+  },
+  {
+    num: "03",
+    title: "Activamos tu célula de desarrollo",
+    desc: "Si tu proyecto califica, asignamos una dupla: 1 Joven Talento (manos a la obra) + 1 Mentor Senior (garante de la calidad del entregable).",
+  },
+];
+
+export type EmpresaArea = {
+  title: string;
+  desc: string;
+  icon: "web" | "automation" | "mvp" | "support";
+};
+
+export const empresaAreas: EmpresaArea[] = [
+  {
+    title: "Presencia digital",
+    desc: "Creación, rediseño o actualización de sitios web y landing pages de venta.",
+    icon: "web",
+  },
+  {
+    title: "Automatización de procesos",
+    desc: "Conexión de herramientas (CRM, formularios, bases de datos) para eliminar tareas repetitivas.",
+    icon: "automation",
+  },
+  {
+    title: "Innovación y MVPs",
+    desc: "Desarrollo de prototipos iniciales para validar nuevas ideas de negocio rápidamente.",
+    icon: "mvp",
+  },
+  {
+    title: "Soporte y optimización",
+    desc: "Limpieza de código, corrección de bugs menores o mejoras de rendimiento web.",
+    icon: "support",
+  },
+];
+
+export type EmpresaBeneficio = {
+  title: string;
+  desc: string;
+  icon: "cost" | "talent" | "hire";
+};
+
+export const empresaBeneficios: EmpresaBeneficio[] = [
+  {
+    title: "Resuelves a fracción del costo",
+    desc: "Solucionas un problema interno real con acompañamiento Senior, muy por debajo del costo de mercado.",
+    icon: "cost",
+  },
+  {
+    title: "Ves trabajar a tu futuro talento",
+    desc: "Observas en tiempo real cómo trabaja el joven: su criterio, su ritmo y su forma de resolver.",
+    icon: "talent",
+  },
+  {
+    title: "Contratas sin costo de reclutamiento",
+    desc: "Si el joven hace “match” con tu cultura, puedes contratarlo directamente al finalizar el programa.",
+    icon: "hire",
+  },
+];
+
+export const empresaCelula = {
+  title: "Tu célula de desarrollo",
+  desc: "No mandamos a alguien solo. Cada proyecto lo sostiene una dupla diseñada para entregar calidad real.",
+  joven: {
+    label: "Joven Talento",
+    role: "Manos a la obra",
+    desc: "Ejecuta el proyecto con energía, criterio y ganas de demostrar lo que aprende.",
+  },
+  mentor: {
+    label: "Mentor Senior",
+    role: "Garante de calidad",
+    desc: "Revisa, guía y responde por el entregable. Tu proyecto nunca queda solo.",
+  },
+};
+
+export const empresaCTA = {
+  title: "¿Quieres vincular a tu empresa?",
+  body: "Los cupos de patrocinio por ciclo son limitados para garantizar el acompañamiento Senior de cada proyecto. Agenda una sesión de diagnóstico de 15 minutos (sin costo) para evaluar tu reto técnico y conocer los planes de patrocinio disponibles.",
+  cta: "Solicitar diagnóstico gratuito",
+  note: "Cupos limitados por ciclo",
+};
