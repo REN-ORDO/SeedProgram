@@ -33,6 +33,7 @@ import {
   Building2,
   Sprout,
   Send,
+  ChevronDown,
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -61,8 +62,6 @@ const RX = {
   alphanumName: /^[\p{L}\p{N}\s'’\-.,&·/]+$/u,
   // Email — regex pragmática (no perfecta pero suficiente)
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  // Teléfono: solo dígitos, espacios, +, -, paréntesis, puntos
-  phoneChars: /^[\d\s+\-().]+$/,
 } as const;
 
 const validators: Record<string, Validator> = {
@@ -80,16 +79,12 @@ const validators: Record<string, Validator> = {
     return null;
   },
   whatsapp: (v) => {
-    if (!RX.phoneChars.test(v))
-      return "El WhatsApp solo puede tener números, espacios, + - ( ).";
     const digits = v.replace(/\D/g, "");
     if (digits.length < 7) return "El WhatsApp es muy corto.";
     if (digits.length > 15) return "El WhatsApp es muy largo.";
     return null;
   },
   telefono: (v) => {
-    if (!RX.phoneChars.test(v))
-      return "El teléfono solo puede tener números, espacios, + - ( ).";
     const digits = v.replace(/\D/g, "");
     if (digits.length < 7) return "El teléfono es muy corto.";
     if (digits.length > 15) return "El teléfono es muy largo.";
@@ -519,6 +514,33 @@ function textProps(name: string, ctx: FormCtxValue) {
   };
 }
 
+/**
+ * Formatea dígitos al patrón "333 333 3333" (grupos 3-3-4, luego overflow).
+ * Solo para mostrar; en valuesRef/BD se guardan los dígitos puros.
+ */
+function formatPhone(raw: string): string {
+  const d = raw.replace(/\D/g, "").slice(0, 15);
+  const parts = [d.slice(0, 3), d.slice(3, 6), d.slice(6, 10), d.slice(10)];
+  return parts.filter(Boolean).join(" ");
+}
+
+/**
+ * Helper para inputs de teléfono. En cada cambio (teclear, pegar,
+ * autocompletar) reformatea el input al patrón "333 333 3333", quitando
+ * cualquier carácter que no sea dígito. valuesRef guarda el texto formateado;
+ * los validadores ignoran espacios y el payload final normaliza a dígitos.
+ */
+function phoneProps(name: string, ctx: FormCtxValue) {
+  return {
+    name,
+    defaultValue: formatPhone(ctx.defaults[name] ?? ""),
+    onChange: (e: ChangeEvent<HTMLInputElement>) => {
+      e.target.value = formatPhone(e.target.value);
+      ctx.onChange(e);
+    },
+  };
+}
+
 /** Helper para radio buttons con restore */
 function radioProps(name: string, value: string, ctx: FormCtxValue) {
   return {
@@ -527,6 +549,150 @@ function radioProps(name: string, value: string, ctx: FormCtxValue) {
     defaultChecked: ctx.defaults[name] === value,
     onChange: ctx.onChange,
   };
+}
+
+/**
+ * Dropdown custom estilo neobrutalism (reemplaza <select> nativo).
+ *
+ * Se integra con el form no-controlado vía un <input hidden name={name}>:
+ *   - captureCurrentPanel() y handleSubmit lo leen como cualquier input.
+ *   - validateCurrentPanel() lo valida con [required] + .focus()/.value.
+ * Restaura su valor desde ctx.defaults al remontar (igual que textProps).
+ */
+function SelectField({
+  name,
+  options,
+  placeholder,
+  required,
+  otherValue,
+  otherPlaceholder = "Especifica cuál",
+}: {
+  name: string;
+  options: string[];
+  placeholder: string;
+  required?: boolean;
+  /** Si el usuario elige este valor, se muestra un input de texto libre. */
+  otherValue?: string;
+  otherPlaceholder?: string;
+}) {
+  const ctx = useFormCtx();
+  const [value, setValue] = useState(ctx.defaults[name] ?? "");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const hiddenRef = useRef<HTMLInputElement>(null);
+  const showOther = otherValue !== undefined && value === otherValue;
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const select = (opt: string) => {
+    setValue(opt);
+    setOpen(false);
+    // Sincroniza el input hidden + dispara onChange para valuesRef.
+    const input = hiddenRef.current;
+    if (input) {
+      input.value = opt;
+      ctx.onChange({
+        target: input,
+      } as ChangeEvent<HTMLInputElement>);
+    }
+  };
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Input real: lo ven captura/submit/validación del form */}
+      <input
+        ref={hiddenRef}
+        type="text"
+        name={name}
+        required={required}
+        defaultValue={value}
+        readOnly
+        tabIndex={-1}
+        aria-hidden
+        className="sr-only"
+        onFocus={(e) => {
+          // Si la validación hace .focus() (campo vacío), abrimos el dropdown.
+          e.currentTarget.blur();
+          setOpen(true);
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={cn(inputCls, "flex cursor-pointer items-center justify-between pr-11 text-left")}
+      >
+        <span className={cn(!value && "text-[var(--color-fg-subtle)]")}>
+          {value || placeholder}
+        </span>
+        <ChevronDown
+          size={18}
+          className={cn(
+            "absolute right-4 text-[var(--color-ink)] transition-transform",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="scrollbar-hidden absolute left-0 right-0 z-30 mt-2 max-h-64 overflow-auto rounded-xl border-2 border-[var(--color-ink)] bg-white shadow-[5px_5px_0_var(--color-ink)]"
+        >
+          {options.map((opt) => {
+            const active = opt === value;
+            return (
+              <li key={opt} role="option" aria-selected={active}>
+                <button
+                  type="button"
+                  onClick={() => select(opt)}
+                  className={cn(
+                    "flex w-full items-center justify-between px-4 py-3 text-left text-[15px] font-medium transition-colors",
+                    active
+                      ? "bg-[var(--color-bg-teal)] text-[var(--color-ink)]"
+                      : "text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-soft)] hover:text-[var(--color-ink)]",
+                  )}
+                >
+                  {opt}
+                  {active && <Check size={16} strokeWidth={3} className="shrink-0" />}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {/* Input libre cuando se elige la opción "Otra" */}
+      {showOther && (
+        <input
+          {...textProps(`${name}_otro`, ctx)}
+          type="text"
+          required={required}
+          autoFocus
+          maxLength={100}
+          placeholder={otherPlaceholder}
+          className={cn(inputCls, "mt-3")}
+        />
+      )}
+    </div>
+  );
 }
 
 // ============================================================
@@ -833,6 +999,24 @@ export function ApplicationForm() {
       // Usamos valuesRef, NO FormData — porque AnimatePresence desmonta
       // los paneles anteriores y FormData solo vería el último.
       const data: Record<string, unknown> = { ...valuesRef.current };
+
+      // Fusionar "Otra" ciudad: si eligieron Otra, ciudad = texto libre.
+      // Guardamos un solo campo limpio (la lista/búsqueda admin leen `ciudad`).
+      if (
+        data.ciudad === "Otra" &&
+        typeof data.ciudad_otro === "string" &&
+        data.ciudad_otro.trim()
+      ) {
+        data.ciudad = data.ciudad_otro.trim();
+      }
+      delete data.ciudad_otro;
+
+      // Teléfonos: guardar solo dígitos (el input los muestra formateados).
+      for (const k of ["whatsapp", "telefono"]) {
+        if (typeof data[k] === "string") {
+          data[k] = (data[k] as string).replace(/\D/g, "");
+        }
+      }
 
       if (role === "aspirante") {
         // Subir CV a Cloudinary. Usamos cvFileRef (no cvInputRef.files) porque
@@ -1184,17 +1368,23 @@ function AspiranteStep1() {
           <label className={labelCls}>
             Ciudad<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
-          <select {...textProps("ciudad", ctx)} required className={cn(inputCls, "cursor-pointer pr-11")}>
-            <option value="">Selecciona tu ciudad</option>
-            <option>Barranquilla</option>
-            <option>Bogotá</option>
-            <option>Medellín</option>
-            <option>Cali</option>
-            <option>Cartagena</option>
-            <option>Santa Marta</option>
-            <option>Bucaramanga</option>
-            <option>Otra</option>
-          </select>
+          <SelectField
+            name="ciudad"
+            required
+            placeholder="Selecciona tu ciudad"
+            otherValue="Otra"
+            otherPlaceholder="¿Cuál ciudad?"
+            options={[
+              "Barranquilla",
+              "Bogotá",
+              "Medellín",
+              "Cali",
+              "Cartagena",
+              "Santa Marta",
+              "Bucaramanga",
+              "Otra",
+            ]}
+          />
         </Field>
         <Field>
           <label className={labelCls}>
@@ -1218,12 +1408,12 @@ function AspiranteStep1() {
             WhatsApp<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
-            {...textProps("whatsapp", ctx)}
+            {...phoneProps("whatsapp", ctx)}
             type="tel"
             required
             autoComplete="tel"
-            inputMode="tel"
-            maxLength={20}
+            inputMode="numeric"
+            maxLength={18}
             placeholder="300 123 4567"
             className={inputCls}
           />
@@ -1469,13 +1659,13 @@ function EmpresaStep1() {
             Teléfono<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
-            {...textProps("telefono", ctx)}
+            {...phoneProps("telefono", ctx)}
             type="tel"
             required
             autoComplete="tel"
-            inputMode="tel"
-            maxLength={20}
-            placeholder="+57 300 123 4567"
+            inputMode="numeric"
+            maxLength={18}
+            placeholder="300 123 4567"
             className={inputCls}
           />
         </Field>
