@@ -289,17 +289,16 @@ export const testimonios: Testimonio[] = [
     accent: "#7DD3FC",
   },
   {
-    id: "placeholder-4",
-    name: "Nombre apellido",
-    badge: "Batch 7 · hoy Junior 2",
-    tenure: "En CooWeb desde [Mes Año]",
-    headline: "Headline corto de 6-8 palabras.",
-    body: "Cuerpo del testimonio: contexto inicial, qué cambió, qué hace hoy. 2-3 frases máximo.",
+    id: "juan-fernando",
+    name: "Juan Fernando",
+    badge: "Ex-Semilla · hoy Full Stack Developer",
+    tenure: "Lidera equipos · proyectos internacionales",
+    headline: "De cero experiencia a liderar equipos.",
+    body: "Entró sin experiencia laboral real, solo con ganas de aprender. Encontró un entorno para equivocarse, crecer y recibir guía de desarrolladores senior. Hoy lidera equipos de desarrollo y gestiona proyectos con clientes de distintos países.",
     quote:
-      "Cita directa en primera persona — qué se llevó del programa, qué descubrió de sí.",
-    initial: "C",
+      "El semillero no solo te da una primera oportunidad — te da la experiencia que el mercado siempre exige pero rara vez regala.",
+    photo: "/img-juanfer.png",
     accent: "#2DD4BF",
-    placeholder: true,
   },
 ];
 
