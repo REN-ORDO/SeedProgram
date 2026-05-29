@@ -264,19 +264,17 @@ export const testimonios: Testimonio[] = [
     photo: "/image-ordo.png",
     accent: "#5EEAD4",
   },
-  // TODO content team: reemplazar nombre/copy real + generar foto toon con prompt /image-ordo.png
   {
-    id: "placeholder-2",
-    name: "Nombre apellido",
-    badge: "Batch 7 · hoy Junior 1",
-    tenure: "En CooWeb desde [Mes Año]",
-    headline: "Headline corto de 6-8 palabras.",
-    body: "Cuerpo del testimonio: contexto inicial, qué cambió, qué hace hoy. 2-3 frases máximo.",
+    id: "antonio-perez",
+    name: "Antonio Perez",
+    badge: "Ex-Semilla · hoy CTO",
+    tenure: "4 años en CooWeb",
+    headline: "De buscar empleo en pandemia a CTO.",
+    body: "Entró buscando empleo en plena pandemia y se quedó 4 años. Implementó cada tecnología de vanguardia que apareció en el camino, proponiendo soluciones innovadoras y funcionales. Hoy lidera la tecnología de una nueva startup como CTO — y va por más.",
     quote:
-      "Cita directa en primera persona — qué se llevó del programa, qué descubrió de sí.",
-    initial: "M",
+      "Implementábamos todas las tecnologías del momento, siempre proponiendo soluciones innovadoras. Esos conocimientos me llevaron al puesto de CTO.",
+    photo: "/img-antonio.png",
     accent: "#BAE6FD",
-    placeholder: true,
   },
   {
     id: "placeholder-3",
