@@ -11,7 +11,7 @@ const iconMap = {
   support: Wrench,
 };
 
-const cardBgs = ["#5EEAD4", "#BAE6FD", "#7DD3FC", "#2DD4BF"];
+const cardBgs = ["#BAE6FD", "#7DD3FC", "#38BDF8", "#0EA5E9"];
 const cardRotates = [-1, 1.2, -1.2, 1];
 
 export function EmpresasAreas() {

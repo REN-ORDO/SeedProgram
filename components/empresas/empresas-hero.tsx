@@ -29,7 +29,7 @@ export function EmpresasHero() {
       >
         <path
           d="M8 56 C 8 28, 28 8, 56 8 C 56 36, 36 56, 8 56 Z"
-          fill="#5EEAD4"
+          fill="#7DD3FC"
           stroke="#0F172A"
           strokeWidth={2.5}
         />
@@ -42,7 +42,7 @@ export function EmpresasHero() {
       >
         <path
           d="M32 6 C 50 14, 56 32, 42 52 C 30 60, 14 56, 10 38 C 8 22, 18 10, 32 6 Z"
-          fill="#38BDF8"
+          fill="#0EA5E9"
           stroke="#0F172A"
           strokeWidth={2.5}
         />

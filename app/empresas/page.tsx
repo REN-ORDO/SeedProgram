@@ -10,7 +10,7 @@ import { EmpresasCTA } from "@/components/empresas/empresas-cta";
 
 export default function EmpresasPage() {
   return (
-    <>
+    <div className="theme-empresas">
       <Nav />
       <main className="relative">
         <EmpresasHero />
@@ -22,6 +22,6 @@ export default function EmpresasPage() {
         <EmpresasCTA />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

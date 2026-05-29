@@ -9,8 +9,7 @@ export function EmpresasCelula() {
   return (
     <section
       aria-label="Tu célula de desarrollo"
-      className="relative px-5 py-16 md:px-10 md:py-32"
-      style={{ background: "var(--color-bg)" }}
+      className="relative px-5 py-16 md:px-10 md:py-32 toon-section toon-section--navy"
     >
       <div className="mx-auto max-w-5xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
@@ -34,7 +33,7 @@ export function EmpresasCelula() {
           <Reveal delay={0.18}>
             <DuplaCard
               Icon={Sprout}
-              bg="#5EEAD4"
+              bg="#7DD3FC"
               label={joven.label}
               role={joven.role}
               desc={joven.desc}
@@ -42,7 +41,7 @@ export function EmpresasCelula() {
           </Reveal>
 
           <div className="flex items-center justify-center">
-            <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)]">
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#0f172a] bg-white text-[#0f172a] shadow-[3px_3px_0_#0f172a]">
               <Plus size={20} strokeWidth={3} />
             </span>
           </div>

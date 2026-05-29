@@ -3,7 +3,7 @@
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
 import { empresaPasos, type EmpresaPaso } from "@/lib/data";
 
-const cardBgs = ["#BAE6FD", "#5EEAD4", "#7DD3FC"];
+const cardBgs = ["#BAE6FD", "#7DD3FC", "#38BDF8"];
 const cardRotates = [-1.5, 1.5, -1];
 
 export function EmpresasModelo() {
@@ -11,8 +11,7 @@ export function EmpresasModelo() {
     <section
       id="modelo"
       aria-label="Cómo funciona"
-      className="relative px-5 py-16 md:px-10 md:py-32"
-      style={{ background: "var(--color-bg)" }}
+      className="relative px-5 py-16 md:px-10 md:py-32 toon-section toon-section--navy"
     >
       <div className="mx-auto max-w-6xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
