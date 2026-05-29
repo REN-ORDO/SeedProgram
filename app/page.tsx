@@ -1,5 +1,6 @@
 import { Batches } from "@/components/batches";
 import { CTA } from "@/components/cta";
+import { FAQ } from "@/components/faq";
 import { Cultura } from "@/components/cultura";
 import { PlantCursor } from "@/components/plant-cursor";
 import { Footer } from "@/components/footer";
@@ -26,6 +27,7 @@ export default function Home() {
         <Cultura />
         <Batches />
         <CTA />
+        <FAQ />
       </main>
       <Footer />
     </>
