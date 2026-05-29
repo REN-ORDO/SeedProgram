@@ -300,6 +300,20 @@ export const testimonios: Testimonio[] = [
     photo: "/img-juanfer.png",
     accent: "#2DD4BF",
   },
+  // TODO content team: foto toon Erika en /img-erika.png (prompt CooWeb Toon Portrait)
+  {
+    id: "erika-contreras",
+    name: "Erika Contreras",
+    badge: "Ex-Semilla · hoy Directora en MyCoin S.A.S.",
+    tenure: "Mamá y profesional · sin elegir entre ambas",
+    headline: "Mamá, líder y Directora — sin elegir.",
+    body: "Entró buscando crecer profesionalmente sin renunciar a su familia. Pasó de desarrolladora a liderar un departamento de sistemas con clientes internacionales. Hoy es Directora en MyCoin S.A.S. — y dice que se transformó también como persona.",
+    quote:
+      "El semillero me demostró que no tenía que elegir entre ser mamá y crecer profesionalmente. Me dio la tranquilidad de avanzar sin sacrificar a mi familia.",
+    initial: "E",
+    accent: "#38BDF8",
+    placeholder: true,
+  },
 ];
 
 // Back-compat — first testimonio
