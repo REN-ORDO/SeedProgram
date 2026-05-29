@@ -251,6 +251,7 @@ export type Testimonio = {
   placeholder?: boolean; // TODO marker for content team
 };
 
+// Carousel order: H → M → H → H → M → H (intercalar género con set actual: 4H/2M).
 export const testimonios: Testimonio[] = [
   {
     id: "sebastian-ordonez",
@@ -265,28 +266,16 @@ export const testimonios: Testimonio[] = [
     accent: "#5EEAD4",
   },
   {
-    id: "antonio-perez",
-    name: "Antonio Perez",
-    badge: "Ex-Semilla · hoy CTO",
-    tenure: "4 años en CooWeb",
-    headline: "De buscar empleo en pandemia a CTO.",
-    body: "Entró buscando empleo en plena pandemia y se quedó 4 años. Implementó cada tecnología de vanguardia que apareció en el camino, proponiendo soluciones innovadoras y funcionales. Hoy lidera la tecnología de una nueva startup como CTO — y va por más.",
+    id: "erika-contreras",
+    name: "Erika Contreras",
+    badge: "Ex-Semilla · hoy Directora en MyCoin S.A.S.",
+    tenure: "Mamá y profesional · sin elegir entre ambas",
+    headline: "Mamá, líder y Directora — sin elegir.",
+    body: "Entró buscando crecer profesionalmente sin renunciar a su familia. Pasó de desarrolladora a liderar un departamento de sistemas con clientes internacionales. Hoy es Directora en MyCoin S.A.S. — y dice que se transformó también como persona.",
     quote:
-      "Implementábamos todas las tecnologías del momento, siempre proponiendo soluciones innovadoras. Esos conocimientos me llevaron al puesto de CTO.",
-    photo: "/img-antonio.png",
-    accent: "#BAE6FD",
-  },
-  {
-    id: "camilo-lopez",
-    name: "Camilo López",
-    badge: "Semilla · hoy Middle Developer",
-    tenure: "Programando desde los 14 · CooWeb a los 18",
-    headline: "De Semilla a Middle en 8 meses.",
-    body: "Camilo entró con 18 años y años de curiosidad acumulada desde los 14. En tres meses alcanzó Junior. En ocho, Middle Developer. Hoy no solo escribe código — diseña sistemas que mueven operaciones reales.",
-    quote:
-      "Empecé a programar a los 14 sin saber a dónde me llevaría. Hoy con 20 años estoy construyendo sistemas que orquestan envíos reales para una de las cadenas más grandes del país.",
-    photo: "/img-camilo.png",
-    accent: "#7DD3FC",
+      "El semillero me demostró que no tenía que elegir entre ser mamá y crecer profesionalmente. Me dio la tranquilidad de avanzar sin sacrificar a mi familia.",
+    photo: "/img-erika.png",
+    accent: "#38BDF8",
   },
   {
     id: "juan-fernando",
@@ -301,16 +290,16 @@ export const testimonios: Testimonio[] = [
     accent: "#2DD4BF",
   },
   {
-    id: "erika-contreras",
-    name: "Erika Contreras",
-    badge: "Ex-Semilla · hoy Directora en MyCoin S.A.S.",
-    tenure: "Mamá y profesional · sin elegir entre ambas",
-    headline: "Mamá, líder y Directora — sin elegir.",
-    body: "Entró buscando crecer profesionalmente sin renunciar a su familia. Pasó de desarrolladora a liderar un departamento de sistemas con clientes internacionales. Hoy es Directora en MyCoin S.A.S. — y dice que se transformó también como persona.",
+    id: "camilo-lopez",
+    name: "Camilo López",
+    badge: "Semilla · hoy Middle Developer",
+    tenure: "Programando desde los 14 · CooWeb a los 18",
+    headline: "De Semilla a Middle en 8 meses.",
+    body: "Camilo entró con 18 años y años de curiosidad acumulada desde los 14. En tres meses alcanzó Junior. En ocho, Middle Developer. Hoy no solo escribe código — diseña sistemas que mueven operaciones reales.",
     quote:
-      "El semillero me demostró que no tenía que elegir entre ser mamá y crecer profesionalmente. Me dio la tranquilidad de avanzar sin sacrificar a mi familia.",
-    photo: "/img-erika.png",
-    accent: "#38BDF8",
+      "Empecé a programar a los 14 sin saber a dónde me llevaría. Hoy con 20 años estoy construyendo sistemas que orquestan envíos reales para una de las cadenas más grandes del país.",
+    photo: "/img-camilo.png",
+    accent: "#7DD3FC",
   },
   // TODO content team: copy + foto toon Karoll en /img-karoll.png (prompt CooWeb Toon Portrait)
   {
@@ -325,6 +314,18 @@ export const testimonios: Testimonio[] = [
     initial: "K",
     accent: "#14B8A6",
     placeholder: true,
+  },
+  {
+    id: "antonio-perez",
+    name: "Antonio Perez",
+    badge: "Ex-Semilla · hoy CTO",
+    tenure: "4 años en CooWeb",
+    headline: "De buscar empleo en pandemia a CTO.",
+    body: "Entró buscando empleo en plena pandemia y se quedó 4 años. Implementó cada tecnología de vanguardia que apareció en el camino, proponiendo soluciones innovadoras y funcionales. Hoy lidera la tecnología de una nueva startup como CTO — y va por más.",
+    quote:
+      "Implementábamos todas las tecnologías del momento, siempre proponiendo soluciones innovadoras. Esos conocimientos me llevaron al puesto de CTO.",
+    photo: "/img-antonio.png",
+    accent: "#BAE6FD",
   },
 ];
 
