@@ -121,10 +121,15 @@ const validators: Record<string, Validator> = {
     if (v.length > 2000) return "El texto es muy largo (máximo 2000 caracteres).";
     return null;
   },
+  // Motivación (textarea libre — es el signal más importante para hiring)
+  interes: (v) => {
+    if (v.length < 20)
+      return "Cuéntanos un poco más sobre tu motivación (mínimo 20 caracteres).";
+    if (v.length > 1500) return "Es muy largo (máximo 1500 caracteres).";
+    return null;
+  },
   // Campos "otro" — solo limitamos length, ya validamos no-vacío arriba
   estudia_otro: (v) =>
-    v.length > 100 ? "El texto es muy largo." : null,
-  interes_otro: (v) =>
     v.length > 100 ? "El texto es muy largo." : null,
   origen_referido: (v) =>
     v.length > 100 ? "El nombre es muy largo." : null,
@@ -148,6 +153,7 @@ const fieldLabels: Record<string, string> = {
   empresa: "el nombre de la empresa",
   contacto: "la persona de contacto",
   reto: "la descripción del reto",
+  interes: "tu motivación",
 };
 
 // ============================================================
@@ -664,12 +670,43 @@ export function ApplicationForm() {
           checkedRadio.value === "otro" ||
           checkedRadio.value === "referido"
         ) {
-          const otherInput = checkedRadio
-            .closest("label")
-            ?.querySelector<HTMLInputElement>('input[type="text"]');
-          if (otherInput && !otherInput.value.trim()) {
-            otherInput.focus();
-            setErrorMsg("Especifica la opción seleccionada antes de continuar.");
+          // Buscar primero en el mismo label (patrón legacy inline input)
+          let related: HTMLInputElement | HTMLTextAreaElement | null =
+            checkedRadio
+              .closest("label")
+              ?.querySelector<HTMLInputElement>('input[type="text"]') ?? null;
+
+          // Si no está en el label, buscar textarea/input hermano con el
+          // nombre patrón {name}_otro o {name}_referido (patrón expandido).
+          if (!related) {
+            const suffix =
+              checkedRadio.value === "otro" ? "_otro" : "_referido";
+            related = panel.querySelector<HTMLTextAreaElement>(
+              `textarea[name="${checkedRadio.name}${suffix}"]`,
+            );
+            if (!related) {
+              related = panel.querySelector<HTMLInputElement>(
+                `input[type="text"][name="${checkedRadio.name}${suffix}"]`,
+              );
+            }
+          }
+
+          if (related && !related.value.trim()) {
+            related.focus();
+            setErrorMsg(
+              "Especifica la opción seleccionada antes de continuar.",
+            );
+            return false;
+          }
+          // Validación de longitud mínima para el textarea de motivación
+          if (
+            related instanceof HTMLTextAreaElement &&
+            related.value.trim().length < 20
+          ) {
+            related.focus();
+            setErrorMsg(
+              "Cuéntanos un poco más (mínimo 20 caracteres). Tu motivación es lo más importante para nosotros.",
+            );
             return false;
           }
         }
@@ -1295,46 +1332,39 @@ function AspiranteStep2({
 }
 
 function AspiranteStep3() {
+  const ctx = useFormCtx();
+
   return (
     <>
       <PanelHeader
         title="Tu motivación"
         desc={
           <>
-            Último paso — <Hand>cuéntanos qué te trae aquí</Hand>.
+            La parte <Hand>más importante</Hand> — cuéntanos en tus palabras por qué este programa, por qué ahora.
           </>
         }
       />
 
       <Field>
         <label className={labelCls}>
-          ¿Por qué te interesa unirte?<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
+          ¿Qué te motiva a postular al Programa Semilla?
+          <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
-        <div className="flex flex-col gap-2.5">
-          <Radio
-            name="interes"
-            value="tecnologia"
-            label="Quiero aprender sobre tecnología e IA"
-            required
-          />
-          <Radio
-            name="interes"
-            value="empresas"
-            label="Busco conectar con empresas y el mundo laboral"
-          />
-          <Radio
-            name="interes"
-            value="innovacion"
-            label="Me apasiona resolver problemas reales con innovación"
-          />
-          <Radio
-            name="interes"
-            value="otro"
-            label="Otro"
-            withOtherInput
-            otherName="interes_otro"
-          />
-        </div>
+        <textarea
+          {...textProps("interes", ctx)}
+          placeholder="¿Qué buscas obtener? ¿En qué momento de tu vida estás? ¿Por qué CooWeb y no otro programa? Tomate el tiempo — esta respuesta es la que más leemos."
+          required
+          minLength={20}
+          maxLength={1500}
+          rows={6}
+          className={cn(
+            inputCls,
+            "min-h-[180px] resize-y leading-relaxed",
+          )}
+        />
+        <span className="mt-2 block text-[13px] text-[var(--color-fg-subtle)]">
+          Mínimo 20 caracteres. No hay respuesta correcta — sé honesto/a.
+        </span>
       </Field>
 
       <Field>
