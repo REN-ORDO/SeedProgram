@@ -251,6 +251,7 @@ export type Testimonio = {
   placeholder?: boolean; // TODO marker for content team
 };
 
+// Carousel order: H → M → H → H → M → H (intercalar género con set actual: 4H/2M).
 export const testimonios: Testimonio[] = [
   {
     id: "sebastian-ordonez",
@@ -265,16 +266,28 @@ export const testimonios: Testimonio[] = [
     accent: "#5EEAD4",
   },
   {
-    id: "antonio-perez",
-    name: "Antonio Perez",
-    badge: "Ex-Semilla · hoy CTO",
-    tenure: "4 años en CooWeb",
-    headline: "De buscar empleo en pandemia a CTO.",
-    body: "Entró buscando empleo en plena pandemia y se quedó 4 años. Implementó cada tecnología de vanguardia que apareció en el camino, proponiendo soluciones innovadoras y funcionales. Hoy lidera la tecnología de una nueva startup como CTO — y va por más.",
+    id: "erika-contreras",
+    name: "Erika Contreras",
+    badge: "Ex-Semilla · hoy Directora en MyCoin S.A.S.",
+    tenure: "Mamá y profesional · sin elegir entre ambas",
+    headline: "Mamá, líder y Directora — sin elegir.",
+    body: "Entró buscando crecer profesionalmente sin renunciar a su familia. Pasó de desarrolladora a liderar un departamento de sistemas con clientes internacionales. Hoy es Directora en MyCoin S.A.S. — y dice que se transformó también como persona.",
     quote:
-      "Implementábamos todas las tecnologías del momento, siempre proponiendo soluciones innovadoras. Esos conocimientos me llevaron al puesto de CTO.",
-    photo: "/img-antonio.png",
-    accent: "#BAE6FD",
+      "El semillero me demostró que no tenía que elegir entre ser mamá y crecer profesionalmente. Me dio la tranquilidad de avanzar sin sacrificar a mi familia.",
+    photo: "/img-erika.png",
+    accent: "#38BDF8",
+  },
+  {
+    id: "juan-fernando",
+    name: "Juan Fernando",
+    badge: "Ex-Semilla · hoy Full Stack Developer",
+    tenure: "Lidera equipos · proyectos internacionales",
+    headline: "De cero experiencia a liderar equipos.",
+    body: "Entró sin experiencia laboral real, solo con ganas de aprender. Encontró un entorno para equivocarse, crecer y recibir guía de desarrolladores senior. Hoy lidera equipos de desarrollo y gestiona proyectos con clientes de distintos países.",
+    quote:
+      "El semillero no solo te da una primera oportunidad — te da la experiencia que el mercado siempre exige pero rara vez regala.",
+    photo: "/img-juanfer.png",
+    accent: "#2DD4BF",
   },
   {
     id: "camilo-lopez",
@@ -288,17 +301,31 @@ export const testimonios: Testimonio[] = [
     photo: "/img-camilo.png",
     accent: "#7DD3FC",
   },
+  // TODO content team: copy + foto toon Karoll en /img-karoll.png (prompt CooWeb Toon Portrait)
   {
-    id: "juan-fernando",
-    name: "Juan Fernando",
-    badge: "Ex-Semilla · hoy Full Stack Developer",
-    tenure: "Lidera equipos · proyectos internacionales",
-    headline: "De cero experiencia a liderar equipos.",
-    body: "Entró sin experiencia laboral real, solo con ganas de aprender. Encontró un entorno para equivocarse, crecer y recibir guía de desarrolladores senior. Hoy lidera equipos de desarrollo y gestiona proyectos con clientes de distintos países.",
+    id: "karoll-marquez",
+    name: "Karoll Marquez",
+    badge: "Ex-Semilla · [rol actual pendiente]",
+    tenure: "Historia pendiente · llenar",
+    headline: "Headline corto de 6-8 palabras.",
+    body: "Cuerpo del testimonio: contexto inicial, qué cambió, qué hace hoy. 2-3 frases máximo.",
     quote:
-      "El semillero no solo te da una primera oportunidad — te da la experiencia que el mercado siempre exige pero rara vez regala.",
-    photo: "/img-juanfer.png",
-    accent: "#2DD4BF",
+      "Cita directa en primera persona — qué se llevó del programa, qué descubrió de sí.",
+    initial: "K",
+    accent: "#14B8A6",
+    placeholder: true,
+  },
+  {
+    id: "antonio-perez",
+    name: "Antonio Perez",
+    badge: "Ex-Semilla · hoy CTO",
+    tenure: "4 años en CooWeb",
+    headline: "De buscar empleo en pandemia a CTO.",
+    body: "Entró buscando empleo en plena pandemia y se quedó 4 años. Implementó cada tecnología de vanguardia que apareció en el camino, proponiendo soluciones innovadoras y funcionales. Hoy lidera la tecnología de una nueva startup como CTO — y va por más.",
+    quote:
+      "Implementábamos todas las tecnologías del momento, siempre proponiendo soluciones innovadoras. Esos conocimientos me llevaron al puesto de CTO.",
+    photo: "/img-antonio.png",
+    accent: "#BAE6FD",
   },
 ];
 
