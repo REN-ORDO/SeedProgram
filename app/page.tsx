@@ -1,7 +1,7 @@
 import { Batches } from "@/components/batches";
 import { CTA } from "@/components/cta";
 import { Cultura } from "@/components/cultura";
-import { CursorSpotlight } from "@/components/cursor-spotlight";
+import { PlantCursor } from "@/components/plant-cursor";
 import { Footer } from "@/components/footer";
 import { Hero } from "@/components/hero";
 import { LoadingScreen } from "@/components/loading-screen";
@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <>
       <LoadingScreen />
-      <CursorSpotlight />
+      <PlantCursor />
       <Nav />
       <main className="relative">
         <Hero />
