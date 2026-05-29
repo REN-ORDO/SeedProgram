@@ -12,7 +12,7 @@ export default function PostularPage() {
   const reduce = useReducedMotion();
 
   return (
-    <main className="relative min-h-dvh px-5 pb-24 pt-28 md:px-8 md:pt-32">
+    <main className="relative min-h-dvh overflow-x-hidden px-5 pb-24 pt-28 md:px-8 md:pt-32">
       <LoadingScreen />
       {/* Decoración 1: blob sky arriba-derecha con floater */}
       <motion.div
@@ -40,7 +40,7 @@ export default function PostularPage() {
                 x: { duration: 9.4, repeat: Infinity, ease: "easeInOut" },
               }
         }
-        className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-bg-sky)] shadow-[10px_10px_0_var(--color-ink)]"
+        className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-bg-sky)] shadow-[10px_10px_0_var(--color-ink)] sm:-top-20 sm:-right-20 sm:h-72 sm:w-72"
       />
 
       {/* Decoración 2: blob teal abajo-izquierda con floater */}
@@ -67,7 +67,7 @@ export default function PostularPage() {
                 rotate: { duration: 8.2, repeat: Infinity, ease: "easeInOut" },
               }
         }
-        className="pointer-events-none absolute bottom-32 -left-16 h-48 w-48 rounded-[30%_70%_70%_30%/30%_30%_70%_70%] border-2 border-[var(--color-ink)] bg-[var(--color-bg-teal)] shadow-[6px_6px_0_var(--color-ink)]"
+        className="pointer-events-none absolute bottom-32 -left-12 h-32 w-32 rounded-[30%_70%_70%_30%/30%_30%_70%_70%] border-2 border-[var(--color-ink)] bg-[var(--color-bg-teal)] shadow-[6px_6px_0_var(--color-ink)] sm:-left-16 sm:h-48 sm:w-48"
       />
 
       {/* Decoración 3: estrella amarilla rotando */}

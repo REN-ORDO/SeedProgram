@@ -249,7 +249,7 @@ export function PostulacionList({
 
       {/* Filtros */}
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[220px]">
+        <div className="relative w-full flex-1 sm:min-w-[220px]">
           <Search
             size={16}
             className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-fg-subtle)]"
@@ -308,7 +308,7 @@ export function PostulacionList({
                         <td
                           key={col.key}
                           className={cn(
-                            "px-4 py-3 align-middle",
+                            "whitespace-nowrap px-4 py-3 align-middle",
                             col.className,
                           )}
                         >

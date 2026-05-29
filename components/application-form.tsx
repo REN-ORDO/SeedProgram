@@ -197,7 +197,7 @@ const labelCls =
   "mb-2.5 block font-display text-sm font-semibold tracking-tight text-[var(--color-ink)]";
 
 const optionCls =
-  "flex cursor-pointer items-center gap-3.5 rounded-xl border-2 border-[var(--color-ink)] bg-white " +
+  "flex cursor-pointer flex-wrap items-center gap-x-3.5 gap-y-2.5 rounded-xl border-2 border-[var(--color-ink)] bg-white " +
   "px-4 py-3.5 shadow-[3px_3px_0_var(--color-ink)] transition-all duration-150 " +
   "hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] " +
   "has-[input:checked]:-translate-x-0.5 has-[input:checked]:-translate-y-0.5 " +
@@ -428,9 +428,10 @@ function Radio({
           type="text"
           placeholder={otherPlaceholder ?? "Especifica..."}
           className={cn(
-            "ml-auto max-w-[220px] rounded-lg border-2 border-[var(--color-ink)] bg-white px-3 py-1.5",
+            "rounded-lg border-2 border-[var(--color-ink)] bg-white px-3 py-1.5",
             "text-[13px] shadow-[2px_2px_0_var(--color-ink)] outline-none focus:shadow-[3px_3px_0_var(--color-accent)]",
-            "w-full sm:w-auto",
+            // Móvil: full width en su propia línea. Desktop: inline, alineado a la derecha, capado.
+            "w-full sm:ml-auto sm:w-auto sm:max-w-[220px]",
           )}
           onClick={(e) => e.preventDefault()}
         />
