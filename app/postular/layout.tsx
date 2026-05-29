@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PlantCursor } from "@/components/plant-cursor";
 
 export const metadata: Metadata = {
   title: "Postúlate · Programa Semilla CooWeb",
@@ -11,5 +12,10 @@ export default function PostularLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <PlantCursor />
+      {children}
+    </>
+  );
 }
