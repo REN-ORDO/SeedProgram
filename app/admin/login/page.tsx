@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2, LogIn } from "lucide-react";
 import { useAuth, isAdminEmail } from "@/lib/auth-context";
+import { Monogram } from "@/components/monogram";
 
 export default function AdminLoginPage() {
   return (
@@ -73,9 +74,7 @@ function AdminLoginInner() {
         <div className="toon-card relative p-8 sm:p-10">
           {/* Logo */}
           <div className="mb-6 flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-accent)] text-lg">
-              🌱
-            </div>
+            <Monogram size={40} />
             <div className="leading-none">
               <div className="font-display text-base font-bold text-[var(--color-ink)]">
                 CooWeb

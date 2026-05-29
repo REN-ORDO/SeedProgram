@@ -31,6 +31,7 @@ import {
   Check,
   FileUp,
   Building2,
+  Sprout,
   Send,
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -296,8 +297,8 @@ function RoleSelector({
   onChange: (r: Role) => void;
 }) {
   const opts = [
-    { id: "aspirante" as Role, label: "Soy aspirante", icon: "🌱" },
-    { id: "empresa" as Role, label: "Soy empresa", icon: "🏢" },
+    { id: "aspirante" as Role, label: "Soy aspirante", Icon: Sprout },
+    { id: "empresa" as Role, label: "Soy empresa", Icon: Building2 },
   ];
   return (
     <motion.div
@@ -326,7 +327,7 @@ function RoleSelector({
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
-            <span className="relative z-10 text-base">{opt.icon}</span>
+            <opt.Icon className="relative z-10" size={16} strokeWidth={2.5} />
             <span className="relative z-10 hidden xs:inline sm:inline">{opt.label}</span>
             <span className="relative z-10 inline xs:hidden sm:hidden">
               {opt.id === "aspirante" ? "Aspirante" : "Empresa"}
@@ -926,7 +927,7 @@ export function ApplicationForm() {
           className="relative mx-auto mt-3 max-w-md text-[15px] text-[var(--color-fg-muted)]"
         >
           {role === "aspirante"
-            ? "Recibimos tu postulación. Si haces match con el batch, te contactamos pronto. 🌱"
+            ? "Recibimos tu postulación. Si haces match con el batch, te contactamos pronto."
             : "Recibimos tu solicitud. Un mentor senior te contactará en menos de 48 horas."}
         </motion.p>
         <motion.div
