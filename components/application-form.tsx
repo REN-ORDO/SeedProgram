@@ -17,6 +17,9 @@ import {
   useState,
   useMemo,
   useRef,
+  useEffect,
+  useContext,
+  createContext,
   type ChangeEvent,
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -33,7 +36,119 @@ import {
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadCvToCloudinary } from "@/lib/cloudinary";
+import { Magnetic } from "@/components/magnetic";
 import { cn } from "@/lib/utils";
+
+// Easing canónico del sitio
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+// ============================================================
+// Validadores por campo
+// ============================================================
+// Cada validador recibe el valor (ya trimmed) y devuelve:
+//   null  → valor válido
+//   string → mensaje de error a mostrar
+// Solo se aplican si el valor NO está vacío (la check de "required"
+// se hace por separado antes).
+
+type Validator = (value: string) => string | null;
+
+const RX = {
+  // Letras (incluye tildes / ñ vía \p{L}) + espacios + apóstrofes + guion
+  onlyLetters: /^[\p{L}\s'’\-]+$/u,
+  // Letras + números + espacios + caracteres comunes en nombres legales/programas
+  alphanumName: /^[\p{L}\p{N}\s'’\-.,&·/]+$/u,
+  // Email — regex pragmática (no perfecta pero suficiente)
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  // Teléfono: solo dígitos, espacios, +, -, paréntesis, puntos
+  phoneChars: /^[\d\s+\-().]+$/,
+} as const;
+
+const validators: Record<string, Validator> = {
+  nombre: (v) => {
+    if (v.length < 3) return "El nombre es muy corto.";
+    if (v.length > 100) return "El nombre es muy largo.";
+    if (!RX.onlyLetters.test(v))
+      return "El nombre solo puede tener letras, espacios y guiones.";
+    if (!/\s/.test(v)) return "Escribe tu nombre completo (nombre y apellido).";
+    return null;
+  },
+  direccion: (v) => {
+    if (v.length < 5) return "La dirección es muy corta.";
+    if (v.length > 200) return "La dirección es muy larga.";
+    return null;
+  },
+  whatsapp: (v) => {
+    if (!RX.phoneChars.test(v))
+      return "El WhatsApp solo puede tener números, espacios, + - ( ).";
+    const digits = v.replace(/\D/g, "");
+    if (digits.length < 7) return "El WhatsApp es muy corto.";
+    if (digits.length > 15) return "El WhatsApp es muy largo.";
+    return null;
+  },
+  telefono: (v) => {
+    if (!RX.phoneChars.test(v))
+      return "El teléfono solo puede tener números, espacios, + - ( ).";
+    const digits = v.replace(/\D/g, "");
+    if (digits.length < 7) return "El teléfono es muy corto.";
+    if (digits.length > 15) return "El teléfono es muy largo.";
+    return null;
+  },
+  email: (v) => {
+    if (v.length > 200) return "El correo es muy largo.";
+    if (!RX.email.test(v)) return "El correo no tiene un formato válido.";
+    return null;
+  },
+  carrera: (v) => {
+    if (v.length > 150) return "El nombre del programa es muy largo.";
+    return null;
+  },
+  empresa: (v) => {
+    if (v.length < 2) return "El nombre de la empresa es muy corto.";
+    if (v.length > 150) return "El nombre de la empresa es muy largo.";
+    if (!RX.alphanumName.test(v))
+      return "El nombre tiene caracteres no permitidos.";
+    return null;
+  },
+  contacto: (v) => {
+    if (v.length < 3) return "El nombre del contacto es muy corto.";
+    if (v.length > 200) return "El nombre del contacto es muy largo.";
+    return null;
+  },
+  reto: (v) => {
+    if (v.length < 20)
+      return "Cuéntanos un poco más sobre el reto (mínimo 20 caracteres).";
+    if (v.length > 2000) return "El texto es muy largo (máximo 2000 caracteres).";
+    return null;
+  },
+  // Campos "otro" — solo limitamos length, ya validamos no-vacío arriba
+  estudia_otro: (v) =>
+    v.length > 100 ? "El texto es muy largo." : null,
+  interes_otro: (v) =>
+    v.length > 100 ? "El texto es muy largo." : null,
+  origen_referido: (v) =>
+    v.length > 100 ? "El nombre es muy largo." : null,
+  origen_otro: (v) =>
+    v.length > 100 ? "El texto es muy largo." : null,
+  area_otro: (v) =>
+    v.length > 100 ? "El texto es muy largo." : null,
+  modalidad_otro: (v) =>
+    v.length > 100 ? "El texto es muy largo." : null,
+};
+
+// Labels amigables para mensaje genérico de "campo requerido"
+const fieldLabels: Record<string, string> = {
+  nombre: "el nombre completo",
+  ciudad: "la ciudad",
+  direccion: "la dirección",
+  whatsapp: "el WhatsApp",
+  telefono: "el teléfono",
+  email: "el correo electrónico",
+  carrera: "la carrera",
+  empresa: "el nombre de la empresa",
+  contacto: "la persona de contacto",
+  reto: "la descripción del reto",
+};
 
 // ============================================================
 // Types
@@ -95,20 +210,55 @@ function Stepper({
         const isDone = current > step.id;
         return (
           <div key={step.id} className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <div
+            <motion.div
+              animate={
+                isActive
+                  ? { scale: [1, 1.08, 1], rotate: -3 }
+                  : isDone
+                    ? { scale: 1, rotate: 0 }
+                    : { scale: 1, rotate: 0 }
+              }
+              transition={
+                isActive
+                  ? {
+                      scale: { duration: 0.6, ease: EASE, times: [0, 0.5, 1] },
+                      rotate: { type: "spring", stiffness: 240, damping: 14 },
+                    }
+                  : { duration: 0.35, ease: EASE }
+              }
               className={cn(
                 "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-ink)]",
-                "shadow-[3px_3px_0_var(--color-ink)] font-display text-sm font-bold transition-all duration-300",
-                isActive && "bg-[var(--color-accent)] text-white -rotate-3",
+                "shadow-[3px_3px_0_var(--color-ink)] font-display text-sm font-bold",
+                isActive && "bg-[var(--color-accent)] text-white",
                 isDone && "bg-[var(--color-bg-teal)] text-[var(--color-ink)]",
                 !isActive && !isDone && "bg-white text-[var(--color-ink)]",
               )}
             >
-              {isDone ? <Check size={16} strokeWidth={3} /> : step.id}
-            </div>
+              <AnimatePresence mode="wait" initial={false}>
+                {isDone ? (
+                  <motion.span
+                    key="check"
+                    initial={{ scale: 0, rotate: -90 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 16 }}
+                  >
+                    <Check size={16} strokeWidth={3} />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="num"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {step.id}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.div>
             <span
               className={cn(
-                "hidden font-display text-sm font-semibold whitespace-nowrap sm:block",
+                "hidden font-display text-sm font-semibold whitespace-nowrap transition-colors duration-300 sm:block",
                 isActive ? "text-[var(--color-ink)]" : "text-[var(--color-fg-subtle)]",
                 isDone && "text-[var(--color-fg-muted)]",
               )}
@@ -117,11 +267,11 @@ function Stepper({
             </span>
             {i < steps.length - 1 && (
               <div className="relative mx-1 h-[3px] w-6 min-w-4 sm:w-10 overflow-hidden border-y-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)]">
-                <div
-                  className={cn(
-                    "absolute inset-0 origin-left bg-[var(--color-accent)] transition-transform duration-500",
-                    isDone ? "scale-x-100" : "scale-x-0",
-                  )}
+                <motion.div
+                  initial={false}
+                  animate={{ scaleX: isDone ? 1 : 0 }}
+                  transition={{ duration: 0.55, ease: EASE }}
+                  className="absolute inset-0 origin-left bg-[var(--color-accent)]"
                 />
               </div>
             )}
@@ -139,40 +289,65 @@ function RoleSelector({
   role: Role;
   onChange: (r: Role) => void;
 }) {
+  const opts = [
+    { id: "aspirante" as Role, label: "Soy aspirante", icon: "🌱" },
+    { id: "empresa" as Role, label: "Soy empresa", icon: "🏢" },
+  ];
   return (
-    <div className="mb-9 flex justify-center">
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: EASE }}
+      className="mb-9 flex justify-center"
+    >
       <div className="inline-flex rounded-full border-2 border-[var(--color-ink)] bg-white p-1.5 shadow-[6px_6px_0_var(--color-ink)]">
-        {(
-          [
-            { id: "aspirante" as Role, label: "Soy aspirante", icon: "🌱" },
-            { id: "empresa" as Role, label: "Soy empresa", icon: "🏢" },
-          ]
-        ).map((opt) => (
+        {opts.map((opt) => (
           <button
             key={opt.id}
             type="button"
             onClick={() => onChange(opt.id)}
             className={cn(
-              "inline-flex items-center gap-2 rounded-full px-5 py-3 font-body text-sm font-semibold transition-colors",
+              "relative inline-flex items-center gap-2 rounded-full px-5 py-3 font-body text-sm font-semibold transition-colors",
               role === opt.id
-                ? "bg-[var(--color-ink)] text-white"
+                ? "text-white"
                 : "text-[var(--color-fg-muted)] hover:text-[var(--color-ink)]",
             )}
           >
-            <span className="text-base">{opt.icon}</span>
-            <span className="hidden xs:inline sm:inline">{opt.label}</span>
-            <span className="inline xs:hidden sm:hidden">
+            {role === opt.id && (
+              <motion.span
+                layoutId="role-pill"
+                className="absolute inset-0 rounded-full bg-[var(--color-ink)]"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10 text-base">{opt.icon}</span>
+            <span className="relative z-10 hidden xs:inline sm:inline">{opt.label}</span>
+            <span className="relative z-10 inline xs:hidden sm:hidden">
               {opt.id === "aspirante" ? "Aspirante" : "Empresa"}
             </span>
           </button>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
+/**
+ * Field con animación de entrada en stagger.
+ * El padre (panel) controla el timing con `staggerChildren`.
+ */
 function Field({ children }: { children: React.ReactNode }) {
-  return <div className="mb-5">{children}</div>;
+  return (
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 14 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+      }}
+      className="mb-5"
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 function Hand({ children }: { children: React.ReactNode }) {
@@ -203,7 +378,7 @@ function PanelHeader({
   );
 }
 
-// Radio personalizado al estilo toon
+// Radio personalizado al estilo toon (consume FormCtx para persistir entre pasos)
 function Radio({
   name,
   value,
@@ -221,12 +396,12 @@ function Radio({
   otherName?: string;
   otherPlaceholder?: string;
 }) {
+  const ctx = useFormCtx();
   return (
     <label className={optionCls}>
       <input
+        {...radioProps(name, value, ctx)}
         type="radio"
-        name={name}
-        value={value}
         required={required}
         className="peer sr-only"
       />
@@ -238,8 +413,8 @@ function Radio({
       </span>
       {withOtherInput && otherName && (
         <input
+          {...textProps(otherName, ctx)}
           type="text"
-          name={otherName}
           placeholder={otherPlaceholder ?? "Especifica..."}
           className={cn(
             "ml-auto max-w-[220px] rounded-lg border-2 border-[var(--color-ink)] bg-white px-3 py-1.5",
@@ -274,15 +449,77 @@ function PanelMotion({
       <motion.div
         key={step}
         custom={direction}
-        initial={{ opacity: 0, x: direction === "forward" ? 36 : -36 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: direction === "forward" ? -36 : 36 }}
-        transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
+        initial="hidden"
+        animate="show"
+        exit="exit"
+        variants={{
+          hidden: {
+            opacity: 0,
+            x: direction === "forward" ? 36 : -36,
+            filter: "blur(2px)",
+          },
+          show: {
+            opacity: 1,
+            x: 0,
+            filter: "blur(0px)",
+            transition: {
+              duration: 0.4,
+              ease: EASE,
+              when: "beforeChildren",
+              staggerChildren: 0.07,
+              delayChildren: 0.05,
+            },
+          },
+          exit: {
+            opacity: 0,
+            x: direction === "forward" ? -36 : 36,
+            filter: "blur(2px)",
+            transition: { duration: 0.25, ease: EASE },
+          },
+        }}
       >
         {children}
       </motion.div>
     </AnimatePresence>
   );
+}
+
+// ============================================================
+// Form Context — para persistir valores entre transiciones de paso
+// ============================================================
+
+type FormCtxValue = {
+  defaults: Record<string, string>;
+  onChange: (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => void;
+};
+
+const FormCtx = createContext<FormCtxValue | null>(null);
+
+function useFormCtx(): FormCtxValue {
+  const ctx = useContext(FormCtx);
+  if (!ctx) throw new Error("useFormCtx debe usarse dentro de FormCtx.Provider");
+  return ctx;
+}
+
+/** Helper que mergea defaults + onChange a inputs de texto/email/tel/select/textarea */
+function textProps(name: string, ctx: FormCtxValue) {
+  return {
+    name,
+    defaultValue: ctx.defaults[name] ?? "",
+    onChange: ctx.onChange,
+  };
+}
+
+/** Helper para radio buttons con restore */
+function radioProps(name: string, value: string, ctx: FormCtxValue) {
+  return {
+    name,
+    value,
+    defaultChecked: ctx.defaults[name] === value,
+    onChange: ctx.onChange,
+  };
 }
 
 // ============================================================
@@ -300,6 +537,71 @@ export function ApplicationForm() {
 
   const formRef = useRef<HTMLFormElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
+  // Guardamos el File object aparte. El input se desmonta al cambiar de paso
+  // y los browsers no permiten re-asignar files vía JS, así que el ref del
+  // input pierde el archivo. Este ref persiste entre transiciones.
+  const cvFileRef = useRef<File | null>(null);
+
+  /**
+   * Persistencia de valores entre transiciones de paso:
+   *   - valuesRef: source of truth, escrita en cada onChange (sin re-render)
+   *   - defaults: snapshot del ref pasado al Context, actualizado SOLO en
+   *     transiciones (para que el remount de un panel lea valores frescos
+   *     vía defaultValue/defaultChecked).
+   * Sin esto, AnimatePresence desmonta paneles y los datos se perderían
+   * (FormData solo captura lo del DOM actual).
+   */
+  const valuesRef = useRef<Record<string, string>>({});
+  const [defaults, setDefaults] = useState<Record<string, string>>({});
+
+  // stepRef mirrors `step` para que handleSubmit pueda chequear el valor
+  // real sin closures rancios. Se actualiza en useEffect (no en render).
+  const stepRef = useRef(step);
+  useEffect(() => {
+    stepRef.current = step;
+  }, [step]);
+
+  // Lock para evitar que un submit rebote justo después de un cambio
+  // de paso (cuando el botón "Continuar" se transforma en "Enviar" en
+  // la misma posición DOM y un doble-click cae en el segundo).
+  const lastTransitionAtRef = useRef(0);
+  const TRANSITION_LOCK_MS = 600;
+
+  // ---- Captura de inputs del panel actual ----
+
+  const captureCurrentPanel = () => {
+    const panel = formRef.current?.querySelector<HTMLElement>(
+      "[data-active-panel]",
+    );
+    if (!panel) return;
+    const inputs = panel.querySelectorAll<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >("input[name], select[name], textarea[name]");
+    for (const el of Array.from(inputs)) {
+      if (el instanceof HTMLInputElement && el.type === "file") continue;
+      if (el instanceof HTMLInputElement && el.type === "radio") {
+        if (el.checked) valuesRef.current[el.name] = el.value;
+        continue;
+      }
+      valuesRef.current[el.name] = el.value;
+    }
+    setDefaults({ ...valuesRef.current });
+  };
+
+  // Handler global de cambios (registra en valuesRef sin re-render)
+  const handleFieldChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const el = e.target;
+    if (el instanceof HTMLInputElement && el.type === "file") return;
+    if (el instanceof HTMLInputElement && el.type === "radio") {
+      if (el.checked) valuesRef.current[el.name] = el.value;
+      return;
+    }
+    valuesRef.current[el.name] = el.value;
+  };
 
   const steps = useMemo(
     () => (role === "aspirante" ? ASPIRANTE_STEPS : EMPRESA_STEPS),
@@ -310,6 +612,9 @@ export function ApplicationForm() {
 
   const goTo = (next: number, dir: Direction) => {
     if (next < 1 || next > steps.length) return;
+    // ANTES de cambiar de paso, capturar valores del panel actual
+    captureCurrentPanel();
+    lastTransitionAtRef.current = Date.now();
     setDirection(dir);
     setStep(next);
     if (typeof window !== "undefined") {
@@ -325,6 +630,9 @@ export function ApplicationForm() {
     setSuccess(false);
     setErrorMsg(null);
     setCvFileName(null);
+    cvFileRef.current = null;
+    valuesRef.current = {};
+    setDefaults({}); // limpia el snapshot también
   };
 
   // ---- Validación por paso (lee el DOM del form actual) ----
@@ -335,6 +643,7 @@ export function ApplicationForm() {
     const panel = form.querySelector<HTMLElement>("[data-active-panel]");
     if (!panel) return true;
 
+    // 1) Validar campos requeridos vacíos + formatos de los campos requeridos
     const required = panel.querySelectorAll<HTMLElement>("[required]");
     const validatedRadioGroups = new Set<string>();
 
@@ -351,9 +660,10 @@ export function ApplicationForm() {
           setErrorMsg("Por favor selecciona una opción antes de continuar.");
           return false;
         }
-        // Si la opción seleccionada es "otro" (o tiene un text input asociado),
-        // requerir que el text input esté lleno.
-        if (checkedRadio.value === "otro" || checkedRadio.value === "referido") {
+        if (
+          checkedRadio.value === "otro" ||
+          checkedRadio.value === "referido"
+        ) {
           const otherInput = checkedRadio
             .closest("label")
             ?.querySelector<HTMLInputElement>('input[type="text"]');
@@ -364,21 +674,60 @@ export function ApplicationForm() {
           }
         }
       } else if (el instanceof HTMLInputElement && el.type === "file") {
-        if (!el.files || el.files.length === 0) {
+        // El input se desmonta al navegar, así que también aceptamos el ref.
+        const hasFile =
+          (el.files && el.files.length > 0) || cvFileRef.current !== null;
+        if (!hasFile) {
           setErrorMsg("Por favor adjunta tu hoja de vida.");
           return false;
         }
       } else if (
-        (el instanceof HTMLInputElement ||
-          el instanceof HTMLSelectElement ||
-          el instanceof HTMLTextAreaElement) &&
-        !el.value.trim()
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLSelectElement ||
+        el instanceof HTMLTextAreaElement
       ) {
-        el.focus();
-        setErrorMsg("Faltan campos requeridos en este paso.");
-        return false;
+        const value = el.value.trim();
+        if (!value) {
+          el.focus();
+          const label = fieldLabels[el.name] ?? "este campo";
+          setErrorMsg(`Por favor completa ${label}.`);
+          return false;
+        }
+        // Validación de formato (si hay validador para este name)
+        const validator = validators[el.name];
+        if (validator) {
+          const err = validator(value);
+          if (err) {
+            el.focus();
+            setErrorMsg(err);
+            return false;
+          }
+        }
       }
     }
+
+    // 2) Validar formato de campos OPCIONALES que SÍ tienen valor
+    //    (ej: "carrera" opcional pero si la escriben mal, avisar)
+    const allInputs = panel.querySelectorAll<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >("input[name], select[name], textarea[name]");
+    for (const el of Array.from(allInputs)) {
+      if (el.hasAttribute("required")) continue; // ya validado arriba
+      if (el instanceof HTMLInputElement && el.type === "radio") continue;
+      if (el instanceof HTMLInputElement && el.type === "file") continue;
+      const value = el.value.trim();
+      if (!value) continue;
+      const validator = validators[el.name];
+      if (validator) {
+        const err = validator(value);
+        if (err) {
+          el.focus();
+          setErrorMsg(err);
+          return false;
+        }
+      }
+    }
+
     setErrorMsg(null);
     return true;
   };
@@ -394,7 +743,11 @@ export function ApplicationForm() {
 
   const onCvChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    setCvFileName(file?.name ?? null);
+    // Si no hay file (usuario canceló el picker), NO limpiamos el ref —
+    // mantenemos el CV previo. Solo asignamos cuando hay archivo nuevo.
+    if (!file) return;
+    cvFileRef.current = file;
+    setCvFileName(file.name);
   };
 
   // ---- Submit a Firebase ----
@@ -417,9 +770,17 @@ export function ApplicationForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Guardia extra: solo permite submit en el último paso
-    if (step < steps.length) {
-      goTo(step + 1, "forward");
+
+    // Defensa 1: si acabamos de cambiar de paso (en los últimos ~600ms),
+    // ignorar el submit. Esto evita que un doble-click o el rebote del
+    // click sobre "Continuar" caiga sobre el botón submit recién renderizado.
+    if (Date.now() - lastTransitionAtRef.current < TRANSITION_LOCK_MS) {
+      return;
+    }
+
+    // Defensa 2: usar stepRef (sincrono) en vez del `step` cerrado.
+    if (stepRef.current < steps.length) {
+      goTo(stepRef.current + 1, "forward");
       return;
     }
     if (!validateCurrentPanel()) return;
@@ -428,39 +789,44 @@ export function ApplicationForm() {
     setErrorMsg(null);
 
     try {
-      const form = e.currentTarget;
-      const fd = new FormData(form);
-      const data: Record<string, unknown> = {};
-      for (const [key, value] of fd.entries()) {
-        if (value instanceof File) continue;
-        data[key] = value;
-      }
+      // Captura final del panel actual (paso 3) antes de armar payload
+      captureCurrentPanel();
+
+      // Usamos valuesRef, NO FormData — porque AnimatePresence desmonta
+      // los paneles anteriores y FormData solo vería el último.
+      const data: Record<string, unknown> = { ...valuesRef.current };
 
       if (role === "aspirante") {
-        // Subir CV a Cloudinary primero (cualquier formato)
-        const cvFile = cvInputRef.current?.files?.[0];
+        // Subir CV a Cloudinary. Usamos cvFileRef (no cvInputRef.files) porque
+        // el input se desmonta al navegar de paso y el File se perdería.
+        const cvFile = cvFileRef.current ?? cvInputRef.current?.files?.[0];
         if (cvFile) {
           const upload = await uploadCvToCloudinary(cvFile);
-          data.cvUrl = upload.secureUrl;
-          data.cvPublicId = upload.publicId;
-          data.cvResourceType = upload.resourceType;
-          data.cvFormat = upload.format;
-          data.cvBytes = upload.bytes;
+          // Solo guardamos los campos que Cloudinary devolvió definidos.
+          // Firestore RECHAZA valores undefined (sí acepta null).
+          if (upload.secureUrl) data.cvUrl = upload.secureUrl;
+          if (upload.publicId) data.cvPublicId = upload.publicId;
+          if (upload.resourceType) data.cvResourceType = upload.resourceType;
+          if (upload.format) data.cvFormat = upload.format;
+          if (typeof upload.bytes === "number") data.cvBytes = upload.bytes;
           data.cvFilename = cvFile.name;
         }
-
-        await addDoc(collection(db, "aspirantes"), {
-          ...data,
-          createdAt: serverTimestamp(),
-          source: "web-postular",
-        });
-      } else {
-        await addDoc(collection(db, "empresas"), {
-          ...data,
-          createdAt: serverTimestamp(),
-          source: "web-postular",
-        });
       }
+
+      // Limpieza final: nunca enviar undefined a Firestore.
+      const cleanData = Object.fromEntries(
+        Object.entries(data).filter(([, v]) => v !== undefined),
+      );
+
+      const payload = {
+        ...cleanData,
+        createdAt: serverTimestamp(),
+        source: "web-postular",
+        status: "pending" as const,
+      };
+
+      const collectionName = role === "aspirante" ? "aspirantes" : "empresas";
+      await addDoc(collection(db, collectionName), payload);
 
       setSuccess(true);
     } catch (err) {
@@ -482,38 +848,77 @@ export function ApplicationForm() {
 
   if (success) {
     return (
-      <div className="toon-card mx-auto max-w-2xl p-10 text-center sm:p-12">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: EASE }}
+        className="toon-card relative mx-auto max-w-2xl overflow-hidden p-10 text-center sm:p-12"
+      >
+        {/* Confetti-ish dots de fondo */}
+        <motion.span
+          className="pointer-events-none absolute -top-8 -left-6 h-20 w-20 rounded-full bg-[var(--color-bg-sky)] opacity-60"
+          animate={{ y: [0, -10, 0], rotate: [0, 6, 0] }}
+          transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.span
+          className="pointer-events-none absolute -bottom-6 -right-4 h-16 w-16 rounded-full bg-[var(--color-bg-teal)] opacity-60"
+          animate={{ y: [0, 8, 0], rotate: [0, -8, 0] }}
+          transition={{ duration: 6.4, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+        />
+
         <motion.div
-          initial={{ scale: 0, rotate: -5 }}
+          initial={{ scale: 0, rotate: -90 }}
           animate={{ scale: 1, rotate: -5 }}
-          transition={{ type: "spring", stiffness: 200, damping: 14 }}
-          className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-accent)] text-white shadow-[6px_6px_0_var(--color-ink)]"
+          transition={{ type: "spring", stiffness: 220, damping: 14, delay: 0.1 }}
+          className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-accent)] text-white shadow-[6px_6px_0_var(--color-ink)]"
         >
           <Check size={36} strokeWidth={3.5} />
         </motion.div>
-        <h2 className="font-display text-3xl font-bold leading-tight tracking-tight text-[var(--color-heading)]">
+        <motion.h2
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE, delay: 0.25 }}
+          className="relative font-display text-3xl font-bold leading-tight tracking-tight text-[var(--color-heading)]"
+        >
           ¡Gracias por <Hand>escribirnos</Hand>!
-        </h2>
-        <p className="mx-auto mt-3 max-w-md text-[15px] text-[var(--color-fg-muted)]">
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE, delay: 0.35 }}
+          className="relative mx-auto mt-3 max-w-md text-[15px] text-[var(--color-fg-muted)]"
+        >
           {role === "aspirante"
             ? "Recibimos tu postulación. Si haces match con el batch, te contactamos pronto. 🌱"
             : "Recibimos tu solicitud. Un mentor senior te contactará en menos de 48 horas."}
-        </p>
-        <button
-          type="button"
-          onClick={() => {
-            setSuccess(false);
-            setStep(1);
-            setCvFileName(null);
-            formRef.current?.reset();
-          }}
-          className="toon-btn mt-8"
-          style={{ background: "var(--color-accent-soft)" }}
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE, delay: 0.45 }}
+          className="relative"
         >
-          Enviar otra postulación
-          <ArrowRight size={16} />
-        </button>
-      </div>
+          <Magnetic strength={0.25}>
+            <button
+              type="button"
+              onClick={() => {
+                setSuccess(false);
+                setStep(1);
+                setCvFileName(null);
+                cvFileRef.current = null;
+                valuesRef.current = {};
+                setDefaults({});
+                formRef.current?.reset();
+              }}
+              className="toon-btn mt-8"
+              style={{ background: "var(--color-accent-soft)" }}
+            >
+              Enviar otra postulación
+              <ArrowRight size={16} />
+            </button>
+          </Magnetic>
+        </motion.div>
+      </motion.div>
     );
   }
 
@@ -525,19 +930,47 @@ export function ApplicationForm() {
     <div className="mx-auto w-full max-w-2xl">
       <RoleSelector role={role} onChange={changeRole} />
 
-      <div className="toon-card relative p-7 sm:p-10">
-        {/* Sticker decorativo */}
-        <div
-          className="absolute -top-4 right-6 inline-flex rotate-[4deg] items-center gap-1 rounded-full border-2 border-[var(--color-ink)] px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider shadow-[3px_3px_0_var(--color-ink)]"
-          style={{
-            background:
-              role === "aspirante" ? "var(--color-accent)" : "var(--color-bg-sky)",
-            color: role === "aspirante" ? "#fff" : "var(--color-ink)",
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
+        className="toon-card relative p-7 sm:p-10"
+      >
+        {/* Sticker decorativo con floater */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={role}
+            initial={{ opacity: 0, scale: 0.6, rotate: 14 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              rotate: [4, 7, 4],
+              y: [0, -4, 0],
+            }}
+            exit={{ opacity: 0, scale: 0.6, rotate: -8 }}
+            transition={{
+              opacity: { duration: 0.3 },
+              scale: { type: "spring", stiffness: 280, damping: 14 },
+              rotate: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+              y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+            }}
+            className="absolute -top-4 right-6 inline-flex items-center gap-1 rounded-full border-2 border-[var(--color-ink)] px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider shadow-[3px_3px_0_var(--color-ink)]"
+            style={{
+              background:
+                role === "aspirante" ? "var(--color-accent)" : "var(--color-bg-sky)",
+              color: role === "aspirante" ? "#fff" : "var(--color-ink)",
+            }}
+          >
+            {role === "aspirante" ? "¡Gratis!" : "+48h respuesta"}
+          </motion.div>
+        </AnimatePresence>
+
+        <FormCtx.Provider
+          value={{
+            defaults,
+            onChange: handleFieldChange,
           }}
         >
-          {role === "aspirante" ? "¡Gratis!" : "+48h respuesta"}
-        </div>
-
         <form
           ref={formRef}
           onSubmit={handleSubmit}
@@ -564,12 +997,28 @@ export function ApplicationForm() {
             </div>
           </PanelMotion>
 
-          {/* Mensaje de error */}
-          {errorMsg && (
-            <div className="mt-5 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 shadow-[3px_3px_0_#ef4444]">
-              {errorMsg}
-            </div>
-          )}
+          {/* Mensaje de error con AnimatePresence */}
+          <AnimatePresence>
+            {errorMsg && (
+              <motion.div
+                key="err"
+                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                animate={{ opacity: 1, height: "auto", marginTop: 20 }}
+                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                transition={{ duration: 0.35, ease: EASE }}
+                className="overflow-hidden"
+              >
+                <motion.div
+                  initial={{ x: 0 }}
+                  animate={{ x: [0, -6, 6, -4, 4, 0] }}
+                  transition={{ duration: 0.5, ease: EASE }}
+                  className="rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 shadow-[3px_3px_0_#ef4444]"
+                >
+                  {errorMsg}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Navegación */}
           <div className="mt-8 flex flex-wrap gap-3 border-t-2 border-dashed border-[var(--color-bg-soft)] pt-6">
@@ -586,46 +1035,76 @@ export function ApplicationForm() {
             )}
 
             {step < steps.length ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="toon-btn ml-auto"
-                style={{ background: "var(--color-ink)", color: "#fff" }}
+              <Magnetic
+                key="btn-next"
+                strength={0.25}
+                className="ml-auto"
               >
-                Continuar
-                <ArrowRight size={16} />
-              </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="toon-btn"
+                  style={{ background: "var(--color-ink)", color: "#fff" }}
+                >
+                  Continuar
+                  <motion.span
+                    animate={{ x: [0, 3, 0] }}
+                    transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                    className="inline-flex"
+                  >
+                    <ArrowRight size={16} />
+                  </motion.span>
+                </button>
+              </Magnetic>
             ) : (
-              <button
-                type="submit"
-                disabled={submitting}
-                className="toon-btn ml-auto disabled:opacity-60"
-                style={{ background: "var(--color-ink)", color: "#fff" }}
+              <Magnetic
+                key="btn-submit"
+                strength={0.25}
+                className="ml-auto"
               >
-                {submitting ? (
-                  <>
-                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Enviando...
-                  </>
-                ) : (
-                  <>
-                    {role === "aspirante" ? "Enviar postulación" : "Enviar solicitud"}
-                    <Send size={16} />
-                  </>
-                )}
-              </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="toon-btn disabled:opacity-60"
+                  style={{ background: "var(--color-ink)", color: "#fff" }}
+                >
+                  {submitting ? (
+                    <>
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      {role === "aspirante" ? "Enviar postulación" : "Enviar solicitud"}
+                      <motion.span
+                        animate={{ rotate: [0, -8, 0, 8, 0] }}
+                        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                        className="inline-flex"
+                      >
+                        <Send size={16} />
+                      </motion.span>
+                    </>
+                  )}
+                </button>
+              </Magnetic>
             )}
           </div>
 
           {step === steps.length && (
-            <p className="mt-4 text-center text-xs text-[var(--color-fg-subtle)]">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+              className="mt-4 text-center text-xs text-[var(--color-fg-subtle)]"
+            >
               {role === "aspirante"
                 ? "Al enviar aceptas el tratamiento de datos según nuestra política de privacidad."
                 : "Te contactaremos en menos de 48 horas para coordinar una llamada."}
-            </p>
+            </motion.p>
           )}
         </form>
-      </div>
+        </FormCtx.Provider>
+      </motion.div>
     </div>
   );
 }
@@ -635,6 +1114,7 @@ export function ApplicationForm() {
 // ============================================================
 
 function AspiranteStep1() {
+  const ctx = useFormCtx();
   return (
     <>
       <PanelHeader
@@ -650,9 +1130,12 @@ function AspiranteStep1() {
           Nombre completo<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
         <input
+          {...textProps("nombre", ctx)}
           type="text"
-          name="nombre"
           required
+          autoComplete="name"
+          inputMode="text"
+          maxLength={100}
           placeholder="Ej: María Fernanda López"
           className={inputCls}
         />
@@ -663,7 +1146,7 @@ function AspiranteStep1() {
           <label className={labelCls}>
             Ciudad<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
-          <select name="ciudad" required className={cn(inputCls, "cursor-pointer pr-11")}>
+          <select {...textProps("ciudad", ctx)} required className={cn(inputCls, "cursor-pointer pr-11")}>
             <option value="">Selecciona tu ciudad</option>
             <option>Barranquilla</option>
             <option>Bogotá</option>
@@ -680,9 +1163,11 @@ function AspiranteStep1() {
             Dirección<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
+            {...textProps("direccion", ctx)}
             type="text"
-            name="direccion"
             required
+            autoComplete="street-address"
+            maxLength={200}
             placeholder="Calle, número, barrio"
             className={inputCls}
           />
@@ -695,9 +1180,12 @@ function AspiranteStep1() {
             WhatsApp<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
+            {...textProps("whatsapp", ctx)}
             type="tel"
-            name="whatsapp"
             required
+            autoComplete="tel"
+            inputMode="tel"
+            maxLength={20}
             placeholder="300 123 4567"
             className={inputCls}
           />
@@ -707,9 +1195,12 @@ function AspiranteStep1() {
             Correo electrónico<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
+            {...textProps("email", ctx)}
             type="email"
-            name="email"
             required
+            autoComplete="email"
+            inputMode="email"
+            maxLength={200}
             placeholder="tu@correo.com"
             className={inputCls}
           />
@@ -728,6 +1219,7 @@ function AspiranteStep2({
   onCvChange: (e: ChangeEvent<HTMLInputElement>) => void;
   cvInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
+  const ctx = useFormCtx();
   return (
     <>
       <PanelHeader
@@ -760,8 +1252,9 @@ function AspiranteStep2({
       <Field>
         <label className={labelCls}>¿Qué carrera o programa estudias?</label>
         <input
+          {...textProps("carrera", ctx)}
           type="text"
-          name="carrera"
+          maxLength={150}
           placeholder="Si aplica"
           className={inputCls}
         />
@@ -878,6 +1371,7 @@ function AspiranteStep3() {
 }
 
 function EmpresaStep1() {
+  const ctx = useFormCtx();
   return (
     <>
       <PanelHeader
@@ -896,9 +1390,11 @@ function EmpresaStep1() {
           <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
         <input
+          {...textProps("empresa", ctx)}
           type="text"
-          name="empresa"
           required
+          autoComplete="organization"
+          maxLength={150}
           placeholder="Ej: Acme S.A.S."
           className={inputCls}
         />
@@ -910,9 +1406,11 @@ function EmpresaStep1() {
           <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
         <input
+          {...textProps("contacto", ctx)}
           type="text"
-          name="contacto"
           required
+          autoComplete="name"
+          maxLength={200}
           placeholder="Ej: Juan Pérez — CTO"
           className={inputCls}
         />
@@ -925,9 +1423,12 @@ function EmpresaStep1() {
             <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
+            {...textProps("email", ctx)}
             type="email"
-            name="email"
             required
+            autoComplete="email"
+            inputMode="email"
+            maxLength={200}
             placeholder="tu@empresa.com"
             className={inputCls}
           />
@@ -937,9 +1438,12 @@ function EmpresaStep1() {
             Teléfono<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
+            {...textProps("telefono", ctx)}
             type="tel"
-            name="telefono"
             required
+            autoComplete="tel"
+            inputMode="tel"
+            maxLength={20}
             placeholder="+57 300 123 4567"
             className={inputCls}
           />
@@ -950,6 +1454,7 @@ function EmpresaStep1() {
 }
 
 function EmpresaStep2() {
+  const ctx = useFormCtx();
   return (
     <>
       <PanelHeader
@@ -991,13 +1496,15 @@ function EmpresaStep2() {
           <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
         <textarea
-          name="reto"
+          {...textProps("reto", ctx)}
           required
+          minLength={20}
+          maxLength={2000}
           placeholder="Ej: Pasamos mucho tiempo respondiendo preguntas frecuentes de clientes..."
           className={cn(inputCls, "min-h-[120px] resize-y leading-relaxed")}
         />
         <span className="mt-2 block text-[13px] text-[var(--color-fg-subtle)]">
-          ¿Qué problema crees que podría resolverse con tecnología o IA?
+          ¿Qué problema crees que podría resolverse con tecnología o IA? (mínimo 20 caracteres)
         </span>
       </Field>
     </>
