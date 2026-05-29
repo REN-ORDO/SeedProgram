@@ -314,7 +314,6 @@ export const testimonios: Testimonio[] = [
     photo: "/img-camilo.png",
     accent: "#7DD3FC",
   },
-  // TODO content team: foto toon Karoll en /img-karoll.png (prompt CooWeb Toon Portrait)
   {
     id: "karoll-marquez",
     name: "Karoll Marquez",
@@ -324,7 +323,7 @@ export const testimonios: Testimonio[] = [
     body: "Comenzó aprendiendo desarrollo web mientras estudiaba Ingeniería de Sistemas. Con el tiempo amplió sus conocimientos hacia IA, automatización y desarrollo de productos digitales. Hoy construye soluciones tecnológicas que ayudan a empresas a optimizar procesos y crecer.",
     quote:
       "Descubrí que podía crear mucho más que aplicaciones. La combinación de desarrollo, IA y automatización me permitió convertir ideas en soluciones con impacto real.",
-    initial: "K",
+    photo: "/img-karoll.png",
     accent: "#14B8A6",
   },
   {
