@@ -312,6 +312,20 @@ export const testimonios: Testimonio[] = [
     photo: "/img-erika.png",
     accent: "#38BDF8",
   },
+  // TODO content team: copy + foto toon Karoll en /img-karoll.png (prompt CooWeb Toon Portrait)
+  {
+    id: "karoll-marquez",
+    name: "Karoll Marquez",
+    badge: "Ex-Semilla · [rol actual pendiente]",
+    tenure: "Historia pendiente · llenar",
+    headline: "Headline corto de 6-8 palabras.",
+    body: "Cuerpo del testimonio: contexto inicial, qué cambió, qué hace hoy. 2-3 frases máximo.",
+    quote:
+      "Cita directa en primera persona — qué se llevó del programa, qué descubrió de sí.",
+    initial: "K",
+    accent: "#14B8A6",
+    placeholder: true,
+  },
 ];
 
 // Back-compat — first testimonio
