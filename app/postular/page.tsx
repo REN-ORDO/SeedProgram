@@ -14,15 +14,16 @@ export default function PostularPage() {
   return (
     <main className="relative min-h-dvh overflow-x-hidden px-5 pb-24 pt-28 md:px-8 md:pt-32">
       <LoadingScreen />
-      {/* Decoración 1: blob sky arriba-derecha con floater */}
+      {/* Decoración 1: blob sky arriba-derecha con floater.
+          z-0 + mobile sin sombra dura ni tamaño grande: así no tapa el título. */}
       <motion.div
         aria-hidden
         initial={{ opacity: 0, scale: 0.6, rotate: -8 }}
         animate={
           reduce
-            ? { opacity: 0.9 }
+            ? { opacity: 0.7 }
             : {
-                opacity: 0.9,
+                opacity: 0.7,
                 scale: 1,
                 rotate: 0,
                 y: [0, -14, 0],
@@ -40,7 +41,7 @@ export default function PostularPage() {
                 x: { duration: 9.4, repeat: Infinity, ease: "easeInOut" },
               }
         }
-        className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-bg-sky)] shadow-[10px_10px_0_var(--color-ink)] sm:-top-20 sm:-right-20 sm:h-72 sm:w-72"
+        className="pointer-events-none absolute -top-24 -right-24 z-0 h-32 w-32 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-bg-sky)] sm:-top-20 sm:-right-20 sm:h-72 sm:w-72 sm:opacity-100 sm:shadow-[10px_10px_0_var(--color-ink)]"
       />
 
       {/* Decoración 2: blob teal abajo-izquierda con floater */}
@@ -67,7 +68,7 @@ export default function PostularPage() {
                 rotate: { duration: 8.2, repeat: Infinity, ease: "easeInOut" },
               }
         }
-        className="pointer-events-none absolute bottom-32 -left-12 h-32 w-32 rounded-[30%_70%_70%_30%/30%_30%_70%_70%] border-2 border-[var(--color-ink)] bg-[var(--color-bg-teal)] shadow-[6px_6px_0_var(--color-ink)] sm:-left-16 sm:h-48 sm:w-48"
+        className="pointer-events-none absolute bottom-32 -left-12 z-0 h-32 w-32 rounded-[30%_70%_70%_30%/30%_30%_70%_70%] border-2 border-[var(--color-ink)] bg-[var(--color-bg-teal)] shadow-[6px_6px_0_var(--color-ink)] sm:-left-16 sm:h-48 sm:w-48"
       />
 
       {/* Decoración 3: estrella amarilla rotando */}
@@ -82,7 +83,7 @@ export default function PostularPage() {
             scale: { type: "spring", stiffness: 200, damping: 12, delay: 0.4 },
             rotate: { duration: 22, repeat: Infinity, ease: "linear" },
           }}
-          className="pointer-events-none absolute right-6 top-44 h-10 w-10 md:right-12 md:top-52"
+          className="pointer-events-none absolute right-4 top-40 z-0 h-8 w-8 md:right-12 md:top-52 md:h-10 md:w-10"
         >
           <path
             d="M12 2 L14.5 9.5 L22 12 L14.5 14.5 L12 22 L9.5 14.5 L2 12 L9.5 9.5 Z"
@@ -94,7 +95,7 @@ export default function PostularPage() {
         </motion.svg>
       )}
 
-      <div className="relative mx-auto max-w-2xl">
+      <div className="relative z-10 mx-auto max-w-2xl">
         {/* Back link */}
         <motion.div
           initial={{ opacity: 0, x: -8 }}

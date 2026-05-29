@@ -36,6 +36,7 @@ import {
   History,
   X,
   ChevronDown,
+  List,
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -667,15 +668,17 @@ function SelectField({
           maxLength={100}
           placeholder={otherPlaceholder}
           onChange={ctx.onChange}
-          className={cn(inputCls, "pr-24")}
+          className={cn(inputCls, "pr-14")}
         />
         {otherValue && (
           <button
             type="button"
             onClick={backToList}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg border-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)] px-2.5 py-1 font-display text-[11px] font-bold text-[var(--color-ink)] transition-colors hover:bg-[var(--color-bg-sky)]"
+            aria-label="Ver lista de opciones"
+            title="Ver lista de opciones"
+            className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg border-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)] text-[var(--color-ink)] transition-colors hover:bg-[var(--color-bg-sky)]"
           >
-            Lista
+            <List size={16} />
           </button>
         )}
       </div>
