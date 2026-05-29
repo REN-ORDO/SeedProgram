@@ -251,8 +251,22 @@ export type Testimonio = {
   placeholder?: boolean; // TODO marker for content team
 };
 
-// Carousel order: H → M → H → H → M → H (intercalar género con set actual: 4H/2M).
+// Orden carousel: Fanny (Coordinadora, voz institucional) abre; luego se
+// intercala género en el resto del set.
 export const testimonios: Testimonio[] = [
+  // TODO content team: foto toon Fanny en /img-fanny.png (prompt CooWeb Toon Portrait)
+  {
+    id: "fanny-tocora",
+    name: "Fanny Tocora Yi",
+    badge: "CooWeb · Coordinadora de Bienestar",
+    tenure: "Bienestar, Desarrollo y Crecimiento",
+    headline: "No solo formamos desarrolladores. Formamos propósito.",
+    body: "Como Coordinadora de Bienestar, Desarrollo y Crecimiento, Fanny acompaña el crecimiento integral de cada joven del Semillero. Su mirada va más allá del código: liderazgo, visión de futuro e impacto positivo en la región a través de la tecnología y la inteligencia artificial.",
+    quote:
+      "El Semillero de CooWeb no solo forma desarrolladores; forma jóvenes con propósito, liderazgo y visión de futuro. Impulsamos su crecimiento integral para que generen innovación, oportunidades e impacto positivo en nuestra región y en la sociedad.",
+    initial: "F",
+    accent: "#5EEAD4",
+  },
   {
     id: "sebastian-ordonez",
     name: "Sebastian Ordoñez",
