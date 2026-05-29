@@ -28,10 +28,10 @@ import { db } from "@/lib/firebase";
 import {
   STATUS_META,
   timeAgo,
-  toCSV,
+  buildCsv,
   downloadCSV,
 } from "@/lib/admin-helpers";
-import type { AppStatus } from "@/lib/admin-helpers";
+import type { AppStatus, CsvColumn } from "@/lib/admin-helpers";
 import { cn } from "@/lib/utils";
 
 export type ColumnConfig<T> = {
@@ -164,6 +164,7 @@ export function PostulacionList({
   columns,
   searchFields,
   csvFilename,
+  csvColumns,
   initialStatusFilter = "all",
 }: {
   collectionName: "aspirantes" | "empresas";
@@ -172,6 +173,7 @@ export function PostulacionList({
   columns: ColumnConfig<PostulacionRow>[];
   searchFields: string[];
   csvFilename: string;
+  csvColumns: CsvColumn[];
   initialStatusFilter?: "all" | AppStatus;
 }) {
   const [rows, setRows] = useState<PostulacionRow[]>([]);
@@ -221,7 +223,7 @@ export function PostulacionList({
   }, [rows, statusFilter, searchText, searchFields]);
 
   const onExport = () => {
-    const csv = toCSV(filtered);
+    const csv = buildCsv(filtered, csvColumns);
     const ts = new Date().toISOString().slice(0, 10);
     downloadCSV(`${csvFilename}-${ts}.csv`, csv);
   };

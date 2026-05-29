@@ -575,22 +575,32 @@ function SelectField({
   placeholder,
   required,
   otherValue,
-  otherPlaceholder = "Especifica cuál",
+  otherPlaceholder = "Escribe aquí",
 }: {
   name: string;
   options: string[];
   placeholder: string;
   required?: boolean;
-  /** Si el usuario elige este valor, se muestra un input de texto libre. */
+  /** Si el usuario elige este valor, el recuadro se vuelve un input de texto. */
   otherValue?: string;
   otherPlaceholder?: string;
 }) {
   const ctx = useFormCtx();
-  const [value, setValue] = useState(ctx.defaults[name] ?? "");
+  const initial = ctx.defaults[name] ?? "";
+  // Opciones reales seleccionables del dropdown (sin contar "Otra").
+  const realOptions = otherValue
+    ? options.filter((o) => o !== otherValue)
+    : options;
+  // Modo libre si el valor restaurado NO está en las opciones reales
+  // (ej: una ciudad escrita a mano que se guardó en un borrador).
+  const [custom, setCustom] = useState(
+    initial !== "" && !realOptions.includes(initial),
+  );
+  const [value, setValue] = useState(custom ? "" : initial);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const hiddenRef = useRef<HTMLInputElement>(null);
-  const showOther = otherValue !== undefined && value === otherValue;
+  const customRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -610,19 +620,69 @@ function SelectField({
     };
   }, [open]);
 
+  // Escribe en valuesRef (sin un input real) usando el onChange del contexto.
+  const writeValue = (v: string) => {
+    ctx.onChange({
+      target: { name, value: v, type: "text" },
+    } as unknown as ChangeEvent<HTMLInputElement>);
+  };
+
   const select = (opt: string) => {
-    setValue(opt);
     setOpen(false);
-    // Sincroniza el input hidden + dispara onChange para valuesRef.
+    // Si eligen "Otra", el recuadro se transforma en input de texto libre.
+    if (otherValue !== undefined && opt === otherValue) {
+      setCustom(true);
+      setValue("");
+      writeValue(""); // limpiar para que escriban desde cero
+      requestAnimationFrame(() => customRef.current?.focus());
+      return;
+    }
+    setValue(opt);
     const input = hiddenRef.current;
     if (input) {
       input.value = opt;
-      ctx.onChange({
-        target: input,
-      } as ChangeEvent<HTMLInputElement>);
+      ctx.onChange({ target: input } as ChangeEvent<HTMLInputElement>);
     }
   };
 
+  const backToList = () => {
+    setCustom(false);
+    setValue("");
+    writeValue("");
+    setOpen(true);
+  };
+
+  // ---- Modo texto libre: el recuadro ES el input ----
+  if (custom) {
+    return (
+      <div ref={ref} className="relative">
+        <input
+          ref={customRef}
+          name={name}
+          type="text"
+          required={required}
+          defaultValue={
+            initial !== "" && !realOptions.includes(initial) ? initial : ""
+          }
+          maxLength={100}
+          placeholder={otherPlaceholder}
+          onChange={ctx.onChange}
+          className={cn(inputCls, "pr-24")}
+        />
+        {otherValue && (
+          <button
+            type="button"
+            onClick={backToList}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg border-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)] px-2.5 py-1 font-display text-[11px] font-bold text-[var(--color-ink)] transition-colors hover:bg-[var(--color-bg-sky)]"
+          >
+            Lista
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // ---- Modo dropdown ----
   return (
     <div ref={ref} className="relative">
       {/* Input real: lo ven captura/submit/validación del form */}
@@ -687,19 +747,6 @@ function SelectField({
             );
           })}
         </ul>
-      )}
-
-      {/* Input libre cuando se elige la opción "Otra" */}
-      {showOther && (
-        <input
-          {...textProps(`${name}_otro`, ctx)}
-          type="text"
-          required={required}
-          autoFocus
-          maxLength={100}
-          placeholder={otherPlaceholder}
-          className={cn(inputCls, "mt-3")}
-        />
       )}
     </div>
   );
@@ -1065,15 +1112,9 @@ export function ApplicationForm() {
       // los paneles anteriores y FormData solo vería el último.
       const data: Record<string, unknown> = { ...valuesRef.current };
 
-      // Fusionar "Otra" ciudad: si eligieron Otra, ciudad = texto libre.
-      // Guardamos un solo campo limpio (la lista/búsqueda admin leen `ciudad`).
-      if (
-        data.ciudad === "Otra" &&
-        typeof data.ciudad_otro === "string" &&
-        data.ciudad_otro.trim()
-      ) {
-        data.ciudad = data.ciudad_otro.trim();
-      }
+      // El campo ciudad ya viene limpio: en modo "Otra" el recuadro se
+      // convierte en input de texto y escribe directo sobre `ciudad`.
+      // (Por compat con borradores viejos, descartamos ciudad_otro si existe.)
       delete data.ciudad_otro;
 
       // Teléfonos: guardar solo dígitos (el input los muestra formateados).
@@ -1218,37 +1259,44 @@ export function ApplicationForm() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      {/* Banner de borrador guardado */}
+      {/* Banner de borrador guardado.
+          Sin overflow-hidden ni animación de height: eso recortaba la
+          sombra offset de la caja. Solo fade + slide. El padding-bottom/right
+          del contenedor deja aire para que la sombra nunca se corte. */}
       <AnimatePresence>
         {draftPrompt && (
           <motion.div
-            initial={{ opacity: 0, y: -10, height: 0, marginBottom: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto", marginBottom: 20 }}
-            exit={{ opacity: 0, y: -10, height: 0, marginBottom: 0 }}
-            transition={{ duration: 0.4, ease: EASE }}
-            className="overflow-hidden"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35, ease: EASE }}
+            className="mb-6 pr-1 pb-1"
           >
-            <div className="flex flex-wrap items-center gap-3 rounded-2xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-sky)] p-4 shadow-[4px_4px_0_var(--color-ink)]">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-white">
-                <History size={18} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-display text-sm font-bold text-[var(--color-ink)]">
-                  Tienes un borrador guardado
+            <div className="flex flex-col gap-3 rounded-2xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-sky)] p-4 shadow-[4px_4px_0_var(--color-ink)] sm:flex-row sm:items-center">
+              {/* Icono + texto */}
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-white">
+                  <History size={18} />
                 </div>
-                <div className="text-xs text-[var(--color-ink)]/70">
-                  Lo guardamos {draftAge(draftPrompt.savedAt)} ·{" "}
-                  {draftPrompt.role === "aspirante" ? "Aspirante" : "Empresa"}
-                  {draftPrompt.cvFileName
-                    ? " · tendrás que volver a adjuntar el CV"
-                    : ""}
+                <div className="min-w-0">
+                  <div className="font-display text-sm font-bold text-[var(--color-ink)]">
+                    Tienes un borrador guardado
+                  </div>
+                  <div className="text-xs text-[var(--color-ink)]/70">
+                    Lo guardamos {draftAge(draftPrompt.savedAt)} ·{" "}
+                    {draftPrompt.role === "aspirante" ? "Aspirante" : "Empresa"}
+                    {draftPrompt.cvFileName
+                      ? " · vuelve a adjuntar el CV"
+                      : ""}
+                  </div>
                 </div>
               </div>
+              {/* Acciones */}
               <div className="flex flex-shrink-0 items-center gap-2">
                 <button
                   type="button"
                   onClick={restoreDraft}
-                  className="inline-flex items-center gap-1.5 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-accent)] px-4 py-2 font-display text-xs font-bold text-white shadow-[2px_2px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-ink)]"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-accent)] px-4 py-2 font-display text-xs font-bold text-white shadow-[2px_2px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-ink)] sm:flex-none"
                 >
                   Continuar
                 </button>
@@ -1256,7 +1304,7 @@ export function ApplicationForm() {
                   type="button"
                   onClick={discardDraft}
                   aria-label="Descartar borrador"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-white text-[var(--color-ink)] transition-transform hover:-translate-y-0.5"
+                  className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-white text-[var(--color-ink)] transition-transform hover:-translate-y-0.5"
                 >
                   <X size={16} />
                 </button>
@@ -1490,7 +1538,7 @@ function AspiranteStep1() {
             required
             placeholder="Selecciona tu ciudad"
             otherValue="Otra"
-            otherPlaceholder="¿Cuál ciudad?"
+            otherPlaceholder="Escribe tu ciudad"
             options={[
               "Barranquilla",
               "Bogotá",
