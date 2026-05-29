@@ -314,19 +314,18 @@ export const testimonios: Testimonio[] = [
     photo: "/img-camilo.png",
     accent: "#7DD3FC",
   },
-  // TODO content team: copy + foto toon Karoll en /img-karoll.png (prompt CooWeb Toon Portrait)
+  // TODO content team: foto toon Karoll en /img-karoll.png (prompt CooWeb Toon Portrait)
   {
     id: "karoll-marquez",
     name: "Karoll Marquez",
-    badge: "Ex-Semilla · [rol actual pendiente]",
-    tenure: "Historia pendiente · llenar",
-    headline: "Headline corto de 6-8 palabras.",
-    body: "Cuerpo del testimonio: contexto inicial, qué cambió, qué hace hoy. 2-3 frases máximo.",
+    badge: "Ex-Semilla · hoy Desarrollador de Soluciones IA",
+    tenure: "Ingeniería de Sistemas · IA y automatización",
+    headline: "De estudiante a construir soluciones con IA.",
+    body: "Comenzó aprendiendo desarrollo web mientras estudiaba Ingeniería de Sistemas. Con el tiempo amplió sus conocimientos hacia IA, automatización y desarrollo de productos digitales. Hoy construye soluciones tecnológicas que ayudan a empresas a optimizar procesos y crecer.",
     quote:
-      "Cita directa en primera persona — qué se llevó del programa, qué descubrió de sí.",
+      "Descubrí que podía crear mucho más que aplicaciones. La combinación de desarrollo, IA y automatización me permitió convertir ideas en soluciones con impacto real.",
     initial: "K",
     accent: "#14B8A6",
-    placeholder: true,
   },
   {
     id: "antonio-perez",
