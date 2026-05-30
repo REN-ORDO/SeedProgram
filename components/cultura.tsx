@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import { Heart, Lightbulb, MessagesSquare, RefreshCw, Eye, Mic2 } from "lucide-react";
+import { Heart, Lightbulb, MessagesSquare, RefreshCw, Eye, Mic2, X } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 
 const W = 760;
@@ -26,6 +26,16 @@ const NODES = [
 ];
 
 type NodeId = "curiosidad" | "respeto" | "compartir" | "aprender" | "transparencia";
+type MobileSelectedId = NodeId | "cooweb-talks";
+
+const COOWEB_TALKS_DATA = {
+  id: "cooweb-talks" as const,
+  title: "CooWeb Talks",
+  desc: "Una charla interna por ciclo para compartir lo aprendido.",
+  Icon: Mic2,
+  color: "#14B8A6",
+  badge: "Ritual de cultura",
+};
 
 const EDGES: [NodeId, NodeId][] = [
   ["curiosidad",     "compartir"],
@@ -68,10 +78,12 @@ function edgePath(
 
 export function Cultura() {
   const [hoveredId, setHoveredId] = useState<NodeId | null>(null);
-  const [selectedMobile, setSelectedMobile] = useState<NodeId | null>(null);
+  const [selectedMobile, setSelectedMobile] = useState<MobileSelectedId | null>(null);
   const reduce = useReducedMotion();
 
   const nodeMap = Object.fromEntries(NODES.map((n) => [n.id, n])) as Record<NodeId, typeof NODES[number]>;
+  const getSelectedData = (id: MobileSelectedId) =>
+    id === "cooweb-talks" ? COOWEB_TALKS_DATA : { ...nodeMap[id as NodeId], badge: "ADN CooWeb" };
 
   const edges = EDGES.map(([a, b]) => {
     const { d, p1, p2 } = edgePath(nodeMap[a], nodeMap[b]);
@@ -195,73 +207,17 @@ export function Cultura() {
                       {/* Sombra offset cartoon */}
                       <circle cx={n.cx + 4} cy={n.cy + 4} r={n.r} fill="#0F172A" />
                       {/* Círculo principal */}
-                      <circle
-                        cx={n.cx}
-                        cy={n.cy}
-                        r={n.r}
-                        fill={n.color}
-                        stroke="#0F172A"
-                        strokeWidth={2.5}
-                      />
+                      <circle cx={n.cx} cy={n.cy} r={n.r} fill={n.color} stroke="#0F172A" strokeWidth={2.5} />
                       {/* Contenido via foreignObject */}
-                      <foreignObject
-                        x={n.cx - n.r}
-                        y={n.cy - n.r}
-                        width={n.r * 2}
-                        height={n.r * 2}
-                      >
-                        <div
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            textAlign: "center",
-                            padding: "10px 12px",
-                            boxSizing: "border-box",
-                          }}
-                        >
-                          {/* Caja del ícono */}
-                          <div
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              width: 32,
-                              height: 32,
-                              borderRadius: 8,
-                              background: "#fff",
-                              border: "2px solid #0F172A",
-                              boxShadow: "2px 2px 0 #0F172A",
-                              marginBottom: 6,
-                              flexShrink: 0,
-                            }}
-                          >
+                      <foreignObject x={n.cx - n.r} y={n.cy - n.r} width={n.r * 2} height={n.r * 2}>
+                        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "10px 12px", boxSizing: "border-box" }}>
+                          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 8, background: "#fff", border: "2px solid #0F172A", boxShadow: "2px 2px 0 #0F172A", marginBottom: 6, flexShrink: 0 }}>
                             <n.Icon size={15} color="#0F172A" />
                           </div>
-                          {/* Título */}
-                          <div
-                            style={{
-                              fontFamily: "var(--font-display, sans-serif)",
-                              fontWeight: 700,
-                              fontSize: 11.5,
-                              lineHeight: 1.15,
-                              color: "#0F172A",
-                              marginBottom: 4,
-                            }}
-                          >
+                          <div style={{ fontFamily: "var(--font-display, sans-serif)", fontWeight: 700, fontSize: 11.5, lineHeight: 1.15, color: "#0F172A", marginBottom: 4 }}>
                             {n.title}
                           </div>
-                          {/* Descripción */}
-                          <div
-                            style={{
-                              fontSize: 9.5,
-                              lineHeight: 1.3,
-                              color: "rgba(15,23,42,0.72)",
-                            }}
-                          >
+                          <div style={{ fontSize: 9.5, lineHeight: 1.3, color: "rgba(15,23,42,0.72)" }}>
                             {n.desc}
                           </div>
                         </div>
@@ -283,22 +239,9 @@ export function Cultura() {
               transition={{ duration: 0.5, delay: 0.5 }}
               style={{ background: "#0F172A", color: "#fff", transform: "rotate(1.5deg)" }}
             >
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
-                  background: "rgba(45,212,191,0.12)",
-                  border: "2px solid #2DD4BF",
-                  marginBottom: 14,
-                }}
-              >
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, borderRadius: 12, background: "rgba(45,212,191,0.12)", border: "2px solid #2DD4BF", marginBottom: 14 }}>
                 <Mic2 size={20} color="#2DD4BF" />
               </span>
-
               <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2DD4BF", marginBottom: 6 }}>
                 Ritual de cultura
               </p>
@@ -308,8 +251,6 @@ export function Cultura() {
               <p style={{ fontSize: 12, lineHeight: 1.6, color: "rgba(255,255,255,0.68)" }}>
                 Una charla interna por ciclo para compartir lo aprendido.
               </p>
-
-              {/* Siluetas decorativas */}
               <div style={{ marginTop: 16, display: "flex", gap: 6, opacity: 0.28 }}>
                 {[0, 1, 2].map((i) => (
                   <svg key={i} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" strokeWidth="1.5">
@@ -325,93 +266,175 @@ export function Cultura() {
         {/* ── Mobile: pentágono íconos + tarjeta info al tocar ── */}
         <div className="md:hidden">
 
-          {/* SVG pentágono — íconos solamente */}
-          <div style={{ position: "relative", width: "100%", paddingBottom: `${(H / W) * 100}%` }}>
-            <div style={{ position: "absolute", inset: 0 }}>
-              <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
-
-                {/* Líneas */}
-                {edges.map(({ a, b, d }) => (
-                  <path key={`ml-${a}-${b}`} d={d} fill="none" stroke="#7DD3FC"
-                    strokeWidth={1.6} strokeDasharray="8 5" strokeLinecap="round" opacity={0.5} />
-                ))}
-
-                {/* Puntos de unión */}
-                {edges.map(({ a, b, p1, p2 }) => (
-                  <g key={`mj-${a}-${b}`}>
-                    <circle cx={p1.x} cy={p1.y} r={4.5} fill="white" stroke="#0F172A" strokeWidth={2} />
-                    <circle cx={p2.x} cy={p2.y} r={4.5} fill="white" stroke="#0F172A" strokeWidth={2} />
-                  </g>
-                ))}
-
-                {/* Nodos — vibración + tap */}
-                {NODES.map((n) => (
-                  <motion.g
-                    key={`mn-${n.id}`}
-                    onClick={() => setSelectedMobile((prev) => (prev === n.id as NodeId ? null : n.id as NodeId))}
-                    animate={{ y: [-3, 3, -3], scale: [1, 1.03, 1] }}
-                    transition={{ duration: 2.2 + n.floatDelay * 0.4, repeat: Infinity, ease: "easeInOut", delay: n.floatDelay }}
-                    style={{ cursor: "pointer", transformOrigin: `${n.cx}px ${n.cy}px`, transformBox: "fill-box" } as React.CSSProperties}
-                  >
-                    {selectedMobile === n.id && (
-                      <circle cx={n.cx} cy={n.cy} r={n.r + 7} fill="none"
-                        stroke="#2DD4BF" strokeWidth={2.5} strokeDasharray="5 3" />
-                    )}
-                    <circle cx={n.cx + 3} cy={n.cy + 3} r={n.r} fill="#0F172A" />
-                    <circle cx={n.cx} cy={n.cy} r={n.r} fill={n.color} stroke="#0F172A" strokeWidth={2.5} />
-                    <foreignObject x={n.cx - n.r} y={n.cy - n.r} width={n.r * 2} height={n.r * 2}>
-                      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <div style={{ width: 58, height: 58, borderRadius: 15, background: "#fff", border: "2px solid #0F172A", boxShadow: "2px 2px 0 #0F172A", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <n.Icon size={32} color="#0F172A" />
-                        </div>
-                      </div>
-                    </foreignObject>
-                  </motion.g>
-                ))}
-              </svg>
-            </div>
-          </div>
-
-          {/* Tarjeta info al tocar */}
-          <AnimatePresence>
-            {selectedMobile && (
+          <AnimatePresence mode="wait">
+            {!selectedMobile ? (
+              /* ── Pentágono + círculo CooWeb Talks ── */
               <motion.div
-                key={selectedMobile}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.22 }}
-                className="mx-auto mt-14 max-w-sm px-4"
+                key="pentagon"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
               >
-                <div style={{ borderRadius: 18, border: "2px solid #0F172A", boxShadow: "4px 4px 0 #0F172A", background: "#0D1B2A", padding: "16px 20px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inset-0 animate-ping rounded-full opacity-70" style={{ background: nodeMap[selectedMobile].color }} />
-                      <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: nodeMap[selectedMobile].color }} />
-                    </span>
-                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: nodeMap[selectedMobile].color }}>
-                      {nodeMap[selectedMobile].title}
-                    </span>
+                {/* SVG pentágono */}
+                <div style={{ position: "relative", width: "100%", paddingBottom: `${(H / W) * 100}%` }}>
+                  <div style={{ position: "absolute", inset: 0 }}>
+                    <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
+
+                      {/* Líneas */}
+                      {edges.map(({ a, b, d }) => (
+                        <path key={`ml-${a}-${b}`} d={d} fill="none" stroke="#0369A1"
+                          strokeWidth={1.8} strokeDasharray="8 5" strokeLinecap="round" opacity={0.75} />
+                      ))}
+
+                      {/* Puntos de unión */}
+                      {edges.map(({ a, b, p1, p2 }) => (
+                        <g key={`mj-${a}-${b}`}>
+                          <circle cx={p1.x} cy={p1.y} r={4.5} fill="white" stroke="#0F172A" strokeWidth={2} />
+                          <circle cx={p2.x} cy={p2.y} r={4.5} fill="white" stroke="#0F172A" strokeWidth={2} />
+                        </g>
+                      ))}
+
+                      {/* Nodos — vibración + tap */}
+                      {NODES.map((n) => (
+                        <motion.g
+                          key={`mn-${n.id}`}
+                          onClick={() => setSelectedMobile(n.id as NodeId)}
+                          animate={{ y: [-3, 3, -3], scale: [1, 1.03, 1] }}
+                          transition={{ duration: 2.2 + n.floatDelay * 0.4, repeat: Infinity, ease: "easeInOut", delay: n.floatDelay }}
+                          style={{ cursor: "pointer", transformOrigin: `${n.cx}px ${n.cy}px`, transformBox: "fill-box" } as React.CSSProperties}
+                        >
+                          <circle cx={n.cx + 3} cy={n.cy + 3} r={n.r} fill="#0F172A" />
+                          <circle cx={n.cx} cy={n.cy} r={n.r} fill={n.color} stroke="#0F172A" strokeWidth={2.5} />
+                          <foreignObject x={n.cx - n.r} y={n.cy - n.r} width={n.r * 2} height={n.r * 2}>
+                            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <n.Icon size={44} color="#0F172A" />
+                            </div>
+                          </foreignObject>
+                        </motion.g>
+                      ))}
+
+                      {/* Nodo central CooWeb Talks */}
+                      <motion.g
+                        onClick={() => setSelectedMobile("cooweb-talks")}
+                        animate={{ y: [-3, 3, -3], scale: [1, 1.03, 1] }}
+                        transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                        style={{ cursor: "pointer", transformOrigin: `${PC.x}px ${PC.y}px`, transformBox: "fill-box" } as React.CSSProperties}
+                      >
+                        <circle cx={PC.x + 3} cy={PC.y + 3} r={70} fill="#0F172A" />
+                        <circle cx={PC.x} cy={PC.y} r={70} fill="#14B8A6" stroke="#0F172A" strokeWidth={2.5} />
+                        <foreignObject x={PC.x - 70} y={PC.y - 70} width={140} height={140}>
+                          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Mic2 size={30} color="#0F172A" />
+                          </div>
+                        </foreignObject>
+                      </motion.g>
+                    </svg>
                   </div>
-                  <p style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.75)" }}>
-                    {nodeMap[selectedMobile].desc}
-                  </p>
                 </div>
               </motion.div>
+            ) : (
+              /* ── Tarjeta info ── */
+              (() => {
+                const data = getSelectedData(selectedMobile);
+                const cardBg = data.color;
+                const iconBg = "#F8FAFC";
+                const textColor = "#0F172A";
+                const descColor = "rgba(15,23,42,0.68)";
+                return (
+                  <motion.div
+                    key={`card-${selectedMobile}`}
+                    initial={{ opacity: 0, scale: 0.92 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.92 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                    className="toon-card mx-auto px-6 py-7"
+                    style={{ background: cardBg, position: "relative" }}
+                  >
+                    {/* Botón X */}
+                    <button
+                      onClick={() => setSelectedMobile(null)}
+                      aria-label="Cerrar"
+                      style={{
+                        position: "absolute",
+                        top: 14,
+                        right: 14,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 34,
+                        height: 34,
+                        borderRadius: 8,
+                        background: "#F8FAFC",
+                        border: "2px solid #0F172A",
+                        boxShadow: "2px 2px 0 #0F172A",
+                        cursor: "pointer",
+                        color: "#0F172A",
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+
+                    {/* Ícono grande */}
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 64,
+                        height: 64,
+                        borderRadius: 16,
+                        background: iconBg,
+                        border: "2px solid #0F172A",
+                        boxShadow: "3px 3px 0 #0F172A",
+                        marginBottom: 16,
+                      }}
+                    >
+                      <data.Icon size={30} color="#0F172A" />
+                    </div>
+
+                    {/* Título */}
+                    <h3
+                      className="font-display font-bold"
+                      style={{ fontSize: 20, lineHeight: 1.2, color: textColor, marginBottom: 8, paddingRight: 40 }}
+                    >
+                      {data.title}
+                    </h3>
+
+                    {/* Descripción */}
+                    <p style={{ fontSize: 14, lineHeight: 1.65, color: descColor }}>
+                      {data.desc}
+                    </p>
+
+                    {/* Pastilla decorativa */}
+                    <div
+                      style={{
+                        marginTop: 18,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "4px 10px",
+                        borderRadius: 99,
+                        background: "#F8FAFC",
+                        border: "1.5px solid #0F172A",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase" as const,
+                        color: "#0F172A",
+                      }}
+                    >
+                      <span className="relative flex h-2 w-2">
+                        <span className="absolute inset-0 animate-ping rounded-full opacity-70" style={{ background: "#0F172A" }} />
+                        <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "#0F172A" }} />
+                      </span>
+                      {data.badge}
+                    </div>
+                  </motion.div>
+                );
+              })()
             )}
           </AnimatePresence>
-
-          {/* CooWeb Talks mobile */}
-          <div className="mt-10 px-4">
-            <article className="toon-card p-5" style={{ background: "#0F172A" }}>
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border-2 border-[#2DD4BF] bg-[rgba(45,212,191,0.12)]">
-                <Mic2 size={20} color="#2DD4BF" />
-              </span>
-              <p className="mt-4 text-[10px] font-bold uppercase tracking-widest text-[#2DD4BF]">Ritual de cultura</p>
-              <h3 className="mt-1 font-display text-lg font-bold leading-tight text-white">CooWeb Talks</h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/70">Una charla interna por ciclo para compartir lo aprendido.</p>
-            </article>
-          </div>
         </div>
 
       </div>
