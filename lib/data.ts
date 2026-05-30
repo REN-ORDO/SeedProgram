@@ -411,7 +411,7 @@ export const empresaHero = {
 
 export const empresaProblema = {
   title: "Esa tarea que llevas meses posponiendo.",
-  body: "Toda empresa en crecimiento tiene procesos por optimizar, webs por mejorar o ideas por prototipar que se quedan en el tintero por falta de manos o presupuesto. Creamos un modelo donde tu empresa aporta un estímulo económico educativo para nuestros jóvenes y, a cambio, nuestro equipo resuelve una necesidad técnica real de tu negocio.",
+  body: "Falta de manos o presupuesto no debería frenar tu crecimiento. Nuestro equipo resuelve tu reto técnico mientras forma al próximo talento digital.",
 };
 
 export type EmpresaPaso = {
