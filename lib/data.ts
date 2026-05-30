@@ -398,6 +398,30 @@ export const testimonios: Testimonio[] = [
     photo: "/img-shari.png",
     accent: "#7DD3FC",
   },
+  {
+    id: "manuela-maiguel",
+    name: "Manuela Maiguel",
+    badge: "Semilla · Batch 8",
+    tenure: "Aprendizaje · Curiosidad · Crecimiento",
+    headline: "Comenzando un camino de crecimiento.",
+    body: "Ingresó a Semilla con el deseo de aprender, conocer nuevas personas y desarrollar habilidades que complementaran su formación académica. En sus primeras semanas ha descubierto un entorno que impulsa la iniciativa, la curiosidad y el aprendizaje constante. Aunque apenas comienza, ya reconoce el valor de formar parte de una comunidad que apuesta por el crecimiento de sus integrantes.",
+    quote:
+      "Semilla me recordó que cada gran proyecto empieza con una pequeña oportunidad para aprender y atreverse a crecer.",
+    photo: "/img-maiguel.png",
+    accent: "#5EEAD4",
+  },
+  {
+    id: "maileth-vallejo",
+    name: "Maileth Vallejo",
+    badge: "Semilla · Batch 8",
+    tenure: "Colaboración · Aprendizaje · Nuevas oportunidades",
+    headline: "Sembrando ideas para el futuro.",
+    body: "Llegó a Semilla buscando nuevas experiencias y la posibilidad de seguir desarrollándose tanto personal como profesionalmente. Desde el primer momento encontró un espacio donde compartir ideas, aprender de otros y asumir nuevos retos. Aunque el camino apenas comienza, esta experiencia le ha permitido visualizar nuevas posibilidades para su futuro.",
+    quote:
+      "A veces no se trata de saber exactamente a dónde vas, sino de rodearte de personas y experiencias que te ayuden a descubrirlo.",
+    photo: "/img-vallejo.png",
+    accent: "#38BDF8",
+  },
 ];
 
 // Back-compat — first testimonio
