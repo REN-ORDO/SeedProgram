@@ -322,10 +322,10 @@ export function Cultura() {
                         style={{ cursor: "pointer", transformOrigin: `${PC.x}px ${PC.y}px`, transformBox: "fill-box" } as React.CSSProperties}
                       >
                         <circle cx={PC.x + 3} cy={PC.y + 3} r={70} fill="#0F172A" />
-                        <circle cx={PC.x} cy={PC.y} r={70} fill="#14B8A6" stroke="#0F172A" strokeWidth={2.5} />
+                        <circle cx={PC.x} cy={PC.y} r={70} fill="#0F172A" stroke="#2DD4BF" strokeWidth={2.5} />
                         <foreignObject x={PC.x - 70} y={PC.y - 70} width={140} height={140}>
                           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <Mic2 size={30} color="#0F172A" />
+                            <Mic2 size={42} color="#2DD4BF" />
                           </div>
                         </foreignObject>
                       </motion.g>
@@ -337,10 +337,16 @@ export function Cultura() {
               /* ── Tarjeta info ── */
               (() => {
                 const data = getSelectedData(selectedMobile);
-                const cardBg = data.color;
-                const iconBg = "#F8FAFC";
-                const textColor = "#0F172A";
-                const descColor = "rgba(15,23,42,0.68)";
+                const isTalks = selectedMobile === "cooweb-talks";
+                const cardBg = isTalks ? "#0F172A" : data.color;
+                const iconBg = isTalks ? "rgba(45,212,191,0.12)" : "#F8FAFC";
+                const iconBorder = isTalks ? "#2DD4BF" : "#0F172A";
+                const iconColor = isTalks ? "#2DD4BF" : "#0F172A";
+                const textColor = isTalks ? "#fff" : "#0F172A";
+                const descColor = isTalks ? "rgba(255,255,255,0.68)" : "rgba(15,23,42,0.68)";
+                const badgeBg = isTalks ? "transparent" : "#F8FAFC";
+                const badgeBorder = isTalks ? "#2DD4BF" : "#0F172A";
+                const badgeColor = isTalks ? "#2DD4BF" : "#0F172A";
                 return (
                   <motion.div
                     key={`card-${selectedMobile}`}
@@ -365,11 +371,11 @@ export function Cultura() {
                         width: 34,
                         height: 34,
                         borderRadius: 8,
-                        background: "#F8FAFC",
-                        border: "2px solid #0F172A",
-                        boxShadow: "2px 2px 0 #0F172A",
+                        background: isTalks ? "rgba(45,212,191,0.12)" : "#F8FAFC",
+                        border: `2px solid ${iconBorder}`,
+                        boxShadow: `2px 2px 0 ${iconBorder}`,
                         cursor: "pointer",
-                        color: "#0F172A",
+                        color: iconColor,
                       }}
                     >
                       <X size={16} />
@@ -385,13 +391,20 @@ export function Cultura() {
                         height: 64,
                         borderRadius: 16,
                         background: iconBg,
-                        border: "2px solid #0F172A",
-                        boxShadow: "3px 3px 0 #0F172A",
+                        border: `2px solid ${iconBorder}`,
+                        boxShadow: `3px 3px 0 ${iconBorder}`,
                         marginBottom: 16,
                       }}
                     >
-                      <data.Icon size={30} color="#0F172A" />
+                      <data.Icon size={30} color={iconColor} />
                     </div>
+
+                    {/* Badge "Ritual de cultura" para Talks */}
+                    {isTalks && (
+                      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2DD4BF", marginBottom: 6 }}>
+                        {data.badge}
+                      </p>
+                    )}
 
                     {/* Título */}
                     <h3
@@ -415,20 +428,20 @@ export function Cultura() {
                         gap: 6,
                         padding: "4px 10px",
                         borderRadius: 99,
-                        background: "#F8FAFC",
-                        border: "1.5px solid #0F172A",
+                        background: badgeBg,
+                        border: `1.5px solid ${badgeBorder}`,
                         fontSize: 10,
                         fontWeight: 700,
                         letterSpacing: "0.1em",
                         textTransform: "uppercase" as const,
-                        color: "#0F172A",
+                        color: badgeColor,
                       }}
                     >
                       <span className="relative flex h-2 w-2">
-                        <span className="absolute inset-0 animate-ping rounded-full opacity-70" style={{ background: "#0F172A" }} />
-                        <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "#0F172A" }} />
+                        <span className="absolute inset-0 animate-ping rounded-full opacity-70" style={{ background: badgeColor }} />
+                        <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: badgeColor }} />
                       </span>
-                      {data.badge}
+                      {isTalks ? "ADN CooWeb" : data.badge}
                     </div>
                   </motion.div>
                 );
