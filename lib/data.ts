@@ -350,6 +350,18 @@ export const testimonios: Testimonio[] = [
     photo: "/img-ander.png",
     accent: "#0D9488",
   },
+  {
+    id: "manuel-diaz",
+    name: "Manuel Díaz",
+    badge: "Semilla · IA + desarrollo de software",
+    tenure: "Cada reto, una experiencia gratificante",
+    headline: "Crecimos juntos — código, IA y compañerismo.",
+    body: "Desde el primer día, asumir retos nuevos lo fortaleció técnica y personalmente. Encontró un equipo que comparte conocimiento, apoya a los demás y empuja sus propios límites. Hoy participa en proyectos de software con IA donde innovación y aprendizaje van de la mano.",
+    quote:
+      "Aquí no solo desarrollamos software con IA — construimos juntos un entorno donde la innovación, el aprendizaje y el compañerismo van de la mano.",
+    photo: "/img-manuel.png",
+    accent: "#5EEAD4",
+  },
 ];
 
 // Back-compat — first testimonio
