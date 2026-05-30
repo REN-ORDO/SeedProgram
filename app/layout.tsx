@@ -52,10 +52,18 @@ const caveat = Caveat({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://semillero.cooweb.co/";
+
 export const metadata: Metadata = {
-  title: "Programa Semilla · CooWeb",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Programa Semilla · CooWeb",
+    template: "%s · Programa Semilla CooWeb",
+  },
   description:
     "Encontramos talento donde otros no miran. Programa de formación en tecnología, liderazgo y propósito social con mentoría senior 1:1.",
+  applicationName: "Programa Semilla",
   keywords: [
     "Programa Semilla",
     "CooWeb",
@@ -64,14 +72,37 @@ export const metadata: Metadata = {
     "Mentoría",
     "Liderazgo",
     "Tecnología",
+    "Talento joven",
+    "Bootcamp",
   ],
   authors: [{ name: "CooWeb" }],
+  creator: "CooWeb",
+  publisher: "CooWeb",
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Programa Semilla · CooWeb",
     description:
       "Tecnología, Liderazgo y Propósito Social. Cantera de desarrolladores con mentoría senior 1:1.",
+    url: SITE_URL,
+    siteName: "Programa Semilla · CooWeb",
     locale: "es_CO",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Programa Semilla · CooWeb",
+    description:
+      "Tecnología, Liderazgo y Propósito Social. Cantera de desarrolladores con mentoría senior 1:1.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
