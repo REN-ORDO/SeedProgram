@@ -24,6 +24,7 @@ import {
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
@@ -37,7 +38,6 @@ import {
   X,
   ChevronDown,
   List,
-  Sparkles,
   ExternalLink,
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -1685,8 +1685,14 @@ function AspiranteStep2({
           rel="noopener noreferrer"
           className="group mt-3 flex items-center gap-3 rounded-xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-teal)] p-3.5 shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)]"
         >
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border-2 border-[var(--color-ink)] bg-white text-[var(--color-ink)]">
-            <Sparkles size={17} />
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 border-[var(--color-ink)] bg-white">
+            <Image
+              src="/img-salto-ia.png"
+              alt="Salto AI"
+              width={36}
+              height={36}
+              className="h-full w-full object-contain p-0.5"
+            />
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-display text-[13.5px] font-bold leading-tight text-[var(--color-ink)]">
