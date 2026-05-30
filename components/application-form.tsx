@@ -1439,58 +1439,48 @@ export function ApplicationForm() {
             )}
 
             {step < steps.length ? (
-              <Magnetic
+              <button
                 key="btn-next"
-                strength={0.25}
-                className="w-full sm:ml-auto sm:w-auto"
+                type="button"
+                onClick={handleNext}
+                className="toon-btn w-full justify-center sm:ml-auto sm:w-auto"
+                style={{ background: "var(--color-ink)", color: "#fff" }}
               >
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="toon-btn w-full justify-center sm:w-auto"
-                  style={{ background: "var(--color-ink)", color: "#fff" }}
+                Continuar
+                <motion.span
+                  animate={{ x: [0, 3, 0] }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                  className="inline-flex"
                 >
-                  Continuar
-                  <motion.span
-                    animate={{ x: [0, 3, 0] }}
-                    transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                    className="inline-flex"
-                  >
-                    <ArrowRight size={16} />
-                  </motion.span>
-                </button>
-              </Magnetic>
+                  <ArrowRight size={16} />
+                </motion.span>
+              </button>
             ) : (
-              <Magnetic
+              <button
                 key="btn-submit"
-                strength={0.25}
-                className="w-full sm:ml-auto sm:w-auto"
+                type="submit"
+                disabled={submitting}
+                className="toon-btn w-full justify-center disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:w-auto"
+                style={{ background: "var(--color-ink)", color: "#fff" }}
               >
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="toon-btn w-full justify-center disabled:opacity-60 sm:w-auto"
-                  style={{ background: "var(--color-ink)", color: "#fff" }}
-                >
-                  {submitting ? (
-                    <>
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      {role === "aspirante" ? "Enviar postulación" : "Enviar solicitud"}
-                      <motion.span
-                        animate={{ rotate: [0, -8, 0, 8, 0] }}
-                        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-                        className="inline-flex"
-                      >
-                        <Send size={16} />
-                      </motion.span>
-                    </>
-                  )}
-                </button>
-              </Magnetic>
+                {submitting ? (
+                  <>
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    {role === "aspirante" ? "Enviar postulación" : "Enviar solicitud"}
+                    <motion.span
+                      animate={{ rotate: [0, -8, 0, 8, 0] }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                      className="inline-flex"
+                    >
+                      <Send size={16} />
+                    </motion.span>
+                  </>
+                )}
+              </button>
             )}
           </div>
 
