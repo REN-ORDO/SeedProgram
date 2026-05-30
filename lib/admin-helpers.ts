@@ -158,6 +158,48 @@ export function downloadCSV(filename: string, content: string) {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Exporta filas a un archivo Excel (.xlsx) real usando SheetJS.
+ * - Carga la librería dinámicamente (no infla el bundle del form).
+ * - Anchos de columna automáticos según el contenido.
+ * - Autofiltro en los encabezados.
+ */
+export async function exportXlsx(
+  filename: string,
+  rows: Record<string, unknown>[],
+  columns: CsvColumn[],
+  sheetName = "Postulaciones",
+): Promise<void> {
+  const XLSX = await import("xlsx");
+
+  const header = columns.map((c) => c.header);
+  const body = rows.map((r) => columns.map((c) => c.value(r)));
+  const aoa = [header, ...body];
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  // Anchos de columna: máximo entre header y celdas, con tope razonable.
+  ws["!cols"] = columns.map((c, i) => {
+    const cellLens = body.map((row) =>
+      row[i] ? String(row[i]).length : 0,
+    );
+    const maxLen = Math.max(c.header.length, ...cellLens, 0);
+    return { wch: Math.min(Math.max(maxLen + 2, 12), 60) };
+  });
+
+  // Autofiltro sobre toda la tabla (encabezado + datos).
+  ws["!autofilter"] = {
+    ref: XLSX.utils.encode_range({
+      s: { r: 0, c: 0 },
+      e: { r: rows.length, c: Math.max(columns.length - 1, 0) },
+    }),
+  };
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, filename);
+}
+
 // ============================================================
 // Definiciones de columnas por colección (orden + traducción)
 // ============================================================
