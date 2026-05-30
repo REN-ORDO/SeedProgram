@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { PlantCursor } from "@/components/plant-cursor";
 
 export const metadata: Metadata = {
-  title: "Postúlate · Programa Semilla CooWeb",
+  title: "Postúlate",
   description:
     "Únete al Programa Semilla. Si eres aspirante, postúlate al próximo batch. Si eres empresa, apadrina un talento y soluciona un reto real con IA.",
+  alternates: { canonical: "/postular" },
 };
 
 export default function PostularLayout({
