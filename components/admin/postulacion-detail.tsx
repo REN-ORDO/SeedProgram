@@ -155,20 +155,20 @@ export function PostulacionDetail({
           {email && (
             <a
               href={`mailto:${email}`}
-              className="inline-flex items-center gap-1.5 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)] px-3 py-1.5 font-display text-xs font-semibold transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-ink)]"
+              className="inline-flex max-w-full items-center gap-1.5 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)] px-3 py-1.5 font-display text-xs font-semibold transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-ink)]"
             >
-              <Mail size={13} />
-              {email}
+              <Mail size={13} className="flex-shrink-0" />
+              <span className="truncate">{email}</span>
             </a>
           )}
           {phone && (
             <>
               <a
                 href={`tel:${phone.replace(/\s/g, "")}`}
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)] px-3 py-1.5 font-display text-xs font-semibold transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-ink)]"
+                className="inline-flex max-w-full items-center gap-1.5 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)] px-3 py-1.5 font-display text-xs font-semibold transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-ink)]"
               >
-                <Phone size={13} />
-                {phone}
+                <Phone size={13} className="flex-shrink-0" />
+                <span className="truncate">{phone}</span>
               </a>
               <a
                 href={`https://wa.me/${phone.replace(/\D/g, "")}`}

@@ -25,13 +25,8 @@ import {
   Check,
 } from "lucide-react";
 import { db } from "@/lib/firebase";
-import {
-  STATUS_META,
-  timeAgo,
-  toCSV,
-  downloadCSV,
-} from "@/lib/admin-helpers";
-import type { AppStatus } from "@/lib/admin-helpers";
+import { STATUS_META, timeAgo, exportXlsx } from "@/lib/admin-helpers";
+import type { AppStatus, CsvColumn } from "@/lib/admin-helpers";
 import { cn } from "@/lib/utils";
 
 export type ColumnConfig<T> = {
@@ -164,6 +159,7 @@ export function PostulacionList({
   columns,
   searchFields,
   csvFilename,
+  csvColumns,
   initialStatusFilter = "all",
 }: {
   collectionName: "aspirantes" | "empresas";
@@ -172,6 +168,7 @@ export function PostulacionList({
   columns: ColumnConfig<PostulacionRow>[];
   searchFields: string[];
   csvFilename: string;
+  csvColumns: CsvColumn[];
   initialStatusFilter?: "all" | AppStatus;
 }) {
   const [rows, setRows] = useState<PostulacionRow[]>([]);
@@ -180,6 +177,7 @@ export function PostulacionList({
     initialStatusFilter,
   );
   const [searchText, setSearchText] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, collectionName), orderBy("createdAt", "desc"));
@@ -220,10 +218,17 @@ export function PostulacionList({
     });
   }, [rows, statusFilter, searchText, searchFields]);
 
-  const onExport = () => {
-    const csv = toCSV(filtered);
-    const ts = new Date().toISOString().slice(0, 10);
-    downloadCSV(`${csvFilename}-${ts}.csv`, csv);
+  const onExport = async () => {
+    if (exporting || filtered.length === 0) return;
+    setExporting(true);
+    try {
+      const ts = new Date().toISOString().slice(0, 10);
+      await exportXlsx(`${csvFilename}-${ts}.xlsx`, filtered, csvColumns);
+    } catch (err) {
+      console.error("Error exportando Excel:", err);
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -239,17 +244,21 @@ export function PostulacionList({
         </div>
         <button
           onClick={onExport}
-          disabled={filtered.length === 0}
+          disabled={filtered.length === 0 || exporting}
           className="inline-flex items-center gap-2 rounded-full border-2 border-[var(--color-ink)] bg-white px-4 py-2.5 font-display text-sm font-semibold text-[var(--color-ink)] shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Download size={15} />
-          Exportar CSV
+          {exporting ? (
+            <Loader2 size={15} className="animate-spin" />
+          ) : (
+            <Download size={15} />
+          )}
+          {exporting ? "Generando..." : "Exportar a Excel"}
         </button>
       </header>
 
       {/* Filtros */}
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[220px]">
+        <div className="relative w-full flex-1 sm:min-w-[220px]">
           <Search
             size={16}
             className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-fg-subtle)]"
@@ -308,7 +317,7 @@ export function PostulacionList({
                         <td
                           key={col.key}
                           className={cn(
-                            "px-4 py-3 align-middle",
+                            "whitespace-nowrap px-4 py-3 align-middle",
                             col.className,
                           )}
                         >
