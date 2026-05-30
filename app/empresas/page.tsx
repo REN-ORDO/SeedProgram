@@ -8,6 +8,7 @@ import { EmpresasAreas } from "@/components/empresas/empresas-areas";
 import { EmpresasCelula } from "@/components/empresas/empresas-celula";
 import { EmpresasBeneficio } from "@/components/empresas/empresas-beneficio";
 import { EmpresasCTA } from "@/components/empresas/empresas-cta";
+import { EmpresasFAQ } from "@/components/empresas/empresas-faq";
 
 export default function EmpresasPage() {
   return (
@@ -22,6 +23,7 @@ export default function EmpresasPage() {
         <EmpresasCelula />
         <EmpresasBeneficio />
         <EmpresasCTA />
+        <EmpresasFAQ />
       </main>
       <Footer />
     </div>

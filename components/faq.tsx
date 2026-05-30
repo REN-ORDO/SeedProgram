@@ -9,6 +9,8 @@ import { Reveal } from "@/components/reveal";
    Estos tokens replican la paleta de la referencia visual:
    fondo general muy claro, cards en gris suave, card de contacto
    blanco puro, texto oscuro y acento turquesa SEMILLA.           */
+const cardBgs = ["#CCFBF1", "#E0F2FE", "#F0FDFA", "#BAE6FD", "#CCFBF1", "#E0F2FE", "#F0FDFA", "#BAE6FD"];
+
 const C = {
   bg:          "#F7F8FA",       // fondo general — gris muy suave
   cardClosed:  "#F2F4F7",       // card FAQ cerrada — gris claro
@@ -72,23 +74,24 @@ function AccordionCard({
   faq,
   open,
   onToggle,
+  index,
 }: {
   faq: (typeof faqs)[0];
   open: boolean;
   onToggle: () => void;
+  index: number;
 }) {
+  const rotate = (index % 2 === 0 ? -1 : 1) * 0.6;
   return (
     <div
       onClick={onToggle}
       role="button"
       aria-expanded={open}
+      className="toon-card cursor-pointer p-4"
       style={{
-        borderRadius: 16,
-        border: `1px solid ${open ? C.borderOpen : C.border}`,
-        background: open ? C.cardOpen : C.cardClosed,
-        cursor: "pointer",
-        transition: "border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease",
-        boxShadow: open ? C.shadow : "none",
+        background: cardBgs[index % cardBgs.length],
+        transform: `rotate(${rotate}deg)`,
+        transition: "transform 0.2s ease",
       }}
     >
       <div
@@ -97,16 +100,14 @@ function AccordionCard({
           alignItems: "flex-start",
           justifyContent: "space-between",
           gap: 12,
-          padding: "12px 14px",
         }}
       >
         <span
           style={{
             fontSize: 13,
-            fontWeight: 600,
+            fontWeight: 700,
             lineHeight: 1.45,
-            color: C.textPrimary,
-            transition: "color 0.2s",
+            color: "var(--color-ink)",
           }}
         >
           {faq.q}
@@ -132,10 +133,10 @@ function AccordionCard({
           >
             <p
               style={{
-                padding: "0 14px 12px",
+                paddingTop: 10,
                 fontSize: 13,
                 lineHeight: 1.65,
-                color: C.textSecondary,
+                color: "var(--color-ink)",
               }}
             >
               {faq.a}
@@ -229,7 +230,7 @@ export function FAQ() {
                 marginTop: 20,
                 fontSize: 13,
                 lineHeight: 1.7,
-                color: C.textMuted,
+                color: C.textPrimary,
               }}
             >
               Todo lo que necesitas saber antes de aplicar al Programa SEMILLA.
@@ -239,10 +240,11 @@ export function FAQ() {
           {/* ── Col 2: Acordeón — 2 columnas ────────────────────── */}
           <Reveal delay={0.08} className="min-w-0 flex-1">
             <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-              {faqs.map((faq) => (
+              {faqs.map((faq, i) => (
                 <AccordionCard
                   key={faq.id}
                   faq={faq}
+                  index={i}
                   open={openId === faq.id}
                   onToggle={() => toggle(faq.id)}
                 />
@@ -253,31 +255,24 @@ export function FAQ() {
           {/* ── Col 3: Tarjeta de contacto — blanco puro ────────── */}
           <Reveal delay={0.16} className="shrink-0 self-start md:w-60 md:self-center lg:w-64">
             <div
+              className="toon-card p-6"
               style={{
-                borderRadius: 20,
-                border: `1px solid ${C.border}`,
-                background: C.cardContact,
-                padding: "28px 24px",
-                boxShadow: C.shadowContact,
+                background: "#BAE6FD",
+                color: "var(--color-ink)",
+                transform: "rotate(1deg)",
               }}
             >
               {/* Ícono */}
-              <div
-                style={{
-                  width: 44, height: 44, borderRadius: "50%",
-                  background: `rgba(45,212,191,0.10)`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  marginBottom: 20,
-                }}
+              <span
+                className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-[--color-ink] shadow-[3px_3px_0_var(--color-ink)]"
+                style={{ background: "#ffffff" }}
               >
-                <Mail size={18} style={{ color: C.teal }} />
-              </div>
+                <Mail size={20} style={{ color: "var(--color-ink)" }} />
+              </span>
 
               <h3
-                style={{
-                  fontSize: 15, fontWeight: 700,
-                  color: C.textPrimary, marginBottom: 8, lineHeight: 1.35,
-                }}
+                className="font-display font-bold leading-tight"
+                style={{ fontSize: 17, marginTop: 20, marginBottom: 8 }}
               >
                 ¿No encontraste tu respuesta?
               </h3>
@@ -285,7 +280,7 @@ export function FAQ() {
               <p
                 style={{
                   fontSize: 13, lineHeight: 1.65,
-                  color: C.textSecondary, marginBottom: 24,
+                  color: "rgba(15,23,42,0.75)", marginBottom: 24,
                 }}
               >
                 Nuestro equipo estará encantado de ayudarte.
@@ -293,8 +288,8 @@ export function FAQ() {
 
               <a
                 href="/postular"
-                className="group inline-flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-70"
-                style={{ color: C.teal }}
+                className="group inline-flex items-center gap-1.5 text-sm font-bold transition-opacity hover:opacity-70"
+                style={{ color: "var(--color-ink)" }}
               >
                 Contactar al equipo
                 <ArrowRight

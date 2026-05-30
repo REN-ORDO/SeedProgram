@@ -1,9 +1,24 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Heart, Check } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { Magnetic } from "@/components/magnetic";
+
+const HERO_SLIDES: { src: string; position?: string; type?: "video" }[] = [
+  { src: "/cooweb-team1.jpg",  position: "center 46%" },
+  { src: "/cooweb-team2.jpeg", position: "center 43%" },
+  { src: "/cooweb-team3.jpeg" },
+  { src: "/cooweb-team4.jpeg", position: "center 30%" },
+  { src: "/cooweb-team5.jpeg" },
+  { src: "/cooweb-team6.jpeg", position: "center 23%" },
+  { src: "/cooweb-team7.jpeg", position: "30% center" },
+  { src: "/cooweb-team8.mp4",  type: "video" },
+  { src: "/cooweb-team9.jpeg", position: "center 23%" },
+  { src: "/cooweb-team10.jpeg" },
+  { src: "/cooweb-team11.mp4", type: "video" , position: "center 23%" },
+];
 
 function Floater({
   className,
@@ -47,6 +62,15 @@ const microbenefits = [
 ];
 
 export function CTA() {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section
       id="aplicar"
@@ -54,127 +78,81 @@ export function CTA() {
       style={{
         position: "relative",
         overflow: "hidden",
-        minHeight: 860,
+        minHeight: "100vh",
         background: "#000A1E",
       }}
     >
-      {/* ── Capa 0: noise texture (<3% opacity) ─────────────────── */}
-      <svg
+      {/* ── Layer 1: slideshow de fondo ───────────────────────────── */}
+      <div
         aria-hidden
-        style={{
-          position: "absolute", inset: 0, width: "100%", height: "100%",
-          zIndex: 0, opacity: 0.022, pointerEvents: "none",
-        }}
+        style={{ position: "absolute", inset: 0, zIndex: 0 }}
       >
-        <filter id="cta-noise">
-          <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="4" stitchTiles="stitch" />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#cta-noise)" />
-      </svg>
+        {HERO_SLIDES.map((slide, i) => {
+          const sharedStyle: React.CSSProperties = {
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: slide.position ?? "center",
+            opacity: i === activeIndex ? 1 : 0,
+            transition: "opacity 1.5s ease-in-out",
+            transform: "scale(1.05)",
+          };
+          return slide.type === "video" ? (
+            <video
+              key={slide.src}
+              autoPlay
+              muted
+              loop
+              playsInline
+              style={sharedStyle}
+            >
+              <source src={slide.src} />
+            </video>
+          ) : (
+            <img
+              key={slide.src}
+              src={slide.src}
+              alt=""
+              style={sharedStyle}
+            />
+          );
+        })}
+      </div>
 
-      {/* ── Capa 1: glow ambiental teal+sky ──────────────────────── */}
+      {/* ── Layer 2: overlay azul/oscuro ──────────────────────────── */}
       <div
         aria-hidden
         style={{
           position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: "42%",
-          background: [
-            "radial-gradient(ellipse 52% 60% at 50% 100%, rgba(45,212,191,0.13) 0%, transparent 58%)",
-            "radial-gradient(ellipse 80% 35% at 50% 112%, rgba(56,189,248,0.07) 0%, transparent 55%)",
-          ].join(", "),
+          inset: 0,
           zIndex: 1,
-          pointerEvents: "none",
+          background: [
+            "linear-gradient(180deg, rgba(0,35,70,0.68) 0%, rgba(0,55,90,0.76) 45%, rgba(0,25,55,0.90) 100%)",
+            "rgba(0,85,125,0.30)",
+          ].join(", "),
         }}
       />
 
-      {/* ── Capa 2: foto — wrapper de altura fija ─────────────────
-           overflow:hidden recorta la imagen desde abajo; la imagen
-           está anclada al TOP, así se ven cabezas y hombros.
-           La máscara funde el borde superior (fondo blanco) y el
-           inferior (disolución natural al fondo navy).            */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "clamp(352px, 79%, 1078px)",
-          height: 500,
-          overflow: "hidden",
-          zIndex: 2,
-          pointerEvents: "none",
-          maskImage: [
-            /* vertical: oculta borde blanco arriba, disuelve abajo */
-            "linear-gradient(to bottom, transparent 0%, black 14%, black 84%, transparent 100%)",
-            /* horizontal: suaviza bordes laterales blancos */
-            "linear-gradient(to right, transparent 0%, black 7%, black 93%, transparent 100%)",
-          ].join(", "),
-          WebkitMaskImage: [
-            "linear-gradient(to bottom, transparent 0%, black 14%, black 84%, transparent 100%)",
-            "linear-gradient(to right, transparent 0%, black 7%, black 93%, transparent 100%)",
-          ].join(", "),
-          maskComposite: "intersect",
-          WebkitMaskComposite: "source-in",
-        } as React.CSSProperties}
-      >
-        {/* Imagen anclada al top — muestra cabezas y torsos */}
-        <img
-          src="/cooweb-team.png"
-          alt=""
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "auto",
-            opacity: 0.70,
-            filter: "saturate(0.82) brightness(0.94)",
-          }}
-        />
-
-        {/* Vigneta radial — perimeter oscuro, caras con luz */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "radial-gradient(ellipse 60% 70% at 50% 38%, transparent 30%, rgba(0,10,30,0.48) 68%, rgba(0,10,30,0.76) 100%)",
-          }}
-        />
-
-        {/* Tint navy — unifica paleta, atenúa blanco del fondo */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "rgba(0,10,30,0.28)",
-          }}
-        />
-      </div>
-
-      {/* ── Hojas decorativas ─────────────────────────────────────── */}
+      {/* ── Layer 3: hojas decorativas ────────────────────────────── */}
 
       {/* Izquierda — superior */}
-      <Floater style={{ position: "absolute", top: 40, left: 32, width: 44, height: 44, opacity: 0.2, zIndex: 5 }}
+      <Floater style={{ position: "absolute", top: 40, left: 32, width: 44, height: 44, opacity: 0.2, zIndex: 2 }}
         dur={6} amp={9} delay={0} rotateRange={7}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(-25deg)" }}>
           <path d="M8 56 C 8 28, 28 8, 56 8 C 56 36, 36 56, 8 56 Z" fill="#5EEAD4" />
         </svg>
       </Floater>
-      <Floater style={{ position: "absolute", top: 128, left: 10, width: 26, height: 26, opacity: 0.14, zIndex: 5 }}
+      <Floater style={{ position: "absolute", top: 128, left: 10, width: 26, height: 26, opacity: 0.14, zIndex: 2 }}
         dur={7.2} amp={7} delay={1.5} rotateRange={13}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(32deg)" }}>
           <path d="M32 4 C 52 20, 58 44, 32 60 C 6 44, 12 20, 32 4 Z" fill="#2DD4BF" />
         </svg>
       </Floater>
 
-      {/* Izquierda — media, parcialmente fuera del viewport, blur */}
-      <Floater style={{ position: "absolute", top: 330, left: -18, width: 58, height: 58, opacity: 0.09, zIndex: 5, filter: "blur(2px)" }}
+      {/* Izquierda — media, blur */}
+      <Floater style={{ position: "absolute", top: 330, left: -18, width: 58, height: 58, opacity: 0.09, zIndex: 2, filter: "blur(2px)" }}
         dur={9.5} amp={14} delay={2.2} rotateRange={8}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(-42deg)" }}>
           <path d="M8 56 C 8 28, 28 8, 56 8 C 56 36, 36 56, 8 56 Z" fill="#14B8A6" />
@@ -182,7 +160,7 @@ export function CTA() {
       </Floater>
 
       {/* Izquierda — inferior, blur sutil */}
-      <Floater style={{ position: "absolute", bottom: 300, left: 20, width: 34, height: 34, opacity: 0.12, zIndex: 5, filter: "blur(1px)" }}
+      <Floater style={{ position: "absolute", bottom: 300, left: 20, width: 34, height: 34, opacity: 0.12, zIndex: 2, filter: "blur(1px)" }}
         dur={6.8} amp={10} delay={0.7} rotateRange={16}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(58deg)" }}>
           <path d="M32 4 C 52 20, 58 44, 32 60 C 6 44, 12 20, 32 4 Z" fill="#5EEAD4" />
@@ -190,21 +168,21 @@ export function CTA() {
       </Floater>
 
       {/* Derecha — superior */}
-      <Floater style={{ position: "absolute", top: 48, right: 48, width: 36, height: 36, opacity: 0.16, zIndex: 5 }}
+      <Floater style={{ position: "absolute", top: 48, right: 48, width: 36, height: 36, opacity: 0.16, zIndex: 2 }}
         dur={5.5} amp={11} delay={0.9} rotateRange={9}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(40deg)" }}>
           <path d="M32 6 C 50 14, 56 32, 42 52 C 30 60, 14 56, 10 38 C 8 22, 18 10, 32 6 Z" fill="#38BDF8" />
         </svg>
       </Floater>
-      <Floater style={{ position: "absolute", top: 148, right: 16, width: 22, height: 22, opacity: 0.15, zIndex: 5 }}
+      <Floater style={{ position: "absolute", top: 148, right: 16, width: 22, height: 22, opacity: 0.15, zIndex: 2 }}
         dur={8.1} amp={6} delay={1.9} rotateRange={11}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(-62deg)" }}>
           <path d="M32 6 C 50 14, 56 32, 42 52 C 30 60, 14 56, 10 38 C 8 22, 18 10, 32 6 Z" fill="#7DD3FC" />
         </svg>
       </Floater>
 
-      {/* Derecha — media, grande, parcialmente fuera, blur */}
-      <Floater style={{ position: "absolute", top: 370, right: -20, width: 64, height: 64, opacity: 0.08, zIndex: 5, filter: "blur(2.5px)" }}
+      {/* Derecha — media, grande, blur */}
+      <Floater style={{ position: "absolute", top: 370, right: -20, width: 64, height: 64, opacity: 0.08, zIndex: 2, filter: "blur(2.5px)" }}
         dur={10.5} amp={12} delay={3.4} rotateRange={6}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(18deg)" }}>
           <path d="M12 52 C 4 28, 20 4, 48 8 C 62 20, 56 46, 32 58 C 24 56, 16 56, 12 52 Z" fill="#38BDF8" />
@@ -212,17 +190,15 @@ export function CTA() {
       </Floater>
 
       {/* Derecha — inferior */}
-      <Floater style={{ position: "absolute", bottom: 285, right: 26, width: 42, height: 42, opacity: 0.11, zIndex: 5 }}
+      <Floater style={{ position: "absolute", bottom: 285, right: 26, width: 42, height: 42, opacity: 0.11, zIndex: 2 }}
         dur={7.8} amp={9} delay={4.1} rotateRange={12}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(-18deg)" }}>
           <path d="M8 56 C 8 28, 28 8, 56 8 C 56 36, 36 56, 8 56 Z" fill="#2DD4BF" />
         </svg>
       </Floater>
 
-      {/* ── Hojas adicionales — mayor opacidad (15-40%) ───────────── */}
-
       {/* Esquina superior izquierda — grande, 32% */}
-      <Floater style={{ position: "absolute", top: -10, left: -12, width: 76, height: 76, opacity: 0.32, zIndex: 5 }}
+      <Floater style={{ position: "absolute", top: -10, left: -12, width: 76, height: 76, opacity: 0.32, zIndex: 2 }}
         dur={7.1} amp={8} delay={0.3} rotateRange={6}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(-15deg)" }}>
           <path d="M8 56 C 8 28, 28 8, 56 8 C 56 36, 36 56, 8 56 Z" fill="#5EEAD4" />
@@ -230,7 +206,7 @@ export function CTA() {
       </Floater>
 
       {/* Lateral izquierdo medio — muy grande, blur 3px, 18% */}
-      <Floater style={{ position: "absolute", top: 210, left: -34, width: 90, height: 90, opacity: 0.18, zIndex: 5, filter: "blur(3px)" }}
+      <Floater style={{ position: "absolute", top: 210, left: -34, width: 90, height: 90, opacity: 0.18, zIndex: 2, filter: "blur(3px)" }}
         dur={11.2} amp={16} delay={1.4} rotateRange={5}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(-33deg)" }}>
           <path d="M12 52 C 4 28, 20 4, 48 8 C 62 20, 56 46, 32 58 C 24 56, 16 56, 12 52 Z" fill="#14B8A6" />
@@ -238,7 +214,7 @@ export function CTA() {
       </Floater>
 
       {/* Lateral izquierdo inferior — mediano, blur 1.5px, 22% */}
-      <Floater style={{ position: "absolute", bottom: 170, left: -18, width: 52, height: 52, opacity: 0.22, zIndex: 5, filter: "blur(1.5px)" }}
+      <Floater style={{ position: "absolute", bottom: 170, left: -18, width: 52, height: 52, opacity: 0.22, zIndex: 2, filter: "blur(1.5px)" }}
         dur={8.4} amp={11} delay={2.8} rotateRange={10}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(45deg)" }}>
           <path d="M32 4 C 52 20, 58 44, 32 60 C 6 44, 12 20, 32 4 Z" fill="#2DD4BF" />
@@ -246,7 +222,7 @@ export function CTA() {
       </Floater>
 
       {/* Esquina superior derecha — mediano, 28% */}
-      <Floater style={{ position: "absolute", top: -8, right: -8, width: 60, height: 60, opacity: 0.28, zIndex: 5 }}
+      <Floater style={{ position: "absolute", top: -8, right: -8, width: 60, height: 60, opacity: 0.28, zIndex: 2 }}
         dur={6.3} amp={9} delay={1.1} rotateRange={8}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(22deg)" }}>
           <path d="M32 6 C 50 14, 56 32, 42 52 C 30 60, 14 56, 10 38 C 8 22, 18 10, 32 6 Z" fill="#38BDF8" />
@@ -254,7 +230,7 @@ export function CTA() {
       </Floater>
 
       {/* Lateral derecho medio — blur 1px, 20% */}
-      <Floater style={{ position: "absolute", top: 235, right: -24, width: 64, height: 64, opacity: 0.20, zIndex: 5, filter: "blur(1px)" }}
+      <Floater style={{ position: "absolute", top: 235, right: -24, width: 64, height: 64, opacity: 0.20, zIndex: 2, filter: "blur(1px)" }}
         dur={9.2} amp={13} delay={4.6} rotateRange={7}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(55deg)" }}>
           <path d="M32 4 C 52 20, 58 44, 32 60 C 6 44, 12 20, 32 4 Z" fill="#5EEAD4" />
@@ -262,35 +238,16 @@ export function CTA() {
       </Floater>
 
       {/* Lateral derecho inferior — pequeño, 38% */}
-      <Floater style={{ position: "absolute", bottom: 155, right: -6, width: 38, height: 38, opacity: 0.38, zIndex: 5 }}
+      <Floater style={{ position: "absolute", bottom: 155, right: -6, width: 38, height: 38, opacity: 0.38, zIndex: 2 }}
         dur={5.9} amp={8} delay={3.7} rotateRange={14}>
         <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: "rotate(-50deg)" }}>
           <path d="M8 56 C 8 28, 28 8, 56 8 C 56 36, 36 56, 8 56 Z" fill="#2DD4BF" />
         </svg>
       </Floater>
 
-      {/* ── Glow radial detrás del contenido (zIndex 3) ───────────── */}
+      {/* ── Layer 4: contenido centrado ───────────────────────────── */}
       <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          top: "4%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "clamp(280px, 58%, 700px)",
-          height: 380,
-          background: [
-            "radial-gradient(ellipse 70% 55% at 50% 28%, rgba(45,212,191,0.07) 0%, transparent 68%)",
-            "radial-gradient(ellipse 45% 35% at 50% 14%, rgba(56,189,248,0.05) 0%, transparent 62%)",
-          ].join(", "),
-          zIndex: 3,
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* ── Contenido centrado — sobre la foto ────────────────────── */}
-      <div
-        style={{ position: "relative", zIndex: 4 }}
+        style={{ position: "relative", zIndex: 3 }}
         className="mx-auto flex max-w-3xl flex-col items-center px-6 pt-24 pb-10 text-center md:pt-32 md:pb-12"
       >
         {/* Badge */}
