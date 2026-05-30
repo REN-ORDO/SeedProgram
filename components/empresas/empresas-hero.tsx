@@ -5,12 +5,55 @@ import { ArrowRight, Sparkle } from "lucide-react";
 import { Magnetic } from "@/components/magnetic";
 import { empresaHero } from "@/lib/data";
 
+function Floater({
+  style,
+  dur = 6,
+  amp = 10,
+  delay = 0,
+  rotateRange = 8,
+  children,
+}: {
+  style?: React.CSSProperties;
+  dur?: number;
+  amp?: number;
+  delay?: number;
+  rotateRange?: number;
+  children: React.ReactNode;
+}) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      style={style}
+      animate={reduce ? undefined : { y: [-amp, amp, -amp], rotate: [-rotateRange, rotateRange, -rotateRange] }}
+      transition={{ duration: dur, repeat: Infinity, ease: "easeInOut", delay }}
+      aria-hidden
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function LeafA({ fill = "#27D3C3", rotate = 0 }: { fill?: string; rotate?: number }) {
+  return (
+    <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: `rotate(${rotate}deg)` }} aria-hidden>
+      <path d="M8 56 C 8 28, 28 8, 56 8 C 56 36, 36 56, 8 56 Z" fill={fill} />
+    </svg>
+  );
+}
+
+function LeafB({ fill = "#58BFFF", rotate = 0 }: { fill?: string; rotate?: number }) {
+  return (
+    <svg viewBox="0 0 64 64" style={{ width: "100%", height: "100%", transform: `rotate(${rotate}deg)` }} aria-hidden>
+      <path d="M32 4 C 52 20, 58 44, 32 60 C 6 44, 12 20, 32 4 Z" fill={fill} />
+    </svg>
+  );
+}
+
 export function EmpresasHero() {
   const reduce = useReducedMotion();
   const { eyebrow, title, highlight, subtitle, ctaPrimary, ctaSecondary } =
     empresaHero;
 
-  // Parte el título alrededor del fragmento resaltado.
   const [before, after] = title.split(highlight);
 
   return (
@@ -20,33 +63,43 @@ export function EmpresasHero() {
       className="relative isolate overflow-hidden px-5 pt-28 pb-16 md:px-10 md:pt-36 md:pb-28"
       style={{ background: "var(--color-bg)" }}
     >
-      {/* Stickers decorativos */}
-      <svg
-        viewBox="0 0 64 64"
-        className="absolute top-28 left-8 h-14 w-14 opacity-90 md:left-20"
-        aria-hidden
-        style={{ transform: "rotate(-16deg)" }}
-      >
-        <path
-          d="M8 56 C 8 28, 28 8, 56 8 C 56 36, 36 56, 8 56 Z"
-          fill="#7DD3FC"
-          stroke="#0F172A"
-          strokeWidth={2.5}
-        />
-      </svg>
-      <svg
-        viewBox="0 0 64 64"
-        className="absolute bottom-16 right-10 h-16 w-16 opacity-90 md:right-28"
-        aria-hidden
-        style={{ transform: "rotate(20deg)" }}
-      >
-        <path
-          d="M32 6 C 50 14, 56 32, 42 52 C 30 60, 14 56, 10 38 C 8 22, 18 10, 32 6 Z"
-          fill="#0EA5E9"
-          stroke="#0F172A"
-          strokeWidth={2.5}
-        />
-      </svg>
+      {/* ── Hojas flotantes ── */}
+
+      {/* Izquierda — grande arriba */}
+      <Floater style={{ position: "absolute", top: 80, left: -20, width: 96, height: 96, opacity: 0.55, zIndex: 0, pointerEvents: "none" }}
+        dur={7} amp={11} delay={0} rotateRange={9}>
+        <LeafA fill="#27D3C3" rotate={-30} />
+      </Floater>
+
+      {/* Izquierda — pequeña abajo */}
+      <Floater style={{ position: "absolute", bottom: "20%", left: 16, width: 42, height: 42, opacity: 0.3, zIndex: 0, pointerEvents: "none" }}
+        dur={9} amp={8} delay={1.5} rotateRange={13}>
+        <LeafB fill="#7DD3FC" rotate={20} />
+      </Floater>
+
+      {/* Izquierda — mini blur */}
+      <Floater style={{ position: "absolute", top: "45%", left: 10, width: 28, height: 28, opacity: 0.2, zIndex: 0, pointerEvents: "none", filter: "blur(1px)" }}
+        dur={6.5} amp={6} delay={2.5} rotateRange={15}>
+        <LeafA fill="#27D3C3" rotate={55} />
+      </Floater>
+
+      {/* Derecha — grande arriba */}
+      <Floater style={{ position: "absolute", top: 72, right: -18, width: 88, height: 88, opacity: 0.5, zIndex: 0, pointerEvents: "none" }}
+        dur={8} amp={10} delay={0.6} rotateRange={8}>
+        <LeafA fill="#58BFFF" rotate={140} />
+      </Floater>
+
+      {/* Derecha — mediana abajo */}
+      <Floater style={{ position: "absolute", bottom: "18%", right: 14, width: 52, height: 52, opacity: 0.35, zIndex: 0, pointerEvents: "none" }}
+        dur={7.5} amp={9} delay={1} rotateRange={10}>
+        <LeafB fill="#BAE6FD" rotate={-50} />
+      </Floater>
+
+      {/* Derecha — mini blur */}
+      <Floater style={{ position: "absolute", top: "40%", right: 8, width: 30, height: 30, opacity: 0.18, zIndex: 0, pointerEvents: "none", filter: "blur(1px)" }}
+        dur={10} amp={7} delay={3} rotateRange={12}>
+        <LeafA fill="#58BFFF" rotate={-80} />
+      </Floater>
 
       <div className="relative mx-auto w-full max-w-4xl text-center">
         <motion.div
