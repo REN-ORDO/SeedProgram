@@ -9,17 +9,44 @@ import { testimonios, type Testimonio } from "@/lib/data";
 
 const AUTO_MS = 3000;
 
+// Windowed pagination dots — show at most DOT_WINDOW dots at once and slide the
+// row left as `index` advances, so the indicator never gets crowded for long
+// testimonio lists.
+const DOT_WINDOW = 5;
+const DOT_SIZE = 12; // px (h-3 w-3)
+const DOT_GAP = 8; // px (gap-2)
+const DOT_STEP = DOT_SIZE + DOT_GAP;
+
+// Direction-aware horizontal slide variants for the testimonio body.
+const slideVariants = {
+  enter: (dir: number) => ({
+    x: dir > 0 ? 80 : -80,
+    opacity: 0,
+  }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({
+    x: dir > 0 ? -80 : 80,
+    opacity: 0,
+  }),
+};
+
 export function TestimonioSection() {
   const reduce = useReducedMotion();
-  const [index, setIndex] = useState(0);
+  const [[index, direction], setIndexState] = useState<[number, number]>([0, 0]);
   const [paused, setPaused] = useState(false);
   const timerRef = useRef<number | null>(null);
 
-  const goto = useCallback((i: number) => {
-    setIndex(((i % testimonios.length) + testimonios.length) % testimonios.length);
+  const goto = useCallback((i: number, dir?: number) => {
+    setIndexState(([prev]) => {
+      const total = testimonios.length;
+      const next = ((i % total) + total) % total;
+      const resolvedDir = dir ?? (next > prev ? 1 : next < prev ? -1 : 1);
+      return [next, resolvedDir];
+    });
   }, []);
-  const next = useCallback(() => goto(index + 1), [goto, index]);
-  const prev = useCallback(() => goto(index - 1), [goto, index]);
+
+  const next = useCallback(() => goto(index + 1, 1), [goto, index]);
+  const prev = useCallback(() => goto(index - 1, -1), [goto, index]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -39,6 +66,18 @@ export function TestimonioSection() {
   }, [index, paused, reduce, next]);
 
   const t = testimonios[index];
+  const total = testimonios.length;
+
+  // Sliding-window dot start position. When `total <= DOT_WINDOW`, lock at 0
+  // (no slide). Otherwise center the active dot in the window, clamped to the
+  // valid range so we never overshoot at either end.
+  const useWindow = total > DOT_WINDOW;
+  const dotStart = useWindow
+    ? Math.max(0, Math.min(index - Math.floor(DOT_WINDOW / 2), total - DOT_WINDOW))
+    : 0;
+  const dotsContainerWidth = useWindow
+    ? DOT_WINDOW * DOT_SIZE + (DOT_WINDOW - 1) * DOT_GAP
+    : total * DOT_SIZE + Math.max(0, total - 1) * DOT_GAP;
 
   return (
     <section
@@ -57,7 +96,7 @@ export function TestimonioSection() {
             <span className="font-bold text-[--color-ink]">·</span>
             <span>Historias</span>
             <span className="text-[--color-fg-subtle]">
-              {String(index + 1).padStart(2, "0")} / {String(testimonios.length).padStart(2, "0")}
+              {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
             </span>
           </div>
 
@@ -71,24 +110,40 @@ export function TestimonioSection() {
               <ChevronLeft size={18} strokeWidth={3} />
             </button>
 
-            <div className="flex items-center gap-2">
-              {testimonios.map((tt, i) => (
-                <button
-                  key={tt.id}
-                  type="button"
-                  aria-label={`Ver historia ${i + 1}`}
-                  aria-current={i === index}
-                  onClick={() => goto(i)}
-                  className="group inline-flex h-3 w-3 items-center justify-center"
-                >
-                  <span
-                    className="h-3 w-3 rounded-full border-2 border-[--color-ink] transition-colors"
-                    style={{
-                      background: i === index ? "var(--color-accent)" : "#fff",
-                    }}
-                  />
-                </button>
-              ))}
+            {/* Windowed dot pagination */}
+            <div
+              className="overflow-hidden"
+              style={{ width: dotsContainerWidth, height: DOT_SIZE }}
+            >
+              <motion.div
+                className="flex items-center"
+                style={{ gap: DOT_GAP }}
+                animate={{ x: -dotStart * DOT_STEP }}
+                transition={
+                  reduce
+                    ? { duration: 0 }
+                    : { type: "spring", stiffness: 320, damping: 32, mass: 0.6 }
+                }
+              >
+                {testimonios.map((tt, i) => (
+                  <button
+                    key={tt.id}
+                    type="button"
+                    aria-label={`Ver historia ${i + 1}`}
+                    aria-current={i === index}
+                    onClick={() => goto(i)}
+                    className="group inline-flex shrink-0 items-center justify-center"
+                    style={{ width: DOT_SIZE, height: DOT_SIZE }}
+                  >
+                    <span
+                      className="h-3 w-3 rounded-full border-2 border-[--color-ink] transition-colors"
+                      style={{
+                        background: i === index ? "var(--color-accent)" : "#fff",
+                      }}
+                    />
+                  </button>
+                ))}
+              </motion.div>
             </div>
 
             <button
@@ -102,13 +157,19 @@ export function TestimonioSection() {
           </div>
         </Reveal>
 
-        <div className="relative min-h-[520px] md:min-h-[460px]">
-          <AnimatePresence mode="wait">
+        {/* Body — direction-aware horizontal slide.
+            Padding gives room for toon-card hard shadows (offset 6px) and
+            slight card rotation; overflow-hidden still clips the off-screen
+            slide animation because x travel (±80px) exceeds the padding. */}
+        <div className="relative min-h-[520px] overflow-hidden p-3 -m-3 md:min-h-[460px] md:p-5 md:-m-5">
+          <AnimatePresence mode="wait" custom={direction} initial={false}>
             <motion.div
               key={t.id}
-              initial={reduce ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduce ? undefined : { opacity: 0, y: -16 }}
+              custom={direction}
+              variants={reduce ? undefined : slideVariants}
+              initial={reduce ? false : "enter"}
+              animate={reduce ? undefined : "center"}
+              exit={reduce ? undefined : "exit"}
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
               className="grid items-center gap-10 md:grid-cols-12"
             >
