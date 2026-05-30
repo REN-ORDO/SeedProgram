@@ -374,6 +374,54 @@ export const testimonios: Testimonio[] = [
     photo: "/img-gonzalez.png",
     accent: "#38BDF8",
   },
+  {
+    id: "sebastian-arteta",
+    name: "Sebastián Arteta De la Torre",
+    badge: "Ex-Semilla AI · hoy Junior Developer",
+    tenure: "Papá joven y desarrollador joven",
+    headline: "De una afición al hardware a crear cosas magníficas.",
+    body: "Una pequeña afición por el hardware y el software se volvió enorme y lo trajo hasta aquí: a construir cosas que, si se las hubieran contado hace ocho años, no habría creído posibles. Hoy es Junior Developer en el ecosistema AI de CooWeb.",
+    quote:
+      "Cuando tienes ganas, y tokens, siempre puedes. En CooWeb siempre puedes — y desde que empiezas como semilla, te das cuenta.",
+    photo: "/img-arteta.png",
+    accent: "#2DD4BF",
+  },
+  {
+    id: "sharikg-perez",
+    name: "Sharikg Michel Pérez Montes",
+    badge: "Pre-Semilla · hoy Project Manager",
+    tenure: "De “no sé si puedo” a gestionar equipos y clientes",
+    headline: "De “no sé si puedo” a liderar equipos.",
+    body: "Entró a CooWeb como semilla con muchas ganas de aprender, sabiendo algo de tecnología pero sin haber vivido un entorno profesional así. Poco a poco fue creciendo dentro del proceso y, aunque lleva poco tiempo, aprendió muchísimo del equipo, del entorno y de sí misma — descubriendo capacidades que no sabía que tenía.",
+    quote:
+      "Entré con miedo de no estar lista para algo tan grande, pero terminé descubriendo que sí soy capaz de aprender, liderar y crecer muchísimo más de lo que imaginaba.",
+    photo: "/img-shari.png",
+    accent: "#7DD3FC",
+  },
+  {
+    id: "manuela-maiguel",
+    name: "Manuela Maiguel",
+    badge: "Semilla · Batch 8",
+    tenure: "Aprendizaje · Curiosidad · Crecimiento",
+    headline: "Comenzando un camino de crecimiento.",
+    body: "Ingresó a Semilla con el deseo de aprender, conocer nuevas personas y desarrollar habilidades que complementaran su formación académica. En sus primeras semanas ha descubierto un entorno que impulsa la iniciativa, la curiosidad y el aprendizaje constante. Aunque apenas comienza, ya reconoce el valor de formar parte de una comunidad que apuesta por el crecimiento de sus integrantes.",
+    quote:
+      "Semilla me recordó que cada gran proyecto empieza con una pequeña oportunidad para aprender y atreverse a crecer.",
+    photo: "/img-maiguel.png",
+    accent: "#5EEAD4",
+  },
+  {
+    id: "maileth-vallejo",
+    name: "Maileth Vallejo",
+    badge: "Semilla · Batch 8",
+    tenure: "Colaboración · Aprendizaje · Nuevas oportunidades",
+    headline: "Sembrando ideas para el futuro.",
+    body: "Llegó a Semilla buscando nuevas experiencias y la posibilidad de seguir desarrollándose tanto personal como profesionalmente. Desde el primer momento encontró un espacio donde compartir ideas, aprender de otros y asumir nuevos retos. Aunque el camino apenas comienza, esta experiencia le ha permitido visualizar nuevas posibilidades para su futuro.",
+    quote:
+      "A veces no se trata de saber exactamente a dónde vas, sino de rodearte de personas y experiencias que te ayuden a descubrirlo.",
+    photo: "/img-vallejo.png",
+    accent: "#38BDF8",
+  },
 ];
 
 // Back-compat — first testimonio
