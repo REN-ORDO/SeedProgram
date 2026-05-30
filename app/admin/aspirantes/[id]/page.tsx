@@ -15,7 +15,6 @@ const sections: FieldSection[] = [
       { key: "email", label: "Email" },
       { key: "whatsapp", label: "WhatsApp" },
       { key: "ciudad", label: "Ciudad" },
-      { key: "direccion", label: "Dirección" },
     ],
   },
   {

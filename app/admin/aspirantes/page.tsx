@@ -8,7 +8,7 @@ import {
   type ColumnConfig,
   type PostulacionRow,
 } from "@/components/admin/postulacion-list";
-import type { AppStatus } from "@/lib/admin-helpers";
+import { ASPIRANTE_CSV_COLUMNS, type AppStatus } from "@/lib/admin-helpers";
 
 const columns: ColumnConfig<PostulacionRow>[] = [
   {
@@ -66,6 +66,7 @@ function AspirantesListInner() {
       columns={columns}
       searchFields={["nombre", "email", "ciudad", "carrera", "whatsapp"]}
       csvFilename="aspirantes"
+      csvColumns={ASPIRANTE_CSV_COLUMNS}
       initialStatusFilter={initialStatus}
     />
   );

@@ -31,12 +31,26 @@ import {
   Check,
   FileUp,
   Building2,
+  Sprout,
   Send,
+  History,
+  X,
+  ChevronDown,
+  List,
+  Sparkles,
+  ExternalLink,
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadCvToCloudinary } from "@/lib/cloudinary";
 import { Magnetic } from "@/components/magnetic";
+import {
+  saveDraft,
+  loadDraft,
+  clearDraft,
+  draftAge,
+  type FormDraft,
+} from "@/lib/form-draft";
 import { cn } from "@/lib/utils";
 
 // Easing canónico del sitio
@@ -60,8 +74,6 @@ const RX = {
   alphanumName: /^[\p{L}\p{N}\s'’\-.,&·/]+$/u,
   // Email — regex pragmática (no perfecta pero suficiente)
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  // Teléfono: solo dígitos, espacios, +, -, paréntesis, puntos
-  phoneChars: /^[\d\s+\-().]+$/,
 } as const;
 
 const validators: Record<string, Validator> = {
@@ -73,22 +85,13 @@ const validators: Record<string, Validator> = {
     if (!/\s/.test(v)) return "Escribe tu nombre completo (nombre y apellido).";
     return null;
   },
-  direccion: (v) => {
-    if (v.length < 5) return "La dirección es muy corta.";
-    if (v.length > 200) return "La dirección es muy larga.";
-    return null;
-  },
   whatsapp: (v) => {
-    if (!RX.phoneChars.test(v))
-      return "El WhatsApp solo puede tener números, espacios, + - ( ).";
     const digits = v.replace(/\D/g, "");
     if (digits.length < 7) return "El WhatsApp es muy corto.";
     if (digits.length > 15) return "El WhatsApp es muy largo.";
     return null;
   },
   telefono: (v) => {
-    if (!RX.phoneChars.test(v))
-      return "El teléfono solo puede tener números, espacios, + - ( ).";
     const digits = v.replace(/\D/g, "");
     if (digits.length < 7) return "El teléfono es muy corto.";
     if (digits.length > 15) return "El teléfono es muy largo.";
@@ -145,7 +148,6 @@ const validators: Record<string, Validator> = {
 const fieldLabels: Record<string, string> = {
   nombre: "el nombre completo",
   ciudad: "la ciudad",
-  direccion: "la dirección",
   whatsapp: "el WhatsApp",
   telefono: "el teléfono",
   email: "el correo electrónico",
@@ -192,7 +194,7 @@ const labelCls =
   "mb-2.5 block font-display text-sm font-semibold tracking-tight text-[var(--color-ink)]";
 
 const optionCls =
-  "flex cursor-pointer items-center gap-3.5 rounded-xl border-2 border-[var(--color-ink)] bg-white " +
+  "flex cursor-pointer flex-wrap items-center gap-x-3.5 gap-y-2.5 rounded-xl border-2 border-[var(--color-ink)] bg-white " +
   "px-4 py-3.5 shadow-[3px_3px_0_var(--color-ink)] transition-all duration-150 " +
   "hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] " +
   "has-[input:checked]:-translate-x-0.5 has-[input:checked]:-translate-y-0.5 " +
@@ -296,8 +298,8 @@ function RoleSelector({
   onChange: (r: Role) => void;
 }) {
   const opts = [
-    { id: "aspirante" as Role, label: "Soy aspirante", icon: "🌱" },
-    { id: "empresa" as Role, label: "Soy empresa", icon: "🏢" },
+    { id: "aspirante" as Role, label: "Soy aspirante", Icon: Sprout },
+    { id: "empresa" as Role, label: "Soy empresa", Icon: Building2 },
   ];
   return (
     <motion.div
@@ -326,7 +328,7 @@ function RoleSelector({
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
-            <span className="relative z-10 text-base">{opt.icon}</span>
+            <opt.Icon className="relative z-10" size={16} strokeWidth={2.5} />
             <span className="relative z-10 hidden xs:inline sm:inline">{opt.label}</span>
             <span className="relative z-10 inline xs:hidden sm:hidden">
               {opt.id === "aspirante" ? "Aspirante" : "Empresa"}
@@ -423,9 +425,10 @@ function Radio({
           type="text"
           placeholder={otherPlaceholder ?? "Especifica..."}
           className={cn(
-            "ml-auto max-w-[220px] rounded-lg border-2 border-[var(--color-ink)] bg-white px-3 py-1.5",
+            "rounded-lg border-2 border-[var(--color-ink)] bg-white px-3 py-1.5",
             "text-[13px] shadow-[2px_2px_0_var(--color-ink)] outline-none focus:shadow-[3px_3px_0_var(--color-accent)]",
-            "w-full sm:w-auto",
+            // Móvil: full width en su propia línea. Desktop: inline, alineado a la derecha, capado.
+            "w-full sm:ml-auto sm:w-auto sm:max-w-[220px]",
           )}
           onClick={(e) => e.preventDefault()}
         />
@@ -518,6 +521,33 @@ function textProps(name: string, ctx: FormCtxValue) {
   };
 }
 
+/**
+ * Formatea dígitos al patrón "333 333 3333" (grupos 3-3-4, luego overflow).
+ * Solo para mostrar; en valuesRef/BD se guardan los dígitos puros.
+ */
+function formatPhone(raw: string): string {
+  const d = raw.replace(/\D/g, "").slice(0, 15);
+  const parts = [d.slice(0, 3), d.slice(3, 6), d.slice(6, 10), d.slice(10)];
+  return parts.filter(Boolean).join(" ");
+}
+
+/**
+ * Helper para inputs de teléfono. En cada cambio (teclear, pegar,
+ * autocompletar) reformatea el input al patrón "333 333 3333", quitando
+ * cualquier carácter que no sea dígito. valuesRef guarda el texto formateado;
+ * los validadores ignoran espacios y el payload final normaliza a dígitos.
+ */
+function phoneProps(name: string, ctx: FormCtxValue) {
+  return {
+    name,
+    defaultValue: formatPhone(ctx.defaults[name] ?? ""),
+    onChange: (e: ChangeEvent<HTMLInputElement>) => {
+      e.target.value = formatPhone(e.target.value);
+      ctx.onChange(e);
+    },
+  };
+}
+
 /** Helper para radio buttons con restore */
 function radioProps(name: string, value: string, ctx: FormCtxValue) {
   return {
@@ -528,6 +558,199 @@ function radioProps(name: string, value: string, ctx: FormCtxValue) {
   };
 }
 
+/**
+ * Dropdown custom estilo neobrutalism (reemplaza <select> nativo).
+ *
+ * Se integra con el form no-controlado vía un <input hidden name={name}>:
+ *   - captureCurrentPanel() y handleSubmit lo leen como cualquier input.
+ *   - validateCurrentPanel() lo valida con [required] + .focus()/.value.
+ * Restaura su valor desde ctx.defaults al remontar (igual que textProps).
+ */
+function SelectField({
+  name,
+  options,
+  placeholder,
+  required,
+  otherValue,
+  otherPlaceholder = "Escribe aquí",
+}: {
+  name: string;
+  options: string[];
+  placeholder: string;
+  required?: boolean;
+  /** Si el usuario elige este valor, el recuadro se vuelve un input de texto. */
+  otherValue?: string;
+  otherPlaceholder?: string;
+}) {
+  const ctx = useFormCtx();
+  const initial = ctx.defaults[name] ?? "";
+  // Opciones reales seleccionables del dropdown (sin contar "Otra").
+  const realOptions = otherValue
+    ? options.filter((o) => o !== otherValue)
+    : options;
+  // Modo libre si el valor restaurado NO está en las opciones reales
+  // (ej: una ciudad escrita a mano que se guardó en un borrador).
+  const [custom, setCustom] = useState(
+    initial !== "" && !realOptions.includes(initial),
+  );
+  const [value, setValue] = useState(custom ? "" : initial);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const hiddenRef = useRef<HTMLInputElement>(null);
+  const customRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  // Escribe en valuesRef (sin un input real) usando el onChange del contexto.
+  const writeValue = (v: string) => {
+    ctx.onChange({
+      target: { name, value: v, type: "text" },
+    } as unknown as ChangeEvent<HTMLInputElement>);
+  };
+
+  const select = (opt: string) => {
+    setOpen(false);
+    // Si eligen "Otra", el recuadro se transforma en input de texto libre.
+    if (otherValue !== undefined && opt === otherValue) {
+      setCustom(true);
+      setValue("");
+      writeValue(""); // limpiar para que escriban desde cero
+      requestAnimationFrame(() => customRef.current?.focus());
+      return;
+    }
+    setValue(opt);
+    const input = hiddenRef.current;
+    if (input) {
+      input.value = opt;
+      ctx.onChange({ target: input } as ChangeEvent<HTMLInputElement>);
+    }
+  };
+
+  const backToList = () => {
+    setCustom(false);
+    setValue("");
+    writeValue("");
+    setOpen(true);
+  };
+
+  // ---- Modo texto libre: el recuadro ES el input ----
+  if (custom) {
+    return (
+      <div ref={ref} className="relative">
+        <input
+          ref={customRef}
+          name={name}
+          type="text"
+          required={required}
+          defaultValue={
+            initial !== "" && !realOptions.includes(initial) ? initial : ""
+          }
+          maxLength={100}
+          placeholder={otherPlaceholder}
+          onChange={ctx.onChange}
+          className={cn(inputCls, "pr-14")}
+        />
+        {otherValue && (
+          <button
+            type="button"
+            onClick={backToList}
+            aria-label="Ver lista de opciones"
+            title="Ver lista de opciones"
+            className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg border-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)] text-[var(--color-ink)] transition-colors hover:bg-[var(--color-bg-sky)]"
+          >
+            <List size={16} />
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // ---- Modo dropdown ----
+  return (
+    <div ref={ref} className="relative">
+      {/* Input real: lo ven captura/submit/validación del form */}
+      <input
+        ref={hiddenRef}
+        type="text"
+        name={name}
+        required={required}
+        defaultValue={value}
+        readOnly
+        tabIndex={-1}
+        aria-hidden
+        className="sr-only"
+        onFocus={(e) => {
+          // Si la validación hace .focus() (campo vacío), abrimos el dropdown.
+          e.currentTarget.blur();
+          setOpen(true);
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={cn(inputCls, "flex cursor-pointer items-center justify-between pr-11 text-left")}
+      >
+        <span className={cn(!value && "text-[var(--color-fg-subtle)]")}>
+          {value || placeholder}
+        </span>
+        <ChevronDown
+          size={18}
+          className={cn(
+            "absolute right-4 text-[var(--color-ink)] transition-transform",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="scrollbar-hidden absolute left-0 right-0 z-30 mt-2 max-h-64 overflow-auto rounded-xl border-2 border-[var(--color-ink)] bg-white shadow-[5px_5px_0_var(--color-ink)]"
+        >
+          {options.map((opt) => {
+            const active = opt === value;
+            return (
+              <li key={opt} role="option" aria-selected={active}>
+                <button
+                  type="button"
+                  onClick={() => select(opt)}
+                  className={cn(
+                    "flex w-full items-center justify-between px-4 py-3 text-left text-[15px] font-medium transition-colors",
+                    active
+                      ? "bg-[var(--color-bg-teal)] text-[var(--color-ink)]"
+                      : "text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-soft)] hover:text-[var(--color-ink)]",
+                  )}
+                >
+                  {opt}
+                  {active && <Check size={16} strokeWidth={3} className="shrink-0" />}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 // ============================================================
 // Componente principal
 // ============================================================
@@ -535,11 +758,27 @@ function radioProps(name: string, value: string, ctx: FormCtxValue) {
 export function ApplicationForm() {
   const [role, setRole] = useState<Role>("aspirante");
   const [step, setStep] = useState(1);
+
+  // Preselección de rol vía query (?rol=empresa) — deep-link desde /empresas.
+  // Se sincroniza tras montar (no en el init) para que el HTML del server y la
+  // primera render del cliente coincidan y no haya hydration mismatch. Usamos
+  // window (no useSearchParams) para no requerir un Suspense boundary.
+  useEffect(() => {
+    const rol = new URLSearchParams(window.location.search).get("rol");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync URL→estado al montar
+    if (rol === "empresa") setRole("empresa");
+  }, []);
+
   const [direction, setDirection] = useState<Direction>("forward");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cvFileName, setCvFileName] = useState<string | null>(null);
+
+  // Borrador detectado al montar (banner "Tienes un borrador guardado").
+  const [draftPrompt, setDraftPrompt] = useState<FormDraft | null>(null);
+  // Nombre del CV que tenía un borrador restaurado — recordatorio de re-subir.
+  const [cvReminderName, setCvReminderName] = useState<string | null>(null);
 
   const formRef = useRef<HTMLFormElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
@@ -573,6 +812,30 @@ export function ApplicationForm() {
   const lastTransitionAtRef = useRef(0);
   const TRANSITION_LOCK_MS = 600;
 
+  // ---- Persistencia de borrador (localStorage) ----
+
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Al montar: si hay un borrador válido (< 48h) lo ofrecemos vía banner.
+  // setState-in-effect es intencional acá: leer localStorage solo es seguro
+  // en cliente (no SSR), y hacerlo en effect evita hydration mismatch.
+  useEffect(() => {
+    const d = loadDraft();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (d) setDraftPrompt(d);
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, []);
+
+  // Guarda el borrador con debounce (evita escribir en cada keystroke).
+  const persistDraftDebounced = () => {
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      saveDraft({ role, values: valuesRef.current, cvFileName });
+    }, 600);
+  };
+
   // ---- Captura de inputs del panel actual ----
 
   const captureCurrentPanel = () => {
@@ -592,6 +855,7 @@ export function ApplicationForm() {
       valuesRef.current[el.name] = el.value;
     }
     setDefaults({ ...valuesRef.current });
+    persistDraftDebounced();
   };
 
   // Handler global de cambios (registra en valuesRef sin re-render)
@@ -604,9 +868,11 @@ export function ApplicationForm() {
     if (el instanceof HTMLInputElement && el.type === "file") return;
     if (el instanceof HTMLInputElement && el.type === "radio") {
       if (el.checked) valuesRef.current[el.name] = el.value;
+      persistDraftDebounced();
       return;
     }
     valuesRef.current[el.name] = el.value;
+    persistDraftDebounced();
   };
 
   const steps = useMemo(
@@ -637,8 +903,30 @@ export function ApplicationForm() {
     setErrorMsg(null);
     setCvFileName(null);
     cvFileRef.current = null;
+    setCvReminderName(null);
     valuesRef.current = {};
     setDefaults({}); // limpia el snapshot también
+  };
+
+  // ---- Borrador: restaurar / descartar ----
+
+  const restoreDraft = () => {
+    if (!draftPrompt) return;
+    valuesRef.current = { ...draftPrompt.values };
+    setDefaults({ ...draftPrompt.values });
+    setRole(draftPrompt.role);
+    setStep(1); // siempre arranca en paso 1
+    setDirection("forward");
+    // El CV no se puede restaurar (File no serializable) → recordatorio.
+    setCvReminderName(draftPrompt.cvFileName);
+    setCvFileName(null);
+    cvFileRef.current = null;
+    setDraftPrompt(null);
+  };
+
+  const discardDraft = () => {
+    clearDraft();
+    setDraftPrompt(null);
   };
 
   // ---- Validación por paso (lee el DOM del form actual) ----
@@ -785,6 +1073,7 @@ export function ApplicationForm() {
     if (!file) return;
     cvFileRef.current = file;
     setCvFileName(file.name);
+    setCvReminderName(null); // ya re-adjuntó, ocultar recordatorio
   };
 
   // ---- Submit a Firebase ----
@@ -833,6 +1122,18 @@ export function ApplicationForm() {
       // los paneles anteriores y FormData solo vería el último.
       const data: Record<string, unknown> = { ...valuesRef.current };
 
+      // El campo ciudad ya viene limpio: en modo "Otra" el recuadro se
+      // convierte en input de texto y escribe directo sobre `ciudad`.
+      // (Por compat con borradores viejos, descartamos ciudad_otro si existe.)
+      delete data.ciudad_otro;
+
+      // Teléfonos: guardar solo dígitos (el input los muestra formateados).
+      for (const k of ["whatsapp", "telefono"]) {
+        if (typeof data[k] === "string") {
+          data[k] = (data[k] as string).replace(/\D/g, "");
+        }
+      }
+
       if (role === "aspirante") {
         // Subir CV a Cloudinary. Usamos cvFileRef (no cvInputRef.files) porque
         // el input se desmonta al navegar de paso y el File se perdería.
@@ -865,6 +1166,9 @@ export function ApplicationForm() {
       const collectionName = role === "aspirante" ? "aspirantes" : "empresas";
       await addDoc(collection(db, collectionName), payload);
 
+      // Postulación enviada con éxito → limpiar borrador persistido.
+      clearDraft();
+      setCvReminderName(null);
       setSuccess(true);
     } catch (err) {
       // Mostramos el mensaje real para poder diagnosticar en producción
@@ -926,7 +1230,7 @@ export function ApplicationForm() {
           className="relative mx-auto mt-3 max-w-md text-[15px] text-[var(--color-fg-muted)]"
         >
           {role === "aspirante"
-            ? "Recibimos tu postulación. Si haces match con el batch, te contactamos pronto. 🌱"
+            ? "Recibimos tu postulación. Si haces match con el batch, te contactamos pronto."
             : "Recibimos tu solicitud. Un mentor senior te contactará en menos de 48 horas."}
         </motion.p>
         <motion.div
@@ -965,6 +1269,61 @@ export function ApplicationForm() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
+      {/* Banner de borrador guardado.
+          Sin overflow-hidden ni animación de height: eso recortaba la
+          sombra offset de la caja. Solo fade + slide. El padding-bottom/right
+          del contenedor deja aire para que la sombra nunca se corte. */}
+      <AnimatePresence>
+        {draftPrompt && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35, ease: EASE }}
+            className="mb-6 pr-1 pb-1"
+          >
+            <div className="flex flex-col gap-3 rounded-2xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-sky)] p-4 shadow-[4px_4px_0_var(--color-ink)] sm:flex-row sm:items-center">
+              {/* Icono + texto */}
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-white">
+                  <History size={18} />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-display text-sm font-bold text-[var(--color-ink)]">
+                    Tienes un borrador guardado
+                  </div>
+                  <div className="text-xs text-[var(--color-ink)]/70">
+                    Lo guardamos {draftAge(draftPrompt.savedAt)} ·{" "}
+                    {draftPrompt.role === "aspirante" ? "Aspirante" : "Empresa"}
+                    {draftPrompt.cvFileName
+                      ? " · vuelve a adjuntar el CV"
+                      : ""}
+                  </div>
+                </div>
+              </div>
+              {/* Acciones */}
+              <div className="flex flex-shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={restoreDraft}
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-accent)] px-4 py-2 font-display text-xs font-bold text-white shadow-[2px_2px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-ink)] sm:flex-none"
+                >
+                  Continuar
+                </button>
+                <button
+                  type="button"
+                  onClick={discardDraft}
+                  aria-label="Descartar borrador"
+                  className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-ink)] bg-white text-[var(--color-ink)] transition-transform hover:-translate-y-0.5"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <RoleSelector role={role} onChange={changeRole} />
 
       <motion.div
@@ -1024,6 +1383,7 @@ export function ApplicationForm() {
                   cvFileName={cvFileName}
                   onCvChange={onCvChange}
                   cvInputRef={cvInputRef}
+                  cvReminderName={cvReminderName}
                 />
               )}
               {role === "aspirante" && step === 3 && <AspiranteStep3 />}
@@ -1057,14 +1417,17 @@ export function ApplicationForm() {
             )}
           </AnimatePresence>
 
-          {/* Navegación */}
-          <div className="mt-8 flex flex-wrap gap-3 border-t-2 border-dashed border-[var(--color-bg-soft)] pt-6">
+          {/* Navegación.
+              Móvil: stack vertical full-width, acción principal arriba
+              (col-reverse). Desktop: fila — Atrás a la izquierda, principal
+              a la derecha. */}
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t-2 border-dashed border-[var(--color-bg-soft)] pt-6 sm:flex-row sm:items-center">
             {step > 1 && (
               <button
                 type="button"
                 onClick={handleBack}
                 disabled={submitting}
-                className="toon-btn toon-btn--white disabled:opacity-50"
+                className="toon-btn toon-btn--white w-full justify-center disabled:opacity-50 sm:w-auto"
               >
                 <ArrowLeft size={16} />
                 Atrás
@@ -1072,58 +1435,48 @@ export function ApplicationForm() {
             )}
 
             {step < steps.length ? (
-              <Magnetic
+              <button
                 key="btn-next"
-                strength={0.25}
-                className="ml-auto"
+                type="button"
+                onClick={handleNext}
+                className="toon-btn w-full justify-center sm:ml-auto sm:w-auto"
+                style={{ background: "var(--color-ink)", color: "#fff" }}
               >
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="toon-btn"
-                  style={{ background: "var(--color-ink)", color: "#fff" }}
+                Continuar
+                <motion.span
+                  animate={{ x: [0, 3, 0] }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                  className="inline-flex"
                 >
-                  Continuar
-                  <motion.span
-                    animate={{ x: [0, 3, 0] }}
-                    transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                    className="inline-flex"
-                  >
-                    <ArrowRight size={16} />
-                  </motion.span>
-                </button>
-              </Magnetic>
+                  <ArrowRight size={16} />
+                </motion.span>
+              </button>
             ) : (
-              <Magnetic
+              <button
                 key="btn-submit"
-                strength={0.25}
-                className="ml-auto"
+                type="submit"
+                disabled={submitting}
+                className="toon-btn w-full justify-center disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:w-auto"
+                style={{ background: "var(--color-ink)", color: "#fff" }}
               >
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="toon-btn disabled:opacity-60"
-                  style={{ background: "var(--color-ink)", color: "#fff" }}
-                >
-                  {submitting ? (
-                    <>
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      {role === "aspirante" ? "Enviar postulación" : "Enviar solicitud"}
-                      <motion.span
-                        animate={{ rotate: [0, -8, 0, 8, 0] }}
-                        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-                        className="inline-flex"
-                      >
-                        <Send size={16} />
-                      </motion.span>
-                    </>
-                  )}
-                </button>
-              </Magnetic>
+                {submitting ? (
+                  <>
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    {role === "aspirante" ? "Enviar postulación" : "Enviar solicitud"}
+                    <motion.span
+                      animate={{ rotate: [0, -8, 0, 8, 0] }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                      className="inline-flex"
+                    >
+                      <Send size={16} />
+                    </motion.span>
+                  </>
+                )}
+              </button>
             )}
           </div>
 
@@ -1178,38 +1531,28 @@ function AspiranteStep1() {
         />
       </Field>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field>
-          <label className={labelCls}>
-            Ciudad<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
-          </label>
-          <select {...textProps("ciudad", ctx)} required className={cn(inputCls, "cursor-pointer pr-11")}>
-            <option value="">Selecciona tu ciudad</option>
-            <option>Barranquilla</option>
-            <option>Bogotá</option>
-            <option>Medellín</option>
-            <option>Cali</option>
-            <option>Cartagena</option>
-            <option>Santa Marta</option>
-            <option>Bucaramanga</option>
-            <option>Otra</option>
-          </select>
-        </Field>
-        <Field>
-          <label className={labelCls}>
-            Dirección<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
-          </label>
-          <input
-            {...textProps("direccion", ctx)}
-            type="text"
-            required
-            autoComplete="street-address"
-            maxLength={200}
-            placeholder="Calle, número, barrio"
-            className={inputCls}
-          />
-        </Field>
-      </div>
+      <Field>
+        <label className={labelCls}>
+          Ciudad<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
+        </label>
+        <SelectField
+          name="ciudad"
+          required
+          placeholder="Selecciona tu ciudad"
+          otherValue="Otra"
+          otherPlaceholder="Escribe tu ciudad"
+          options={[
+            "Barranquilla",
+            "Bogotá",
+            "Medellín",
+            "Cali",
+            "Cartagena",
+            "Santa Marta",
+            "Bucaramanga",
+            "Otra",
+          ]}
+        />
+      </Field>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>
@@ -1217,12 +1560,12 @@ function AspiranteStep1() {
             WhatsApp<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
-            {...textProps("whatsapp", ctx)}
+            {...phoneProps("whatsapp", ctx)}
             type="tel"
             required
             autoComplete="tel"
-            inputMode="tel"
-            maxLength={20}
+            inputMode="numeric"
+            maxLength={18}
             placeholder="300 123 4567"
             className={inputCls}
           />
@@ -1251,10 +1594,12 @@ function AspiranteStep2({
   cvFileName,
   onCvChange,
   cvInputRef,
+  cvReminderName,
 }: {
   cvFileName: string | null;
   onCvChange: (e: ChangeEvent<HTMLInputElement>) => void;
   cvInputRef: React.RefObject<HTMLInputElement | null>;
+  cvReminderName?: string | null;
 }) {
   const ctx = useFormCtx();
   return (
@@ -1326,6 +1671,36 @@ function AspiranteStep2({
             className="hidden"
           />
         </label>
+        {cvReminderName && !cvFileName && (
+          <span className="mt-2 block rounded-lg border-2 border-amber-400 bg-amber-50 px-3 py-2 text-[13px] font-medium text-amber-800">
+            Tenías “{cvReminderName}” adjunto antes — por seguridad no podemos
+            guardar archivos, vuelve a subirlo.
+          </span>
+        )}
+
+        {/* Helper: crear CV con Salto AI */}
+        <a
+          href="https://salto-ai.vercel.app/auth?next=%2Fjoven%2Fchat&role=joven"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group mt-3 flex items-center gap-3 rounded-xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-teal)] p-3.5 shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)]"
+        >
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border-2 border-[var(--color-ink)] bg-white text-[var(--color-ink)]">
+            <Sparkles size={17} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-display text-[13.5px] font-bold leading-tight text-[var(--color-ink)]">
+              ¿Aún no tienes un CV?
+            </div>
+            <div className="text-[12.5px] leading-tight text-[var(--color-ink)]/75">
+              Créalo gratis en minutos con Salto AI.
+            </div>
+          </div>
+          <ExternalLink
+            size={16}
+            className="flex-shrink-0 text-[var(--color-ink)] transition-transform group-hover:translate-x-0.5"
+          />
+        </a>
       </Field>
     </>
   );
@@ -1468,13 +1843,13 @@ function EmpresaStep1() {
             Teléfono<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
           </label>
           <input
-            {...textProps("telefono", ctx)}
+            {...phoneProps("telefono", ctx)}
             type="tel"
             required
             autoComplete="tel"
-            inputMode="tel"
-            maxLength={20}
-            placeholder="+57 300 123 4567"
+            inputMode="numeric"
+            maxLength={18}
+            placeholder="300 123 4567"
             className={inputCls}
           />
         </Field>

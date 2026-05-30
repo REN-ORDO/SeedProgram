@@ -251,7 +251,21 @@ export type Testimonio = {
   placeholder?: boolean; // TODO marker for content team
 };
 
+// Orden carousel: Fanny (Coordinadora, voz institucional) abre; luego se
+// intercala género en el resto del set.
 export const testimonios: Testimonio[] = [
+  {
+    id: "fanny-tocora",
+    name: "Fanny Tocora Yi",
+    badge: "CooWeb · Coordinadora de Bienestar",
+    tenure: "Bienestar, Desarrollo y Crecimiento",
+    headline: "No solo formamos desarrolladores. Formamos propósito.",
+    body: "Como Coordinadora de Bienestar, Desarrollo y Crecimiento, Fanny acompaña el crecimiento integral de cada joven del Semillero. Su mirada va más allá del código: liderazgo, visión de futuro e impacto positivo en la región a través de la tecnología y la inteligencia artificial.",
+    quote:
+      "El Semillero de CooWeb no solo forma desarrolladores; forma jóvenes con propósito, liderazgo y visión de futuro. Impulsamos su crecimiento integral para que generen innovación, oportunidades e impacto positivo en nuestra región y en la sociedad.",
+    photo: "/img-fanny.png",
+    accent: "#5EEAD4",
+  },
   {
     id: "sebastian-ordonez",
     name: "Sebastian Ordoñez",
@@ -263,6 +277,54 @@ export const testimonios: Testimonio[] = [
       "Llegué a CooWeb desorientado y con la expectativa por el suelo. Hoy soy Junior del equipo — hace cinco meses no me reconocería.",
     photo: "/image-ordo.png",
     accent: "#5EEAD4",
+  },
+  {
+    id: "erika-contreras",
+    name: "Erika Contreras",
+    badge: "Ex-Semilla · hoy Directora en MyCoin S.A.S.",
+    tenure: "Mamá y profesional · sin elegir entre ambas",
+    headline: "Mamá, líder y Directora — sin elegir.",
+    body: "Entró buscando crecer profesionalmente sin renunciar a su familia. Pasó de desarrolladora a liderar un departamento de sistemas con clientes internacionales. Hoy es Directora en MyCoin S.A.S. — y dice que se transformó también como persona.",
+    quote:
+      "El semillero me demostró que no tenía que elegir entre ser mamá y crecer profesionalmente. Me dio la tranquilidad de avanzar sin sacrificar a mi familia.",
+    photo: "/img-erika.png",
+    accent: "#38BDF8",
+  },
+  {
+    id: "juan-fernando",
+    name: "Juan Fernando",
+    badge: "Ex-Semilla · hoy Full Stack Developer",
+    tenure: "Lidera equipos · proyectos internacionales",
+    headline: "De cero experiencia a liderar equipos.",
+    body: "Entró sin experiencia laboral real, solo con ganas de aprender. Encontró un entorno para equivocarse, crecer y recibir guía de desarrolladores senior. Hoy lidera equipos de desarrollo y gestiona proyectos con clientes de distintos países.",
+    quote:
+      "El semillero no solo te da una primera oportunidad — te da la experiencia que el mercado siempre exige pero rara vez regala.",
+    photo: "/img-juanfer.png",
+    accent: "#2DD4BF",
+  },
+  {
+    id: "camilo-lopez",
+    name: "Camilo López",
+    badge: "Semilla · hoy Middle Developer",
+    tenure: "Programando desde los 14 · CooWeb a los 18",
+    headline: "De Semilla a Middle en 8 meses.",
+    body: "Camilo entró con 18 años y años de curiosidad acumulada desde los 14. En tres meses alcanzó Junior. En ocho, Middle Developer. Hoy no solo escribe código — diseña sistemas que mueven operaciones reales.",
+    quote:
+      "Empecé a programar a los 14 sin saber a dónde me llevaría. Hoy con 20 años estoy construyendo sistemas que orquestan envíos reales para una de las cadenas más grandes del país.",
+    photo: "/img-camilo.png",
+    accent: "#7DD3FC",
+  },
+  {
+    id: "karoll-marquez",
+    name: "Karoll Marquez",
+    badge: "Ex-Semilla · hoy Desarrollador de Soluciones IA",
+    tenure: "Ingeniería de Sistemas · IA y automatización",
+    headline: "De estudiante a construir soluciones con IA.",
+    body: "Comenzó aprendiendo desarrollo web mientras estudiaba Ingeniería de Sistemas. Con el tiempo amplió sus conocimientos hacia IA, automatización y desarrollo de productos digitales. Hoy construye soluciones tecnológicas que ayudan a empresas a optimizar procesos y crecer.",
+    quote:
+      "Descubrí que podía crear mucho más que aplicaciones. La combinación de desarrollo, IA y automatización me permitió convertir ideas en soluciones con impacto real.",
+    photo: "/img-karoll.png",
+    accent: "#14B8A6",
   },
   {
     id: "antonio-perez",
@@ -277,30 +339,40 @@ export const testimonios: Testimonio[] = [
     accent: "#BAE6FD",
   },
   {
-    id: "placeholder-3",
-    name: "Nombre apellido",
-    badge: "Batch 7 · hoy Middle 1",
-    tenure: "En CooWeb desde [Mes Año]",
-    headline: "Headline corto de 6-8 palabras.",
-    body: "Cuerpo del testimonio: contexto inicial, qué cambió, qué hace hoy. 2-3 frases máximo.",
+    id: "anderson-prado",
+    name: "Anderson Prado",
+    badge: "Ex-Semilla · hoy Semi Senior Developer",
+    tenure: "Llegó por un concurso universitario · hoy lidera equipos",
+    headline: "De concurso universitario a liderar equipos.",
+    body: "Llegó al semillero ganando un concurso universitario, dando sus primeros pasos en el desarrollo profesional. Trabajó en proyectos reales con distintos clientes, aprendiendo de profesionales con amplia trayectoria. Hoy es Semi Senior Developer y lidera equipos en proyectos para clientes de distintos países.",
     quote:
-      "Cita directa en primera persona — qué se llevó del programa, qué descubrió de sí.",
-    initial: "A",
-    accent: "#7DD3FC",
-    placeholder: true,
+      "Cada proyecto, cada cliente y cada mentor aportó a mi crecimiento técnico y profesional. Hoy lidero equipos en proyectos internacionales.",
+    photo: "/img-ander.png",
+    accent: "#0D9488",
   },
   {
-    id: "placeholder-4",
-    name: "Nombre apellido",
-    badge: "Batch 7 · hoy Junior 2",
-    tenure: "En CooWeb desde [Mes Año]",
-    headline: "Headline corto de 6-8 palabras.",
-    body: "Cuerpo del testimonio: contexto inicial, qué cambió, qué hace hoy. 2-3 frases máximo.",
+    id: "manuel-diaz",
+    name: "Manuel Díaz",
+    badge: "Semilla · IA + desarrollo de software",
+    tenure: "Cada reto, una experiencia gratificante",
+    headline: "Crecimos juntos — código, IA y compañerismo.",
+    body: "Desde el primer día, asumir retos nuevos lo fortaleció técnica y personalmente. Encontró un equipo que comparte conocimiento, apoya a los demás y empuja sus propios límites. Hoy participa en proyectos de software con IA donde innovación y aprendizaje van de la mano.",
     quote:
-      "Cita directa en primera persona — qué se llevó del programa, qué descubrió de sí.",
-    initial: "C",
-    accent: "#2DD4BF",
-    placeholder: true,
+      "Aquí no solo desarrollamos software con IA — construimos juntos un entorno donde la innovación, el aprendizaje y el compañerismo van de la mano.",
+    photo: "/img-manuel.png",
+    accent: "#5EEAD4",
+  },
+  {
+    id: "sebastian-gonzalez",
+    name: "Sebastian Gonzalez Fornaris",
+    badge: "Semilla · hoy Junior Developer",
+    tenure: "Casi un año en esta familia",
+    headline: "Del primer condicional en PSeInt a liderar.",
+    body: "Empezó en primer semestre de universidad: apenas sabía escribir un condicional simple en PSeInt y se lanzó a la aventura sin red. El camino fue exigente — muchos retos de golpe y una carga enorme de información nueva — pero con esfuerzo y perseverancia lo logró. Hoy lidera, desarrolla y se desenvuelve en entornos profesionales de una forma que jamás imaginó.",
+    quote:
+      "Siempre pensé que no duraría nada en la empresa, que no tenía el conocimiento suficiente o que no daba la talla. Pero todos creyeron en mí, y me llené de valor para salir adelante.",
+    photo: "/img-gonzalez.png",
+    accent: "#38BDF8",
   },
 ];
 
@@ -321,3 +393,122 @@ export const taglines = [
   "Liderazgo",
   "Propósito Social",
 ];
+
+// ============================================================
+// Landing de Empresas Patrocinadoras (/empresas)
+// Fuente: "Empresas semillero.docx"
+// ============================================================
+
+export const empresaHero = {
+  eyebrow: "Empresas patrocinadoras",
+  title: "Transforma un reto técnico en una oportunidad de impacto social.",
+  highlight: "impacto social",
+  subtitle:
+    "Conviértete en Empresa Patrocinadora del Semillero CooWeb: resuelve un “dolor” técnico de tu negocio mientras impulsas al próximo talento digital.",
+  ctaPrimary: "Solicitar diagnóstico gratuito",
+  ctaSecondary: "Ver cómo funciona",
+};
+
+export const empresaProblema = {
+  title: "Esa tarea que llevas meses posponiendo.",
+  body: "Toda empresa en crecimiento tiene procesos por optimizar, webs por mejorar o ideas por prototipar que se quedan en el tintero por falta de manos o presupuesto. Creamos un modelo donde tu empresa aporta un estímulo económico educativo para nuestros jóvenes y, a cambio, nuestro equipo resuelve una necesidad técnica real de tu negocio.",
+};
+
+export type EmpresaPaso = {
+  num: string;
+  title: string;
+  desc: string;
+};
+
+export const empresaPasos: EmpresaPaso[] = [
+  {
+    num: "01",
+    title: "Postulas tu “dolor” técnico",
+    desc: "Nos cuentas qué proceso quieres automatizar, qué landing necesitas lanzar o qué problema digital quieres solucionar.",
+  },
+  {
+    num: "02",
+    title: "Evaluamos la viabilidad",
+    desc: "Nuestro equipo Senior analiza tu caso para asegurar que el reto sea compatible con las habilidades de los estudiantes en etapa práctica.",
+  },
+  {
+    num: "03",
+    title: "Activamos tu célula de desarrollo",
+    desc: "Si tu proyecto califica, asignamos una dupla: 1 Joven Talento (manos a la obra) + 1 Mentor Senior (garante de la calidad del entregable).",
+  },
+];
+
+export type EmpresaArea = {
+  title: string;
+  desc: string;
+  icon: "web" | "automation" | "mvp" | "support";
+};
+
+export const empresaAreas: EmpresaArea[] = [
+  {
+    title: "Presencia digital",
+    desc: "Creación, rediseño o actualización de sitios web y landing pages de venta.",
+    icon: "web",
+  },
+  {
+    title: "Automatización de procesos",
+    desc: "Conexión de herramientas (CRM, formularios, bases de datos) para eliminar tareas repetitivas.",
+    icon: "automation",
+  },
+  {
+    title: "Innovación y MVPs",
+    desc: "Desarrollo de prototipos iniciales para validar nuevas ideas de negocio rápidamente.",
+    icon: "mvp",
+  },
+  {
+    title: "Soporte y optimización",
+    desc: "Limpieza de código, corrección de bugs menores o mejoras de rendimiento web.",
+    icon: "support",
+  },
+];
+
+export type EmpresaBeneficio = {
+  title: string;
+  desc: string;
+  icon: "cost" | "talent" | "hire";
+};
+
+export const empresaBeneficios: EmpresaBeneficio[] = [
+  {
+    title: "Resuelves a fracción del costo",
+    desc: "Solucionas un problema interno real con acompañamiento Senior, muy por debajo del costo de mercado.",
+    icon: "cost",
+  },
+  {
+    title: "Ves trabajar a tu futuro talento",
+    desc: "Observas en tiempo real cómo trabaja el joven: su criterio, su ritmo y su forma de resolver.",
+    icon: "talent",
+  },
+  {
+    title: "Contratas sin costo de reclutamiento",
+    desc: "Si el joven hace “match” con tu cultura, puedes contratarlo directamente al finalizar el programa.",
+    icon: "hire",
+  },
+];
+
+export const empresaCelula = {
+  title: "Tu célula de desarrollo",
+  desc: "No mandamos a alguien solo. Cada proyecto lo sostiene una dupla diseñada para entregar calidad real.",
+  joven: {
+    label: "Joven Talento",
+    role: "Manos a la obra",
+    desc: "Ejecuta el proyecto con energía, criterio y ganas de demostrar lo que aprende.",
+  },
+  mentor: {
+    label: "Mentor Senior",
+    role: "Garante de calidad",
+    desc: "Revisa, guía y responde por el entregable. Tu proyecto nunca queda solo.",
+  },
+};
+
+export const empresaCTA = {
+  title: "¿Quieres vincular a tu empresa?",
+  body: "Los cupos de patrocinio por ciclo son limitados para garantizar el acompañamiento Senior de cada proyecto. Agenda una sesión de diagnóstico de 15 minutos (sin costo) para evaluar tu reto técnico y conocer los planes de patrocinio disponibles.",
+  cta: "Solicitar diagnóstico gratuito",
+  note: "Cupos limitados por ciclo",
+};

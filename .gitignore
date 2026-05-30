@@ -28,6 +28,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Local Claude rules (not versioned)
+CLAUDE.local.md
+
 # Playwright MCP & screenshots
 /.playwright-mcp/
 /playwright-report/
