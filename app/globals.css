@@ -69,6 +69,19 @@
   --toon-border: 2px solid var(--color-ink);
 }
 
+/* ============================================================
+   Tema Empresas — "azul profundo / premium".
+   Mismo diseño toon, paleta volcada a la Familia 2 (azules):
+   acento sky en vez de teal, títulos navy. Se aplica como
+   wrapper en /empresas. Sigue dentro de la paleta documentada.
+   ============================================================ */
+.theme-empresas {
+  --color-accent: #0ea5e9;        /* sky-500 — CTAs, botones, focus */
+  --color-accent-soft: #7dd3fc;   /* sky-300 — pills, fondos suaves */
+  --color-accent-strong: #0369a1; /* sky-700 — handwritten, énfasis */
+  --color-heading: #0c4a6e;       /* navy */
+}
+
 /* Dark mode tokens — palette aligned with cooweb.co (base brand) */
 .theme-dark {
   --color-bg: #050810;
@@ -226,6 +239,15 @@
 .toon-section--teal { background: var(--color-bg-teal); }
 .toon-section--soft { background: var(--color-bg-soft); }
 .toon-section--deep { background: var(--color-bg-deep); color: #fff; }
+
+/* Sección oscura premium (empresas). Solo el fondo + el texto suelto
+   (eyebrow, título de sección) van en claro. Las cards internas tienen
+   fondo claro y manejan sus propios colores oscuros en el JSX. */
+.toon-section--navy {
+  background: #0c4a6e;
+  color: #fff;
+  --color-fg-subtle: #7dd3fc;
+}
 
 .font-handwritten { font-family: var(--font-handwritten), cursive; }
 .text-handwritten { font-family: var(--font-handwritten), cursive; font-weight: 600; }
