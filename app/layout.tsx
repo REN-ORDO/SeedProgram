@@ -58,7 +58,7 @@ const SITE_URL =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Programa Semilla · CooWeb",
+    default: "Programa Semilla CooWeb · Tecnología, liderazgo y propósito",
     template: "%s · Programa Semilla CooWeb",
   },
   description:
@@ -80,9 +80,9 @@ export const metadata: Metadata = {
   publisher: "CooWeb",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Programa Semilla · CooWeb",
+    title: "Programa Semilla CooWeb · Tecnología, liderazgo y propósito",
     description:
-      "Tecnología, Liderazgo y Propósito Social. Cantera de desarrolladores con mentoría senior 1:1.",
+      "Encontramos talento donde otros no miran: jóvenes que crecen como desarrolladores con mentoría senior 1:1, liderazgo y propósito social.",
     url: SITE_URL,
     siteName: "Programa Semilla · CooWeb",
     locale: "es_CO",
@@ -90,9 +90,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Programa Semilla · CooWeb",
+    title: "Programa Semilla CooWeb · Tecnología, liderazgo y propósito",
     description:
-      "Tecnología, Liderazgo y Propósito Social. Cantera de desarrolladores con mentoría senior 1:1.",
+      "Encontramos talento donde otros no miran: jóvenes que crecen como desarrolladores con mentoría senior 1:1, liderazgo y propósito social.",
   },
   robots: {
     index: true,
