@@ -1421,14 +1421,17 @@ export function ApplicationForm() {
             )}
           </AnimatePresence>
 
-          {/* Navegación */}
-          <div className="mt-8 flex flex-wrap gap-3 border-t-2 border-dashed border-[var(--color-bg-soft)] pt-6">
+          {/* Navegación.
+              Móvil: stack vertical full-width, acción principal arriba
+              (col-reverse). Desktop: fila — Atrás a la izquierda, principal
+              a la derecha. */}
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t-2 border-dashed border-[var(--color-bg-soft)] pt-6 sm:flex-row sm:items-center">
             {step > 1 && (
               <button
                 type="button"
                 onClick={handleBack}
                 disabled={submitting}
-                className="toon-btn toon-btn--white disabled:opacity-50"
+                className="toon-btn toon-btn--white w-full justify-center disabled:opacity-50 sm:w-auto"
               >
                 <ArrowLeft size={16} />
                 Atrás
@@ -1439,12 +1442,12 @@ export function ApplicationForm() {
               <Magnetic
                 key="btn-next"
                 strength={0.25}
-                className="ml-auto"
+                className="w-full sm:ml-auto sm:w-auto"
               >
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="toon-btn"
+                  className="toon-btn w-full justify-center sm:w-auto"
                   style={{ background: "var(--color-ink)", color: "#fff" }}
                 >
                   Continuar
@@ -1461,12 +1464,12 @@ export function ApplicationForm() {
               <Magnetic
                 key="btn-submit"
                 strength={0.25}
-                className="ml-auto"
+                className="w-full sm:ml-auto sm:w-auto"
               >
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="toon-btn disabled:opacity-60"
+                  className="toon-btn w-full justify-center disabled:opacity-60 sm:w-auto"
                   style={{ background: "var(--color-ink)", color: "#fff" }}
                 >
                   {submitting ? (
