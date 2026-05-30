@@ -43,7 +43,7 @@ const NODES = [
   { id: "talento",     title: "Talento con potencial",     desc: "Jóvenes acompañados por mentores Senior.",      Icon: Users,      bg: "#BAE6FD", featured: true },
   { id: "resultados",  title: "Resultados reales",         desc: "Soluciones funcionales para tu negocio.",       Icon: Rocket,     bg: "#CCFBF1" },
   { id: "impacto",     title: "Impacto que se multiplica", desc: "Tu empresa crece mientras formas talento.",     Icon: TrendingUp, bg: "#DBEAFE" },
-] as const;
+];
 
 // SVG viewBox 0 0 800 90 — nodes at x = 0, 200, 400, 600, 800  y = 45
 // Container is inset-x-[10%] so node centers land at 10%,30%,50%,70%,90% of outer width
