@@ -362,6 +362,18 @@ export const testimonios: Testimonio[] = [
     photo: "/img-manuel.png",
     accent: "#5EEAD4",
   },
+  {
+    id: "sebastian-gonzalez",
+    name: "Sebastian Gonzalez Fornaris",
+    badge: "Semilla · hoy Junior Developer",
+    tenure: "Casi un año en esta familia",
+    headline: "Del primer condicional en PSeInt a liderar.",
+    body: "Empezó en primer semestre de universidad: apenas sabía escribir un condicional simple en PSeInt y se lanzó a la aventura sin red. El camino fue exigente — muchos retos de golpe y una carga enorme de información nueva — pero con esfuerzo y perseverancia lo logró. Hoy lidera, desarrolla y se desenvuelve en entornos profesionales de una forma que jamás imaginó.",
+    quote:
+      "Siempre pensé que no duraría nada en la empresa, que no tenía el conocimiento suficiente o que no daba la talla. Pero todos creyeron en mí, y me llené de valor para salir adelante.",
+    photo: "/img-gonzalez.png",
+    accent: "#38BDF8",
+  },
 ];
 
 // Back-compat — first testimonio
