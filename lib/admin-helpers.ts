@@ -271,7 +271,6 @@ export const ASPIRANTE_CSV_COLUMNS: CsvColumn[] = [
   { header: "Email", value: (r) => str(r, "email") },
   { header: "WhatsApp", value: (r) => str(r, "whatsapp") },
   { header: "Ciudad", value: (r) => str(r, "ciudad") },
-  { header: "Dirección", value: (r) => str(r, "direccion") },
   { header: "¿Estudia?", value: (r) => mapWithOther(r, "estudia", ESTUDIA_MAP) },
   { header: "Carrera / Programa", value: (r) => str(r, "carrera") },
   {

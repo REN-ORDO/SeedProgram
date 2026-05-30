@@ -85,11 +85,6 @@ const validators: Record<string, Validator> = {
     if (!/\s/.test(v)) return "Escribe tu nombre completo (nombre y apellido).";
     return null;
   },
-  direccion: (v) => {
-    if (v.length < 5) return "La dirección es muy corta.";
-    if (v.length > 200) return "La dirección es muy larga.";
-    return null;
-  },
   whatsapp: (v) => {
     const digits = v.replace(/\D/g, "");
     if (digits.length < 7) return "El WhatsApp es muy corto.";
@@ -153,7 +148,6 @@ const validators: Record<string, Validator> = {
 const fieldLabels: Record<string, string> = {
   nombre: "el nombre completo",
   ciudad: "la ciudad",
-  direccion: "la dirección",
   whatsapp: "el WhatsApp",
   telefono: "el teléfono",
   email: "el correo electrónico",
@@ -1537,44 +1531,28 @@ function AspiranteStep1() {
         />
       </Field>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field>
-          <label className={labelCls}>
-            Ciudad<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
-          </label>
-          <SelectField
-            name="ciudad"
-            required
-            placeholder="Selecciona tu ciudad"
-            otherValue="Otra"
-            otherPlaceholder="Escribe tu ciudad"
-            options={[
-              "Barranquilla",
-              "Bogotá",
-              "Medellín",
-              "Cali",
-              "Cartagena",
-              "Santa Marta",
-              "Bucaramanga",
-              "Otra",
-            ]}
-          />
-        </Field>
-        <Field>
-          <label className={labelCls}>
-            Dirección<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
-          </label>
-          <input
-            {...textProps("direccion", ctx)}
-            type="text"
-            required
-            autoComplete="street-address"
-            maxLength={200}
-            placeholder="Calle, número, barrio"
-            className={inputCls}
-          />
-        </Field>
-      </div>
+      <Field>
+        <label className={labelCls}>
+          Ciudad<span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
+        </label>
+        <SelectField
+          name="ciudad"
+          required
+          placeholder="Selecciona tu ciudad"
+          otherValue="Otra"
+          otherPlaceholder="Escribe tu ciudad"
+          options={[
+            "Barranquilla",
+            "Bogotá",
+            "Medellín",
+            "Cali",
+            "Cartagena",
+            "Santa Marta",
+            "Bucaramanga",
+            "Otra",
+          ]}
+        />
+      </Field>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>
