@@ -37,6 +37,8 @@ import {
   X,
   ChevronDown,
   List,
+  Sparkles,
+  ExternalLink,
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -1697,6 +1699,30 @@ function AspiranteStep2({
             guardar archivos, vuelve a subirlo.
           </span>
         )}
+
+        {/* Helper: crear CV con Salto AI */}
+        <a
+          href="https://salto-ai.vercel.app/auth?next=%2Fjoven%2Fchat&role=joven"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group mt-3 flex items-center gap-3 rounded-xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-teal)] p-3.5 shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)]"
+        >
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border-2 border-[var(--color-ink)] bg-white text-[var(--color-ink)]">
+            <Sparkles size={17} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-display text-[13.5px] font-bold leading-tight text-[var(--color-ink)]">
+              ¿Aún no tienes un CV?
+            </div>
+            <div className="text-[12.5px] leading-tight text-[var(--color-ink)]/75">
+              Créalo gratis en minutos con Salto AI.
+            </div>
+          </div>
+          <ExternalLink
+            size={16}
+            className="flex-shrink-0 text-[var(--color-ink)] transition-transform group-hover:translate-x-0.5"
+          />
+        </a>
       </Field>
     </>
   );
