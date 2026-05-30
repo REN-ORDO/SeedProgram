@@ -1,12 +1,17 @@
 "use client";
 
+import { useState } from "react";
+import { Play } from "lucide-react";
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
+import { NivelesAnimacionModal } from "@/components/niveles-animacion";
 import { niveles } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 const badgeBgs = ["#BAE6FD", "#5EEAD4", "#7DD3FC", "#2DD4BF", "#38BDF8", "#0D9488"];
 
 export function Niveles() {
+  const [animOpen, setAnimOpen] = useState(false);
+
   return (
     <section
       id="niveles"
@@ -15,35 +20,53 @@ export function Niveles() {
       style={{ background: "var(--color-bg)" }}
     >
       <div className="mx-auto max-w-5xl">
-        <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
-          <span className="font-bold text-[--color-ink]">02</span>
-          <span className="h-[2px] w-12 bg-[var(--color-ink)]" />
-          <span>Hoja de ruta</span>
-        </Reveal>
-        <Reveal delay={0.05}>
-          <h2 className="text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-[--color-ink] md:text-6xl">
-            Una escalera,{" "}
-            <span
-              className="font-handwritten"
-              style={{
-                color: "var(--color-accent-strong)",
-                fontWeight: 700,
-                fontSize: "1.15em",
-                display: "inline-block",
-                transform: "rotate(-2deg)",
-              }}
+        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div className="md:max-w-2xl">
+            <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
+              <span className="font-bold text-[--color-ink]">02</span>
+              <span className="h-[2px] w-12 bg-[var(--color-ink)]" />
+              <span>Hoja de ruta</span>
+            </Reveal>
+            <Reveal delay={0.05}>
+              <h2 className="text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-[--color-ink] md:text-6xl">
+                Una escalera,{" "}
+                <span
+                  className="font-handwritten"
+                  style={{
+                    color: "var(--color-accent-strong)",
+                    fontWeight: 700,
+                    fontSize: "1.15em",
+                    display: "inline-block",
+                    transform: "rotate(-2deg)",
+                  }}
+                >
+                  nueve niveles
+                </span>
+                .
+              </h2>
+            </Reveal>
+            <Reveal delay={0.15}>
+              <p className="mt-5 max-w-2xl text-base leading-relaxed text-[--color-fg-muted] md:text-lg">
+                Tu evolución no es lineal. Cada nivel suma autonomía, responsabilidad
+                y liderazgo. Pasas por evaluación cada 3 meses.
+              </p>
+            </Reveal>
+          </div>
+
+          {/* Botón opcional: ver el recorrido como animación fullscreen (sin scroll) */}
+          <Reveal delay={0.2} className="shrink-0">
+            <button
+              type="button"
+              onClick={() => setAnimOpen(true)}
+              data-cursor="Ver"
+              className="toon-btn group md:mt-1"
+              aria-haspopup="dialog"
             >
-              nueve niveles
-            </span>
-            .
-          </h2>
-        </Reveal>
-        <Reveal delay={0.15}>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-[--color-fg-muted] md:text-lg">
-            Tu evolución no es lineal. Cada nivel suma autonomía, responsabilidad
-            y liderazgo. Pasas por evaluación cada 3 meses.
-          </p>
-        </Reveal>
+              <Play size={16} className="transition-transform group-hover:scale-110" />
+              Ver animación
+            </button>
+          </Reveal>
+        </div>
 
         <RevealStagger className="mt-12 space-y-4">
           {niveles.map((n, i) => {
@@ -89,6 +112,8 @@ export function Niveles() {
           })}
         </RevealStagger>
       </div>
+
+      <NivelesAnimacionModal open={animOpen} onClose={() => setAnimOpen(false)} />
     </section>
   );
 }
