@@ -289,7 +289,7 @@ export const testimonios: Testimonio[] = [
     batchExperience: "El Batch 7 fue intenso desde el primer día. Aprendí más en cuatro semanas que en meses por mi cuenta — el ritmo, la exigencia y el acompañamiento lo cambian todo.",
     tenure: "En CooWeb desde Diciembre 2025",
     headline: "De E1 a Junior 1 en cinco meses.",
-    body: "Sebastian entró al Batch 7 sin etiquetas. En cinco meses pasó de seguir instrucciones a sostener piezas clave del ecosistema — moviéndose entre Full Stack, IA y QA según lo que pida el equipo. El mes pasado ascendió a Junior 1 y hoy mantiene procesos críticos donde participa.",
+    body: "Entré al Batch 7 sin saber bien qué esperar. Los primeros días fueron un golpe de realidad: el ritmo era otro, las exigencias eran otras, y yo tenía que estar a la altura. Pasé de recibir instrucciones paso a paso a tomar decisiones sobre piezas reales del ecosistema. No fue fácil — hubo semanas donde el código no salía y la frustración era real. Pero cada code review, cada pair programming con el mentor, me fue dando más criterio. En cinco meses ascendí a Junior 1. Hoy sostengo procesos en producción y ya no reconozco al que llegó desorientado aquel primer día.",
     quote:
       "Llegué a CooWeb desorientado y con la expectativa por el suelo. Hoy soy Junior del equipo — hace cinco meses no me reconocería.",
     photo: "/image-ordo.png",
@@ -411,7 +411,7 @@ export const testimonios: Testimonio[] = [
     batchExperience: "El Batch 8 me demostró que gestionar con IA no es el futuro — es el presente. En un día aprendí a estructurar, priorizar y entregar. La demo final fue la prueba de que sí se puede.",
     tenure: "De “no sé si puedo” a gestionar equipos y clientes",
     headline: "De “no sé si puedo” a liderar equipos.",
-    body: "Entró a CooWeb como semilla con muchas ganas de aprender, sabiendo algo de tecnología pero sin haber vivido un entorno profesional así. Poco a poco fue creciendo dentro del proceso y, aunque lleva poco tiempo, aprendió muchísimo del equipo, del entorno y de sí misma — descubriendo capacidades que no sabía que tenía.",
+    body: "Llegué al Batch 8 sin saber que en un solo día iba a cambiar la forma en que veía la gestión de proyectos. La metodología era nueva, la IA era nueva, el ritmo era intenso — pero todo tenía un propósito claro. Lo que más me sorprendió fue darme cuenta de cuánto podía lograr cuando tienes las herramientas correctas y alguien que te guía. La demo final fue el momento en que entendí que ya no era la misma persona que había entrado esa mañana. Hoy lidero equipos y gestiono clientes — y todo empezó con esa apuesta de un día.",
     quote:
       "Entré con miedo de no estar lista para algo tan grande, pero terminé descubriendo que sí soy capaz de aprender, liderar y crecer muchísimo más de lo que imaginaba.",
     photo: "/img-shari.png",
@@ -425,7 +425,7 @@ export const testimonios: Testimonio[] = [
     batchExperience: "Entrar al Batch 9 fue lanzarme sin red. Pero el entorno hace que confíes en el proceso — cada semana se siente el avance y eso te mantiene.",
     tenure: "Aprendizaje · Curiosidad · Crecimiento",
     headline: "Comenzando un camino de crecimiento.",
-    body: "Ingresó a Semilla con el deseo de aprender, conocer nuevas personas y desarrollar habilidades que complementaran su formación académica. En sus primeras semanas ha descubierto un entorno que impulsa la iniciativa, la curiosidad y el aprendizaje constante. Aunque apenas comienza, ya reconoce el valor de formar parte de una comunidad que apuesta por el crecimiento de sus integrantes.",
+    body: "Entré al Batch 9 buscando algo más que clases. Quería un entorno donde aprender tuviera consecuencias reales, donde equivocarse no fuera el fin sino parte del proceso. Lo encontré. Desde la primera semana sentí que cada tarea importaba, que cada feedback tenía peso. Lo que más valoro es que nadie te deja solo: hay alguien siempre dispuesto a orientarte sin hacerte sentir menos. Apenas comienzo, pero ya siento que estoy en el lugar correcto en el momento correcto.",
     quote:
       "Semilla me recordó que cada gran proyecto empieza con una pequeña oportunidad para aprender y atreverse a crecer.",
     photo: "/img-maiguel.png",
@@ -439,7 +439,7 @@ export const testimonios: Testimonio[] = [
     batchExperience: "Lo que más me sorprendió del Batch 9 fue la comunidad. No estás solo aprendiendo — estás creciendo con personas que tienen las mismas ganas que tú.",
     tenure: "Colaboración · Aprendizaje · Nuevas oportunidades",
     headline: "Sembrando ideas para el futuro.",
-    body: "Llegó a Semilla buscando nuevas experiencias y la posibilidad de seguir desarrollándose tanto personal como profesionalmente. Desde el primer momento encontró un espacio donde compartir ideas, aprender de otros y asumir nuevos retos. Aunque el camino apenas comienza, esta experiencia le ha permitido visualizar nuevas posibilidades para su futuro.",
+    body: "No sabía exactamente qué iba a encontrar en el Batch 9, pero sabía que quería algo distinto. Desde el primer día el ambiente fue diferente: personas con ganas reales, conversaciones que van más allá del código, retos que te obligan a pensar. Me di cuenta rápido de que aquí no solo se aprende tecnología — se aprende a trabajar, a comunicarse, a crecer con otros. Cada semana descubro algo nuevo sobre lo que soy capaz de hacer. El camino apenas empieza y ya no quiero parar.",
     quote:
       "A veces no se trata de saber exactamente a dónde vas, sino de rodearte de personas y experiencias que te ayuden a descubrirlo.",
     photo: "/img-vallejo.png",
