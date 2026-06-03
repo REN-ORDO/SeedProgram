@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, Hammer, Wrench } from "lucide-react";
+import { ArrowRight, Check, Hammer, Wrench, Sprout } from "lucide-react";
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
 import { batches, type Batch } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -143,9 +143,15 @@ function ProximamenteBanner() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute -right-6 top-8 z-20 rotate-[25deg] whitespace-nowrap border-2 border-[--color-ink] bg-[var(--color-ink)] px-6 py-2 font-display text-sm font-extrabold uppercase tracking-widest text-white shadow-[4px_4px_0_rgba(0,0,0,0.4)]"
+      className="pointer-events-none absolute -right-6 top-8 z-20 rotate-[25deg] whitespace-nowrap bg-[var(--color-ink)] px-6 py-2 font-display text-sm font-extrabold uppercase tracking-widest text-white shadow-[4px_4px_0_rgba(0,0,0,0.4)]"
     >
-      Próximamente
+      <span className="inline-flex items-center gap-1.5">
+        !
+        <Sprout size={14} strokeWidth={2.5} />
+        Próximamente
+        <Sprout size={14} strokeWidth={2.5} />
+        !
+      </span>
     </div>
   );
 }
