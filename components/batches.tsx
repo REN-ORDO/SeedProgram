@@ -134,7 +134,19 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
         <ArrowRight size={14} />
       </a>
 
+      {isSoon && <ProximamenteBanner />}
     </article>
+  );
+}
+
+function ProximamenteBanner() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute right-3 top-6 z-20 rotate-[10deg] whitespace-nowrap border-2 border-[--color-ink] bg-[var(--color-ink)] px-3 py-1 font-display text-[11px] font-extrabold uppercase tracking-widest text-white shadow-[3px_3px_0_rgba(0,0,0,0.3)]"
+    >
+      Próximamente
+    </div>
   );
 }
 
