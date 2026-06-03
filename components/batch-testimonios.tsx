@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sprout } from "lucide-react";
+import { Sprout, X, Quote } from "lucide-react";
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
-import { testimonios, batches } from "@/lib/data";
+import { testimonios, batches, type Testimonio } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 const batchesConTestimonios = batches.filter((b) =>
@@ -14,8 +14,8 @@ const batchesConTestimonios = batches.filter((b) =>
 
 export function BatchTestimonios() {
   const [activeBatch, setActiveBatch] = useState(batchesConTestimonios[0]?.id ?? null);
+  const [selected, setSelected] = useState<Testimonio | null>(null);
 
-  // Recibe el evento de las batch cards
   useEffect(() => {
     const handler = (e: Event) => {
       const batchId = (e as CustomEvent<{ batchId: string }>).detail.batchId;
@@ -24,6 +24,13 @@ export function BatchTestimonios() {
     };
     window.addEventListener("filter-testimonios", handler);
     return () => window.removeEventListener("filter-testimonios", handler);
+  }, []);
+
+  // Cierra con Escape
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSelected(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   const filtered = testimonios.filter((t) => t.batch === activeBatch);
@@ -110,43 +117,54 @@ export function BatchTestimonios() {
             <RevealStagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((t, i) => (
                 <RevealItem key={t.id}>
-                  <article
-                    className="toon-card flex flex-col gap-4 p-6"
-                    style={{
-                      background: t.accent ?? "var(--color-bg-soft)",
-                      transform: i % 2 === 0 ? "rotate(-1deg)" : "rotate(1deg)",
-                    }}
+                  <button
+                    onClick={() => setSelected(t)}
+                    className="w-full text-left"
+                    aria-label={`Ver más sobre ${t.name}`}
                   >
-                    {/* Foto + nombre */}
-                    <div className="flex items-center gap-3">
-                      {t.photo ? (
-                        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
-                          <Image src={t.photo} alt={t.name} fill className="object-cover" />
+                    <article
+                      className="toon-card flex h-full cursor-pointer flex-col gap-4 p-6 transition-transform hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-ink)]"
+                      style={{
+                        background: t.accent ?? "var(--color-bg-soft)",
+                        transform: i % 2 === 0 ? "rotate(-1deg)" : "rotate(1deg)",
+                      }}
+                    >
+                      {/* Foto + nombre */}
+                      <div className="flex items-center gap-3">
+                        {t.photo ? (
+                          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
+                            <Image src={t.photo} alt={t.name} fill className="object-cover" />
+                          </div>
+                        ) : (
+                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white font-display text-xl font-bold text-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
+                            {t.initial ?? t.name[0]}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-display text-base font-bold text-[--color-ink]">{t.name}</p>
+                          <span className="inline-flex items-center gap-1 rounded-full border border-[--color-ink]/30 bg-white/60 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[--color-ink]/70">
+                            <Sprout size={10} strokeWidth={2.5} />
+                            {t.badge.split("·").slice(-1)[0].trim()}
+                          </span>
                         </div>
-                      ) : (
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white font-display text-xl font-bold text-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
-                          {t.initial ?? t.name[0]}
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-display text-base font-bold text-[--color-ink]">{t.name}</p>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-[--color-ink]/30 bg-white/60 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[--color-ink]/70">
-                          <Sprout size={10} strokeWidth={2.5} />
-                          {t.badge.split("·").slice(-1)[0].trim()}
-                        </span>
                       </div>
-                    </div>
 
-                    {/* Headline */}
-                    <p className="font-display text-sm font-bold leading-snug text-[--color-ink]">
-                      {t.headline}
-                    </p>
+                      {/* Headline */}
+                      <p className="font-display text-sm font-bold leading-snug text-[--color-ink]">
+                        {t.headline}
+                      </p>
 
-                    {/* Experiencia batch */}
-                    <blockquote className="mt-auto border-l-4 border-[--color-ink]/30 pl-3 font-handwritten text-lg leading-snug text-[--color-ink]">
-                      "{t.batchExperience ?? t.quote}"
-                    </blockquote>
-                  </article>
+                      {/* Experiencia batch */}
+                      <blockquote className="mt-auto border-l-4 border-[--color-ink]/30 pl-3 font-handwritten text-lg leading-snug text-[--color-ink]">
+                        "{t.batchExperience ?? t.quote}"
+                      </blockquote>
+
+                      {/* Hint */}
+                      <p className="text-right font-mono text-[10px] font-bold uppercase tracking-widest text-[--color-ink]/40">
+                        Leer historia →
+                      </p>
+                    </article>
+                  </button>
                 </RevealItem>
               ))}
             </RevealStagger>
@@ -159,6 +177,70 @@ export function BatchTestimonios() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Modal detalle */}
+      <AnimatePresence>
+        {selected && (
+          <>
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+              onClick={() => setSelected(null)}
+            />
+            <motion.div
+              key="modal"
+              initial={{ opacity: 0, scale: 0.94, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 24 }}
+              transition={{ type: "spring", stiffness: 340, damping: 30 }}
+              className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-xl -translate-y-1/2 overflow-hidden rounded-2xl border-2 border-[--color-ink] bg-[var(--color-bg)] shadow-[6px_6px_0_var(--color-ink)] md:inset-x-auto md:w-full"
+            >
+              {/* Header con foto */}
+              <div
+                className="relative flex items-end gap-5 px-7 pb-6 pt-10"
+                style={{ background: selected.accent ?? "var(--color-accent-soft)" }}
+              >
+                <button
+                  onClick={() => setSelected(null)}
+                  className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[2px_2px_0_var(--color-ink)] transition-transform hover:scale-105"
+                >
+                  <X size={14} strokeWidth={2.5} />
+                </button>
+                {selected.photo ? (
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-[--color-ink] shadow-[3px_3px_0_var(--color-ink)]">
+                    <Image src={selected.photo} alt={selected.name} fill className="object-cover" />
+                  </div>
+                ) : (
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white font-display text-3xl font-bold text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)]">
+                    {selected.initial ?? selected.name[0]}
+                  </div>
+                )}
+                <div className="pb-1">
+                  <p className="font-display text-xl font-bold text-[--color-ink]">{selected.name}</p>
+                  <p className="text-sm text-[--color-ink]/70">{selected.badge}</p>
+                  <p className="mt-0.5 font-mono text-[11px] text-[--color-ink]/50">{selected.tenure}</p>
+                </div>
+              </div>
+
+              {/* Contenido */}
+              <div className="max-h-[55vh] overflow-y-auto px-7 py-6">
+                <h3 className="font-display text-2xl font-bold text-[--color-ink]">{selected.headline}</h3>
+                <p className="mt-4 text-sm leading-relaxed text-[--color-fg-muted]">{selected.body}</p>
+                <blockquote className="mt-6 flex gap-3 rounded-xl border-2 border-[--color-ink] bg-[#BAE6FD] p-5 shadow-[3px_3px_0_var(--color-ink)]" style={{ transform: "rotate(-0.5deg)" }}>
+                  <Quote size={18} className="mt-0.5 shrink-0 text-[--color-ink]/40" />
+                  <p className="font-handwritten text-xl leading-snug text-[--color-ink]">
+                    {selected.quote}
+                  </p>
+                </blockquote>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
