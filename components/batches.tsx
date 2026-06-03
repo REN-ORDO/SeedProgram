@@ -165,7 +165,7 @@ function ProximamenteBanner() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute right-2 top-6 z-20 rotate-[10deg] whitespace-nowrap border-2 border-[--color-ink] bg-[var(--color-ink)] px-3 py-1 font-display text-[11px] font-extrabold uppercase tracking-widest text-[--color-accent-soft] shadow-[3px_3px_0_var(--color-ink)] md:right-[-30px] md:top-7 md:rotate-[12deg] md:px-5 md:py-1.5 md:text-base md:shadow-[4px_4px_0_var(--color-ink)]"
+      className="pointer-events-none absolute right-2 top-6 z-20 rotate-[10deg] whitespace-nowrap border-2 border-[--color-ink] bg-[var(--color-ink)] px-3 py-1 font-display text-[11px] font-extrabold uppercase tracking-widest text-[--color-accent-soft] shadow-[3px_3px_0_var(--color-ink)] md:top-7 md:rotate-[12deg] md:px-4 md:py-1.5 md:text-xs md:shadow-[4px_4px_0_var(--color-ink)]"
     >
       Próximamente
     </div>
