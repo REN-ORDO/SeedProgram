@@ -139,7 +139,7 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="relative z-10 flex h-[15rem] flex-col justify-between px-6 pb-6">
+            <div className="relative z-10 flex h-[22rem] flex-col justify-between px-6 pb-6">
               <p className="text-sm leading-relaxed text-[--color-ink]/85">{batch.desc}</p>
 
               <ul className="mt-4 space-y-2 text-sm">
