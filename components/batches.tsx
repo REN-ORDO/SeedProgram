@@ -1,6 +1,8 @@
 "use client";
 
-import { ArrowRight, Check, Hammer, Wrench, Sprout } from "lucide-react";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Check, ChevronDown, Hammer, Wrench, Sprout } from "lucide-react";
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
 import { batches, type Batch } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -54,6 +56,7 @@ export function Batches() {
 }
 
 function BatchCard({ batch, index }: { batch: Batch; index: number }) {
+  const [expanded, setExpanded] = useState(false);
   const isOpen = batch.status === "abierto";
   const isSoon = batch.status === "proximamente";
   const isClosed = batch.status === "cerrado";
@@ -65,9 +68,10 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
     : "var(--color-fg-subtle)";
   const bg = batch.featured ? "var(--color-accent-soft)" : isClosed ? "var(--color-bg-soft)" : "#BAE6FD";
   const rotate = index % 2 === 0 ? -1.2 : 1.2;
+
   return (
     <article
-      className="toon-card relative h-full overflow-hidden p-8"
+      className="toon-card relative overflow-hidden"
       style={{
         background: bg,
         transform: `rotate(${rotate}deg)`,
@@ -77,64 +81,91 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
     >
       {isSoon && <CrossedToolsWatermark />}
 
-      <div className="relative z-10 flex items-start justify-between gap-4">
-        <div>
+      {/* Header — siempre visible, clickeable */}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="relative z-10 flex w-full items-start justify-between gap-3 p-6 text-left"
+      >
+        <div className="flex-1">
           <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[--color-ink]/70">
             {batch.title}
           </div>
-          <h3 className="mt-1 font-display text-2xl font-bold leading-tight text-[--color-ink] md:text-3xl">
+          <h3 className="mt-1 font-display text-xl font-bold leading-tight text-[--color-ink] md:text-2xl">
             {batch.subtitle}
           </h3>
-        </div>
-        {!isSoon && (
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border-2 border-[--color-ink] px-3 py-1 text-[11px] font-bold shadow-[2px_2px_0_var(--color-ink)]"
-            )}
-            style={{
-              background: isOpen ? "#fff" : "var(--color-bg-soft)",
-              color: "var(--color-ink)",
-            }}
-          >
-            <span className="relative flex h-1.5 w-1.5">
-              {isOpen && (
+          {!isSoon && (
+            <span
+              className={cn(
+                "mt-2 inline-flex items-center gap-1.5 rounded-full border-2 border-[--color-ink] px-3 py-0.5 text-[11px] font-bold shadow-[2px_2px_0_var(--color-ink)]"
+              )}
+              style={{
+                background: isOpen ? "#fff" : "var(--color-bg-soft)",
+                color: "var(--color-ink)",
+              }}
+            >
+              <span className="relative flex h-1.5 w-1.5">
+                {isOpen && (
+                  <span
+                    className="absolute inset-0 animate-ping rounded-full opacity-70"
+                    style={{ background: statusDot }}
+                  />
+                )}
                 <span
-                  className="absolute inset-0 animate-ping rounded-full opacity-70"
+                  className="relative inline-flex h-1.5 w-1.5 rounded-full"
                   style={{ background: statusDot }}
                 />
-              )}
-              <span
-                className="relative inline-flex h-1.5 w-1.5 rounded-full"
-                style={{ background: statusDot }}
-              />
+              </span>
+              {statusLabel}
             </span>
-            {statusLabel}
-          </span>
+          )}
+        </div>
+        <motion.span
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.25 }}
+          className="mt-1 shrink-0 text-[--color-ink]"
+        >
+          <ChevronDown size={18} strokeWidth={2.5} />
+        </motion.span>
+      </button>
+
+      {/* Contenido expandible */}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="relative z-10 px-6 pb-6">
+              <p className="text-sm leading-relaxed text-[--color-ink]/85">{batch.desc}</p>
+
+              <ul className="mt-4 space-y-2 text-sm">
+                {batch.bullets.map((bullet) => (
+                  <li key={bullet} className="flex items-center gap-2 text-[--color-ink]">
+                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white">
+                      <Check size={12} className="text-[--color-ink]" strokeWidth={3} />
+                    </span>
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+
+              <a
+                href={batch.featured ? "#aplicar" : "#"}
+                data-cursor={batch.cta}
+                className="toon-btn mt-6"
+                style={batch.featured ? undefined : { background: "#fff" }}
+              >
+                {batch.cta}
+                <ArrowRight size={14} />
+              </a>
+            </div>
+          </motion.div>
         )}
-      </div>
-
-      <p className="relative z-10 mt-5 text-sm leading-relaxed text-[--color-ink]/85">{batch.desc}</p>
-
-      <ul className="relative z-10 mt-5 space-y-2 text-sm">
-        {batch.bullets.map((bullet) => (
-          <li key={bullet} className="flex items-center gap-2 text-[--color-ink]">
-            <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white">
-              <Check size={12} className="text-[--color-ink]" strokeWidth={3} />
-            </span>
-            {bullet}
-          </li>
-        ))}
-      </ul>
-
-      <a
-        href={batch.featured ? "#aplicar" : "#"}
-        data-cursor={batch.cta}
-        className="toon-btn relative z-10 mt-7"
-        style={batch.featured ? undefined : { background: "#fff" }}
-      >
-        {batch.cta}
-        <ArrowRight size={14} />
-      </a>
+      </AnimatePresence>
 
       {isSoon && <ProximamenteBanner />}
     </article>
@@ -176,4 +207,3 @@ function CrossedToolsWatermark() {
     </div>
   );
 }
-
