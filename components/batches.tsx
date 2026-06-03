@@ -143,7 +143,7 @@ function ProximamenteBanner() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute -right-6 top-8 z-20 rotate-[25deg] whitespace-nowrap bg-[var(--color-ink)] px-6 py-2 font-display text-sm font-extrabold uppercase tracking-widest text-white shadow-[4px_4px_0_rgba(0,0,0,0.4)]"
+      className="pointer-events-none absolute -right-4 top-8 z-20 rotate-[25deg] whitespace-nowrap bg-[var(--color-ink)] px-4 py-1 font-display text-[10px] font-extrabold uppercase tracking-widest text-white shadow-[3px_3px_0_rgba(0,0,0,0.4)]"
     >
       <span className="inline-flex items-center gap-1.5">
         <Sprout size={13} strokeWidth={2.5} />
