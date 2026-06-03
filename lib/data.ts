@@ -261,6 +261,7 @@ export type Testimonio = {
   initial?: string;    // letter for placeholder badge
   accent?: string;     // hex bg for placeholder card / pill
   placeholder?: boolean; // TODO marker for content team
+  batch?: string;      // batch id, e.g. "batch-7"
 };
 
 // Orden carousel: Fanny (Coordinadora, voz institucional) abre; luego se
@@ -282,6 +283,7 @@ export const testimonios: Testimonio[] = [
     id: "sebastian-ordonez",
     name: "Sebastian Ordoñez",
     badge: "Batch 7 · hoy Junior 1",
+    batch: "batch-7",
     tenure: "En CooWeb desde Diciembre 2025",
     headline: "De E1 a Junior 1 en cinco meses.",
     body: "Sebastian entró al Batch 7 sin etiquetas. En cinco meses pasó de seguir instrucciones a sostener piezas clave del ecosistema — moviéndose entre Full Stack, IA y QA según lo que pida el equipo. El mes pasado ascendió a Junior 1 y hoy mantiene procesos críticos donde participa.",
@@ -401,7 +403,8 @@ export const testimonios: Testimonio[] = [
   {
     id: "sharikg-perez",
     name: "Sharikg Michel Pérez Montes",
-    badge: "Pre-Semilla · hoy Project Manager",
+    badge: "Pre-Semilla · Batch 8 · hoy Project Manager",
+    batch: "batch-8",
     tenure: "De “no sé si puedo” a gestionar equipos y clientes",
     headline: "De “no sé si puedo” a liderar equipos.",
     body: "Entró a CooWeb como semilla con muchas ganas de aprender, sabiendo algo de tecnología pero sin haber vivido un entorno profesional así. Poco a poco fue creciendo dentro del proceso y, aunque lleva poco tiempo, aprendió muchísimo del equipo, del entorno y de sí misma — descubriendo capacidades que no sabía que tenía.",
@@ -413,7 +416,8 @@ export const testimonios: Testimonio[] = [
   {
     id: "manuela-maiguel",
     name: "Manuela Maiguel",
-    badge: "Semilla · Batch 8",
+    badge: "Semilla · Batch 9",
+    batch: "batch-9",
     tenure: "Aprendizaje · Curiosidad · Crecimiento",
     headline: "Comenzando un camino de crecimiento.",
     body: "Ingresó a Semilla con el deseo de aprender, conocer nuevas personas y desarrollar habilidades que complementaran su formación académica. En sus primeras semanas ha descubierto un entorno que impulsa la iniciativa, la curiosidad y el aprendizaje constante. Aunque apenas comienza, ya reconoce el valor de formar parte de una comunidad que apuesta por el crecimiento de sus integrantes.",
@@ -425,7 +429,8 @@ export const testimonios: Testimonio[] = [
   {
     id: "maileth-vallejo",
     name: "Maileth Vallejo",
-    badge: "Semilla · Batch 8",
+    badge: "Semilla · Batch 9",
+    batch: "batch-9",
     tenure: "Colaboración · Aprendizaje · Nuevas oportunidades",
     headline: "Sembrando ideas para el futuro.",
     body: "Llegó a Semilla buscando nuevas experiencias y la posibilidad de seguir desarrollándose tanto personal como profesionalmente. Desde el primer momento encontró un espacio donde compartir ideas, aprender de otros y asumir nuevos retos. Aunque el camino apenas comienza, esta experiencia le ha permitido visualizar nuevas posibilidades para su futuro.",

@@ -2,13 +2,21 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, ChevronDown, Hammer, Wrench, Sprout } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Hammer, Wrench, Sprout, X, Quote } from "lucide-react";
+import Image from "next/image";
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
-import { batches, type Batch } from "@/lib/data";
+import { batches, testimonios, type Batch } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export function Batches() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [modalBatchId, setModalBatchId] = useState<string | null>(null);
+
+  const modalTestimonios = modalBatchId
+    ? testimonios.filter((t) => t.batch === modalBatchId)
+    : [];
+  const modalBatch = batches.find((b) => b.id === modalBatchId);
+
   return (
     <section
       id="batches"
@@ -52,16 +60,112 @@ export function Batches() {
                 index={i}
                 expanded={openIndex === i}
                 onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+                onOpenTestimonios={() => setModalBatchId(b.id)}
               />
             </RevealItem>
           ))}
         </RevealStagger>
       </div>
+
+      {/* Modal testimonios */}
+      <AnimatePresence>
+        {modalBatchId && (
+          <>
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+              onClick={() => setModalBatchId(null)}
+            />
+            <motion.div
+              key="modal"
+              initial={{ opacity: 0, y: 40, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.96 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-2xl -translate-y-1/2 overflow-hidden rounded-2xl border-2 border-[--color-ink] bg-[var(--color-bg)] shadow-[6px_6px_0_var(--color-ink)] md:inset-x-auto md:w-full"
+            >
+              {/* Header modal */}
+              <div className="flex items-center justify-between border-b-2 border-[--color-ink] px-6 py-4">
+                <div>
+                  <p className="font-mono text-[11px] font-bold uppercase tracking-widest text-[--color-fg-subtle]">
+                    {modalBatch?.title}
+                  </p>
+                  <h3 className="font-display text-xl font-bold text-[--color-ink]">
+                    Testimonios
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setModalBatchId(null)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[2px_2px_0_var(--color-ink)] transition-transform hover:scale-105"
+                >
+                  <X size={16} strokeWidth={2.5} />
+                </button>
+              </div>
+
+              {/* Testimonios */}
+              <div className="max-h-[60vh] overflow-y-auto p-6">
+                {modalTestimonios.length === 0 ? (
+                  <p className="text-center text-sm text-[--color-fg-muted]">
+                    Aún no hay testimonios para este batch.
+                  </p>
+                ) : (
+                  <div className="space-y-5">
+                    {modalTestimonios.map((t) => (
+                      <div
+                        key={t.id}
+                        className="toon-card flex gap-4 p-5"
+                        style={{ background: t.accent ?? "var(--color-bg-soft)" }}
+                      >
+                        {/* Foto */}
+                        <div className="shrink-0">
+                          {t.photo ? (
+                            <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
+                              <Image src={t.photo} alt={t.name} fill className="object-cover" />
+                            </div>
+                          ) : (
+                            <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white font-display text-xl font-bold text-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
+                              {t.initial ?? t.name[0]}
+                            </div>
+                          )}
+                        </div>
+                        {/* Contenido */}
+                        <div className="flex-1">
+                          <p className="font-display text-sm font-bold text-[--color-ink]">{t.name}</p>
+                          <p className="text-[11px] text-[--color-ink]/60">{t.badge}</p>
+                          <p className="mt-2 text-sm italic leading-relaxed text-[--color-ink]/80">
+                            <Quote size={12} className="mr-1 inline opacity-50" />
+                            {t.quote}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
 
-function BatchCard({ batch, index, expanded, onToggle }: { batch: Batch; index: number; expanded: boolean; onToggle: () => void }) {
+function BatchCard({
+  batch,
+  index,
+  expanded,
+  onToggle,
+  onOpenTestimonios,
+}: {
+  batch: Batch;
+  index: number;
+  expanded: boolean;
+  onToggle: () => void;
+  onOpenTestimonios: () => void;
+}) {
   const isOpen = batch.status === "abierto";
   const isSoon = batch.status === "proximamente";
   const isClosed = batch.status === "cerrado";
@@ -73,20 +177,17 @@ function BatchCard({ batch, index, expanded, onToggle }: { batch: Batch; index: 
     : "var(--color-fg-subtle)";
   const bg = batch.featured ? "var(--color-accent-soft)" : isClosed ? "var(--color-bg-soft)" : "#BAE6FD";
   const rotate = index % 2 === 0 ? -1.2 : 1.2;
+  const hasTesimonios = testimonios.some((t) => t.batch === batch.id);
 
   return (
     <article
       className="toon-card relative overflow-hidden"
-      style={{
-        background: bg,
-        transform: `rotate(${rotate}deg)`,
-        opacity: isClosed ? 0.92 : 1,
-      }}
+      style={{ background: bg, transform: `rotate(${rotate}deg)`, opacity: isClosed ? 0.92 : 1 }}
       data-cursor={batch.title}
     >
       {isSoon && <CrossedToolsWatermark />}
 
-      {/* Header — siempre visible, clickeable */}
+      {/* Header */}
       <button
         onClick={onToggle}
         className="relative z-10 flex w-full items-start justify-between gap-3 p-6 text-left min-h-[10rem]"
@@ -103,10 +204,7 @@ function BatchCard({ batch, index, expanded, onToggle }: { batch: Batch; index: 
               className={cn(
                 "mt-2 inline-flex items-center gap-1.5 rounded-full border-2 border-[--color-ink] px-3 py-0.5 text-[11px] font-bold shadow-[2px_2px_0_var(--color-ink)]"
               )}
-              style={{
-                background: isOpen ? "#fff" : "var(--color-bg-soft)",
-                color: "var(--color-ink)",
-              }}
+              style={{ background: isOpen ? "#fff" : "var(--color-bg-soft)", color: "var(--color-ink)" }}
             >
               <span className="relative flex h-1.5 w-1.5">
                 {isOpen && (
@@ -115,10 +213,7 @@ function BatchCard({ batch, index, expanded, onToggle }: { batch: Batch; index: 
                     style={{ background: statusDot }}
                   />
                 )}
-                <span
-                  className="relative inline-flex h-1.5 w-1.5 rounded-full"
-                  style={{ background: statusDot }}
-                />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: statusDot }} />
               </span>
               {statusLabel}
             </span>
@@ -158,15 +253,28 @@ function BatchCard({ batch, index, expanded, onToggle }: { batch: Batch; index: 
                 ))}
               </ul>
 
-              <a
-                href={batch.featured ? "#aplicar" : "#"}
-                data-cursor={batch.cta}
-                className="toon-btn mt-6"
-                style={batch.featured ? undefined : { background: "#fff" }}
-              >
-                {batch.cta}
-                <ArrowRight size={14} />
-              </a>
+              <div className="mt-6 flex flex-col gap-3">
+                {hasTesimonios && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onOpenTestimonios(); }}
+                    className="toon-btn w-full justify-center"
+                    style={{ background: "#fff" }}
+                  >
+                    Ver testimonios
+                    <ArrowRight size={14} />
+                  </button>
+                )}
+                {batch.featured && (
+                  <a
+                    href="#aplicar"
+                    data-cursor={batch.cta}
+                    className="toon-btn w-full justify-center"
+                  >
+                    {batch.cta}
+                    <ArrowRight size={14} />
+                  </a>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
