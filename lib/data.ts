@@ -243,7 +243,6 @@ export const batches: Batch[] = [
     bullets: [
       "Programa base 4 semanas",
       "Mentoría senior 1:1",
-      "Compensación desde día 1 ($)",
     ],
     featured: true,
     cta: "Avísame cuando abra",
