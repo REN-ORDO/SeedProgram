@@ -262,6 +262,7 @@ export type Testimonio = {
   accent?: string;     // hex bg for placeholder card / pill
   placeholder?: boolean; // TODO marker for content team
   batch?: string;      // batch id, e.g. "batch-7"
+  batchExperience?: string; // texto corto de experiencia en el batch (reemplazar después)
 };
 
 // Orden carousel: Fanny (Coordinadora, voz institucional) abre; luego se
@@ -284,6 +285,7 @@ export const testimonios: Testimonio[] = [
     name: "Sebastian Ordoñez",
     badge: "Batch 7 · hoy Junior 1",
     batch: "batch-7",
+    batchExperience: "El Batch 7 fue intenso desde el primer día. Aprendí más en cuatro semanas que en meses por mi cuenta — el ritmo, la exigencia y el acompañamiento lo cambian todo.",
     tenure: "En CooWeb desde Diciembre 2025",
     headline: "De E1 a Junior 1 en cinco meses.",
     body: "Sebastian entró al Batch 7 sin etiquetas. En cinco meses pasó de seguir instrucciones a sostener piezas clave del ecosistema — moviéndose entre Full Stack, IA y QA según lo que pida el equipo. El mes pasado ascendió a Junior 1 y hoy mantiene procesos críticos donde participa.",
@@ -405,6 +407,7 @@ export const testimonios: Testimonio[] = [
     name: "Sharikg Michel Pérez Montes",
     badge: "Pre-Semilla · Batch 8 · hoy Project Manager",
     batch: "batch-8",
+    batchExperience: "El Batch 8 me demostró que gestionar con IA no es el futuro — es el presente. En un día aprendí a estructurar, priorizar y entregar. La demo final fue la prueba de que sí se puede.",
     tenure: "De “no sé si puedo” a gestionar equipos y clientes",
     headline: "De “no sé si puedo” a liderar equipos.",
     body: "Entró a CooWeb como semilla con muchas ganas de aprender, sabiendo algo de tecnología pero sin haber vivido un entorno profesional así. Poco a poco fue creciendo dentro del proceso y, aunque lleva poco tiempo, aprendió muchísimo del equipo, del entorno y de sí misma — descubriendo capacidades que no sabía que tenía.",
@@ -418,6 +421,7 @@ export const testimonios: Testimonio[] = [
     name: "Manuela Maiguel",
     badge: "Semilla · Batch 9",
     batch: "batch-9",
+    batchExperience: "Entrar al Batch 9 fue lanzarme sin red. Pero el entorno hace que confíes en el proceso — cada semana se siente el avance y eso te mantiene.",
     tenure: "Aprendizaje · Curiosidad · Crecimiento",
     headline: "Comenzando un camino de crecimiento.",
     body: "Ingresó a Semilla con el deseo de aprender, conocer nuevas personas y desarrollar habilidades que complementaran su formación académica. En sus primeras semanas ha descubierto un entorno que impulsa la iniciativa, la curiosidad y el aprendizaje constante. Aunque apenas comienza, ya reconoce el valor de formar parte de una comunidad que apuesta por el crecimiento de sus integrantes.",
@@ -431,6 +435,7 @@ export const testimonios: Testimonio[] = [
     name: "Maileth Vallejo",
     badge: "Semilla · Batch 9",
     batch: "batch-9",
+    batchExperience: "Lo que más me sorprendió del Batch 9 fue la comunidad. No estás solo aprendiendo — estás creciendo con personas que tienen las mismas ganas que tú.",
     tenure: "Colaboración · Aprendizaje · Nuevas oportunidades",
     headline: "Sembrando ideas para el futuro.",
     body: "Llegó a Semilla buscando nuevas experiencias y la posibilidad de seguir desarrollándose tanto personal como profesionalmente. Desde el primer momento encontró un espacio donde compartir ideas, aprender de otros y asumir nuevos retos. Aunque el camino apenas comienza, esta experiencia le ha permitido visualizar nuevas posibilidades para su futuro.",

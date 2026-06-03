@@ -142,9 +142,9 @@ export function BatchTestimonios() {
                       {t.headline}
                     </p>
 
-                    {/* Quote */}
+                    {/* Experiencia batch */}
                     <blockquote className="mt-auto border-l-4 border-[--color-ink]/30 pl-3 font-handwritten text-lg leading-snug text-[--color-ink]">
-                      "{t.quote}"
+                      "{t.batchExperience ?? t.quote}"
                     </blockquote>
                   </article>
                 </RevealItem>
