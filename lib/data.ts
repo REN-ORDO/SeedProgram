@@ -444,6 +444,18 @@ export const testimonios: Testimonio[] = [
     photo: "/img-vallejo.png",
     accent: "#38BDF8",
   },
+  {
+    id: "andres-jaimes",
+    name: "Andrés Camilo Jaimes Luna",
+    badge: "Semilla · hoy Junior Developer",
+    tenure: "Del call center al código",
+    headline: "Renuncié a lo seguro para apostar por lo incierto.",
+    body: "Estaba en capacitación para un call center cuando un amigo lo animó a aplicar. Renunció y perdió el pago de días trabajados para apostar por una oportunidad que no sabía si iba a funcionar. Integrar un chatbot con n8n lo lanzó al fondo sin red — pero no se rindió. Hoy trabaja como desarrollador junior con autonomía sobre su tiempo y su futuro.",
+    quote: "El punto Nemo es el lugar más alejado de cualquier costa, pero aprendí que incluso desde ahí se puede llegar. Lo importante es no dejar de avanzar aunque todavía no puedas ver la tierra firme.",
+    batchExperience: "Renuncié a mi trabajo en un call center para apostar por algo incierto. Me sentí perdido más de una vez — como lanzado al punto más profundo del mar. Pero aquí aprendí que avanzar sin ver la orilla es parte del proceso.",
+    photo: "/img-jaimes.jpeg",
+    accent: "#5EEAD4",
+  },
 ];
 
 // Back-compat — first testimonio
