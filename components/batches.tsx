@@ -15,7 +15,7 @@ export function Batches() {
       className="relative px-5 py-16 md:px-10 md:py-32"
       style={{ background: "var(--color-bg)" }}
     >
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
           <span className="font-bold text-[--color-ink]">05</span>
           <span className="h-[2px] w-12 bg-[var(--color-ink)]" />
@@ -43,7 +43,7 @@ export function Batches() {
           </Reveal>
         </div>
 
-        <RevealStagger className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <RevealStagger className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {batches.map((b, i) => (
             <RevealItem key={b.id}>
               <BatchCard batch={b} index={i} />
