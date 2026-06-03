@@ -5,29 +5,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Sprout } from "lucide-react";
 import { Reveal } from "@/components/reveal";
-import { testimonios, type Testimonio } from "@/lib/data";
+import { testimonios as allTestimonios, type Testimonio } from "@/lib/data";
+
+const testimonios = allTestimonios.filter((t) => !t.batchOnly);
 
 const AUTO_MS = 3000;
 
-// Windowed pagination dots — show at most DOT_WINDOW dots at once and slide the
-// row left as `index` advances, so the indicator never gets crowded for long
-// testimonio lists.
 const DOT_WINDOW = 5;
-const DOT_SIZE = 12; // px (h-3 w-3)
-const DOT_GAP = 8; // px (gap-2)
+const DOT_SIZE = 12;
+const DOT_GAP = 8;
 const DOT_STEP = DOT_SIZE + DOT_GAP;
 
-// Direction-aware horizontal slide variants for the testimonio body.
 const slideVariants = {
-  enter: (dir: number) => ({
-    x: dir > 0 ? 80 : -80,
-    opacity: 0,
-  }),
+  enter: (dir: number) => ({ x: dir > 0 ? 80 : -80, opacity: 0 }),
   center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({
-    x: dir > 0 ? -80 : 80,
-    opacity: 0,
-  }),
+  exit: (dir: number) => ({ x: dir > 0 ? -80 : 80, opacity: 0 }),
 };
 
 export function TestimonioSection() {
@@ -68,9 +60,6 @@ export function TestimonioSection() {
   const t = testimonios[index];
   const total = testimonios.length;
 
-  // Sliding-window dot start position. When `total <= DOT_WINDOW`, lock at 0
-  // (no slide). Otherwise center the active dot in the window, clamped to the
-  // valid range so we never overshoot at either end.
   const useWindow = total > DOT_WINDOW;
   const dotStart = useWindow
     ? Math.max(0, Math.min(index - Math.floor(DOT_WINDOW / 2), total - DOT_WINDOW))
@@ -110,20 +99,12 @@ export function TestimonioSection() {
               <ChevronLeft size={18} strokeWidth={3} />
             </button>
 
-            {/* Windowed dot pagination */}
-            <div
-              className="overflow-hidden"
-              style={{ width: dotsContainerWidth, height: DOT_SIZE }}
-            >
+            <div className="overflow-hidden" style={{ width: dotsContainerWidth, height: DOT_SIZE }}>
               <motion.div
                 className="flex items-center"
                 style={{ gap: DOT_GAP }}
                 animate={{ x: -dotStart * DOT_STEP }}
-                transition={
-                  reduce
-                    ? { duration: 0 }
-                    : { type: "spring", stiffness: 320, damping: 32, mass: 0.6 }
-                }
+                transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 320, damping: 32, mass: 0.6 }}
               >
                 {testimonios.map((tt, i) => (
                   <button
@@ -137,9 +118,7 @@ export function TestimonioSection() {
                   >
                     <span
                       className="h-3 w-3 rounded-full border-2 border-[--color-ink] transition-colors"
-                      style={{
-                        background: i === index ? "var(--color-accent)" : "#fff",
-                      }}
+                      style={{ background: i === index ? "var(--color-accent)" : "#fff" }}
                     />
                   </button>
                 ))}
@@ -157,10 +136,6 @@ export function TestimonioSection() {
           </div>
         </Reveal>
 
-        {/* Body — direction-aware horizontal slide.
-            Padding gives room for toon-card hard shadows (offset 6px) and
-            slight card rotation; overflow-hidden still clips the off-screen
-            slide animation because x travel (±80px) exceeds the padding. */}
         <div className="relative min-h-[520px] overflow-hidden p-3 -m-3 md:min-h-[460px] md:p-5 md:-m-5">
           <AnimatePresence mode="wait" custom={direction} initial={false}>
             <motion.div
@@ -195,10 +170,7 @@ export function TestimonioSection() {
                   className="toon-card mt-8 p-7"
                   style={{ background: "#BAE6FD", transform: "rotate(-1deg)" }}
                 >
-                  <p
-                    className="font-handwritten text-2xl leading-snug text-[--color-ink] md:text-3xl"
-                    style={{ fontWeight: 600 }}
-                  >
+                  <p className="font-handwritten text-2xl leading-snug text-[--color-ink] md:text-3xl" style={{ fontWeight: 600 }}>
                     &ldquo;{t.quote}&rdquo;
                   </p>
                   <footer className="mt-4 text-sm font-bold text-[--color-ink]">
@@ -210,7 +182,6 @@ export function TestimonioSection() {
           </AnimatePresence>
         </div>
 
-        {/* Progress bar */}
         {!reduce && (
           <div className="mt-10 h-1.5 w-full overflow-hidden rounded-full border-2 border-[--color-ink] bg-white">
             <motion.div
@@ -251,37 +222,22 @@ function Portrait({ t }: { t: Testimonio }) {
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span
-            className="font-display text-[12rem] font-extrabold leading-none text-[--color-ink]/40 md:text-[14rem]"
-          >
+          <span className="font-display text-[12rem] font-extrabold leading-none text-[--color-ink]/40 md:text-[14rem]">
             {t.initial ?? t.name[0]}
           </span>
         </div>
       )}
 
       <div className="absolute top-5 left-5 z-10">
-        <span
-          className="toon-pill inline-flex items-center gap-1.5"
-          style={{ background: "#fff" }}
-        >
-          <Sprout
-            size={14}
-            strokeWidth={2.5}
-            aria-hidden
-            className="text-[var(--color-accent-strong)]"
-          />
+        <span className="toon-pill inline-flex items-center gap-1.5" style={{ background: "#fff" }}>
+          <Sprout size={14} strokeWidth={2.5} aria-hidden className="text-[var(--color-accent-strong)]" />
           {t.badge.split("·").slice(-1)[0].trim()}
         </span>
       </div>
 
       {t.placeholder && (
         <div className="absolute bottom-5 right-5 z-10">
-          <span
-            className="toon-pill"
-            style={{ background: "var(--color-ink)", color: "#fff" }}
-          >
-            TODO
-          </span>
+          <span className="toon-pill" style={{ background: "var(--color-ink)", color: "#fff" }}>TODO</span>
         </div>
       )}
     </motion.div>

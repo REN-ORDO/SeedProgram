@@ -212,7 +212,7 @@ export function Hero() {
               <span className="absolute inset-0 animate-ping rounded-full bg-[var(--color-accent)] opacity-70" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--color-accent)]" />
             </span>
-            Batch 9 · Próximamente
+            Batch 10 · Próximamente
           </span>
         </motion.div>
 
@@ -272,7 +272,7 @@ export function Hero() {
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Magnetic strength={0.2}>
               <a href="#aplicar" data-cursor="Aplicar" className="toon-btn">
-                Avísame del Batch 9
+                Avísame del Batch 10
                 <ArrowRight size={16} />
               </a>
             </Magnetic>

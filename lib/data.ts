@@ -211,6 +211,19 @@ export const batches: Batch[] = [
   {
     id: "batch-8",
     title: "Batch 8",
+    subtitle: "Project Manager AI",
+    status: "cerrado",
+    desc: "Track intensivo de gestión de proyectos con IA. Se realizó en un día de formación concentrada y una semana después tuvo su demo final — proyecto entregado.",
+    bullets: [
+      "Formación intensiva en un día",
+      "Demo final a la semana",
+      "Gestión de proyectos con IA",
+    ],
+    cta: "Ver historia",
+  },
+  {
+    id: "batch-9",
+    title: "Batch 9",
     subtitle: "Nivel Pro · Claude Code",
     status: "cerrado",
     desc: "Track avanzado en IA aplicada a código. Convocatoria cerrada — cohorte en marcha con certificación + proyecto final.",
@@ -222,15 +235,14 @@ export const batches: Batch[] = [
     cta: "Ver silabus",
   },
   {
-    id: "batch-9",
-    title: "Batch 9",
+    id: "batch-10",
+    title: "Batch 10",
     subtitle: "Próxima convocatoria",
     status: "proximamente",
     desc: "Siguiente cohorte abriendo pronto. Mismo programa base de 4 semanas + ciclo de evaluación trimestral. Déjanos tu correo y te avisamos cuando abra.",
     bullets: [
       "Programa base 4 semanas",
       "Mentoría senior 1:1",
-      "Compensación desde día 1 ($)",
     ],
     featured: true,
     cta: "Avísame cuando abra",
@@ -249,6 +261,9 @@ export type Testimonio = {
   initial?: string;    // letter for placeholder badge
   accent?: string;     // hex bg for placeholder card / pill
   placeholder?: boolean; // TODO marker for content team
+  batch?: string;      // batch id, e.g. "batch-7"
+  batchExperience?: string; // texto corto de experiencia en el batch (reemplazar después)
+  batchOnly?: boolean; // si true, no aparece en el carrusel de Historias
 };
 
 // Orden carousel: Fanny (Coordinadora, voz institucional) abre; luego se
@@ -270,9 +285,11 @@ export const testimonios: Testimonio[] = [
     id: "sebastian-ordonez",
     name: "Sebastian Ordoñez",
     badge: "Batch 7 · hoy Junior 1",
+    batch: "batch-7",
+    batchExperience: "El Batch 7 fue intenso desde el primer día. Aprendí más en cuatro semanas que en meses por mi cuenta — el ritmo, la exigencia y el acompañamiento lo cambian todo.",
     tenure: "En CooWeb desde Diciembre 2025",
     headline: "De E1 a Junior 1 en cinco meses.",
-    body: "Sebastian entró al Batch 7 sin etiquetas. En cinco meses pasó de seguir instrucciones a sostener piezas clave del ecosistema — moviéndose entre Full Stack, IA y QA según lo que pida el equipo. El mes pasado ascendió a Junior 1 y hoy mantiene procesos críticos donde participa.",
+    body: "Entré al Batch 7 sin saber bien qué esperar. Los primeros días fueron un golpe de realidad: el ritmo era otro, las exigencias eran otras, y yo tenía que estar a la altura. Pasé de recibir instrucciones paso a paso a tomar decisiones sobre piezas reales del ecosistema. No fue fácil — hubo semanas donde el código no salía y la frustración era real. Pero cada code review, cada pair programming con el mentor, me fue dando más criterio. En cinco meses ascendí a Junior 1. Hoy sostengo procesos en producción y ya no reconozco al que llegó desorientado aquel primer día.",
     quote:
       "Llegué a CooWeb desorientado y con la expectativa por el suelo. Hoy soy Junior del equipo — hace cinco meses no me reconocería.",
     photo: "/image-ordo.png",
@@ -389,10 +406,12 @@ export const testimonios: Testimonio[] = [
   {
     id: "sharikg-perez",
     name: "Sharikg Michel Pérez Montes",
-    badge: "Pre-Semilla · hoy Project Manager",
+    badge: "Pre-Semilla · Batch 8 · hoy Project Manager",
+    batch: "batch-8",
+    batchExperience: "El Batch 8 me demostró que gestionar con IA no es el futuro — es el presente. En un día aprendí a estructurar, priorizar y entregar. La demo final fue la prueba de que sí se puede.",
     tenure: "De “no sé si puedo” a gestionar equipos y clientes",
     headline: "De “no sé si puedo” a liderar equipos.",
-    body: "Entró a CooWeb como semilla con muchas ganas de aprender, sabiendo algo de tecnología pero sin haber vivido un entorno profesional así. Poco a poco fue creciendo dentro del proceso y, aunque lleva poco tiempo, aprendió muchísimo del equipo, del entorno y de sí misma — descubriendo capacidades que no sabía que tenía.",
+    body: "Llegué al Batch 8 sin saber que en un solo día iba a cambiar la forma en que veía la gestión de proyectos. La metodología era nueva, la IA era nueva, el ritmo era intenso — pero todo tenía un propósito claro. Lo que más me sorprendió fue darme cuenta de cuánto podía lograr cuando tienes las herramientas correctas y alguien que te guía. La demo final fue el momento en que entendí que ya no era la misma persona que había entrado esa mañana. Hoy lidero equipos y gestiono clientes — y todo empezó con esa apuesta de un día.",
     quote:
       "Entré con miedo de no estar lista para algo tan grande, pero terminé descubriendo que sí soy capaz de aprender, liderar y crecer muchísimo más de lo que imaginaba.",
     photo: "/img-shari.png",
@@ -401,10 +420,12 @@ export const testimonios: Testimonio[] = [
   {
     id: "manuela-maiguel",
     name: "Manuela Maiguel",
-    badge: "Semilla · Batch 8",
+    badge: "Semilla · Batch 9",
+    batch: "batch-9",
+    batchExperience: "Entrar al Batch 9 fue lanzarme sin red. Pero el entorno hace que confíes en el proceso — cada semana se siente el avance y eso te mantiene.",
     tenure: "Aprendizaje · Curiosidad · Crecimiento",
     headline: "Comenzando un camino de crecimiento.",
-    body: "Ingresó a Semilla con el deseo de aprender, conocer nuevas personas y desarrollar habilidades que complementaran su formación académica. En sus primeras semanas ha descubierto un entorno que impulsa la iniciativa, la curiosidad y el aprendizaje constante. Aunque apenas comienza, ya reconoce el valor de formar parte de una comunidad que apuesta por el crecimiento de sus integrantes.",
+    body: "Entré al Batch 9 buscando algo más que clases. Quería un entorno donde aprender tuviera consecuencias reales, donde equivocarse no fuera el fin sino parte del proceso. Lo encontré. Desde la primera semana sentí que cada tarea importaba, que cada feedback tenía peso. Lo que más valoro es que nadie te deja solo: hay alguien siempre dispuesto a orientarte sin hacerte sentir menos. Apenas comienzo, pero ya siento que estoy en el lugar correcto en el momento correcto.",
     quote:
       "Semilla me recordó que cada gran proyecto empieza con una pequeña oportunidad para aprender y atreverse a crecer.",
     photo: "/img-maiguel.png",
@@ -413,14 +434,30 @@ export const testimonios: Testimonio[] = [
   {
     id: "maileth-vallejo",
     name: "Maileth Vallejo",
-    badge: "Semilla · Batch 8",
+    badge: "Semilla · Batch 9",
+    batch: "batch-9",
+    batchExperience: "Lo que más me sorprendió del Batch 9 fue la comunidad. No estás solo aprendiendo — estás creciendo con personas que tienen las mismas ganas que tú.",
     tenure: "Colaboración · Aprendizaje · Nuevas oportunidades",
     headline: "Sembrando ideas para el futuro.",
-    body: "Llegó a Semilla buscando nuevas experiencias y la posibilidad de seguir desarrollándose tanto personal como profesionalmente. Desde el primer momento encontró un espacio donde compartir ideas, aprender de otros y asumir nuevos retos. Aunque el camino apenas comienza, esta experiencia le ha permitido visualizar nuevas posibilidades para su futuro.",
+    body: "No sabía exactamente qué iba a encontrar en el Batch 9, pero sabía que quería algo distinto. Desde el primer día el ambiente fue diferente: personas con ganas reales, conversaciones que van más allá del código, retos que te obligan a pensar. Me di cuenta rápido de que aquí no solo se aprende tecnología — se aprende a trabajar, a comunicarse, a crecer con otros. Cada semana descubro algo nuevo sobre lo que soy capaz de hacer. El camino apenas empieza y ya no quiero parar.",
     quote:
       "A veces no se trata de saber exactamente a dónde vas, sino de rodearte de personas y experiencias que te ayuden a descubrirlo.",
     photo: "/img-vallejo.png",
     accent: "#38BDF8",
+  },
+  {
+    id: "andres-jaimes",
+    name: "Andrés Camilo Jaimes Luna",
+    badge: "Semilla · hoy Junior Developer",
+    tenure: "Del call center al código",
+    headline: "Renuncié a lo seguro para apostar por lo incierto.",
+    body: "Estaba en capacitación para un call center — no por gusto, sino porque necesitaba el dinero. Un amigo lo animó a aplicar al Batch y tomó la decisión más difícil: renunciar y perder el pago de días ya trabajados para apostar por algo incierto. Desde el primer día sintió que era un lugar diferente: rodeado de personas con las mismas ganas de crecer. El reto que más lo marcó fue integrar un chatbot con n8n — herramientas nuevas, sin red, sintiéndose perdido. Pero no se rindió. En Discord siempre había alguien dispuesto a ayudar. Al terminar el Batch le asignaron proyectos que se convirtieron en el puente a su carrera. Hoy es desarrollador junior y toma decisiones pensando en la vida que quiere construir.",
+    quote: "El punto Nemo es el lugar más alejado de cualquier costa, pero aprendí que incluso desde ahí se puede llegar. Lo importante es no dejar de avanzar aunque todavía no puedas ver la tierra firme.",
+    batch: "batch-7",
+    batchExperience: "Renuncié a mi trabajo en un call center para apostar por algo incierto. Me sentí perdido más de una vez — como lanzado al punto más profundo del mar. Pero aquí aprendí que avanzar sin ver la orilla es parte del proceso.",
+    batchOnly: true,
+    photo: "/img-jaimes.jpeg",
+    accent: "#5EEAD4",
   },
 ];
 

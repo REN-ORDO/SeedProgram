@@ -1,11 +1,15 @@
 "use client";
 
-import { ArrowRight, Check, Hammer, Wrench } from "lucide-react";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Check, ChevronDown, Hammer, Wrench, Sprout } from "lucide-react";
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
-import { batches, type Batch } from "@/lib/data";
+import { batches, testimonios, type Batch } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export function Batches() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
   return (
     <section
       id="batches"
@@ -13,7 +17,7 @@ export function Batches() {
       className="relative px-5 py-16 md:px-10 md:py-32"
       style={{ background: "var(--color-bg)" }}
     >
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
           <span className="font-bold text-[--color-ink]">05</span>
           <span className="h-[2px] w-12 bg-[var(--color-ink)]" />
@@ -23,7 +27,7 @@ export function Batches() {
         <div className="mb-14 max-w-3xl">
           <Reveal delay={0.05}>
             <h2 className="text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-[--color-ink] md:text-6xl">
-              Batches 7 y 8 en marcha.{" "}
+              Batches 7, 8 y 9 en marcha.{" "}
               <span
                 className="font-handwritten"
                 style={{
@@ -34,26 +38,47 @@ export function Batches() {
                   transform: "rotate(-2deg)",
                 }}
               >
-                Sigue el 9
+                Sigue el 10
               </span>
               .
             </h2>
           </Reveal>
         </div>
 
-        <RevealStagger className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <RevealStagger className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {batches.map((b, i) => (
             <RevealItem key={b.id}>
-              <BatchCard batch={b} index={i} />
+              <BatchCard
+                batch={b}
+                index={i}
+                expanded={openIndex === i}
+                onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+                onOpenTestimonios={() =>
+                  window.dispatchEvent(new CustomEvent("filter-testimonios", { detail: { batchId: b.id } }))
+                }
+              />
             </RevealItem>
           ))}
         </RevealStagger>
       </div>
+
     </section>
   );
 }
 
-function BatchCard({ batch, index }: { batch: Batch; index: number }) {
+function BatchCard({
+  batch,
+  index,
+  expanded,
+  onToggle,
+  onOpenTestimonios,
+}: {
+  batch: Batch;
+  index: number;
+  expanded: boolean;
+  onToggle: () => void;
+  onOpenTestimonios: () => void;
+}) {
   const isOpen = batch.status === "abierto";
   const isSoon = batch.status === "proximamente";
   const isClosed = batch.status === "cerrado";
@@ -65,77 +90,125 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
     : "var(--color-fg-subtle)";
   const bg = batch.featured ? "var(--color-accent-soft)" : isClosed ? "var(--color-bg-soft)" : "#BAE6FD";
   const rotate = index % 2 === 0 ? -1.2 : 1.2;
+  const hasTesimonios = testimonios.some((t) => t.batch === batch.id);
+
   return (
     <article
-      className="toon-card relative h-full overflow-hidden p-8"
-      style={{
-        background: bg,
-        transform: `rotate(${rotate}deg)`,
-        opacity: isClosed ? 0.92 : 1,
-      }}
+      className="toon-card relative overflow-hidden"
+      style={{ background: bg, transform: `rotate(${rotate}deg)`, opacity: isClosed ? 0.92 : 1 }}
       data-cursor={batch.title}
     >
       {isSoon && <CrossedToolsWatermark />}
 
-      <div className="relative z-10 flex items-start justify-between gap-4">
-        <div>
+      {/* Header */}
+      <button
+        onClick={onToggle}
+        className="relative z-10 flex w-full items-start justify-between gap-3 p-6 text-left min-h-[10rem]"
+      >
+        <div className="flex-1">
           <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[--color-ink]/70">
             {batch.title}
           </div>
-          <h3 className="mt-1 font-display text-2xl font-bold leading-tight text-[--color-ink] md:text-3xl">
+          <h3 className="mt-1 font-display text-xl font-bold leading-tight text-[--color-ink] md:text-2xl">
             {batch.subtitle}
           </h3>
-        </div>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border-2 border-[--color-ink] px-3 py-1 text-[11px] font-bold shadow-[2px_2px_0_var(--color-ink)]"
-          )}
-          style={{
-            background: isOpen ? "#fff" : isClosed ? "var(--color-bg-soft)" : "#fff",
-            color: "var(--color-ink)",
-          }}
-        >
-          <span className="relative flex h-1.5 w-1.5">
-            {(isOpen || isSoon) && (
-              <span
-                className="absolute inset-0 animate-ping rounded-full opacity-70"
-                style={{ background: statusDot }}
-              />
-            )}
+          {!isSoon && (
             <span
-              className="relative inline-flex h-1.5 w-1.5 rounded-full"
-              style={{ background: statusDot }}
-            />
-          </span>
-          {statusLabel}
-        </span>
-      </div>
-
-      <p className="relative z-10 mt-5 text-sm leading-relaxed text-[--color-ink]/85">{batch.desc}</p>
-
-      <ul className="relative z-10 mt-5 space-y-2 text-sm">
-        {batch.bullets.map((bullet) => (
-          <li key={bullet} className="flex items-center gap-2 text-[--color-ink]">
-            <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white">
-              <Check size={12} className="text-[--color-ink]" strokeWidth={3} />
+              className={cn(
+                "mt-2 inline-flex items-center gap-1.5 rounded-full border-2 border-[--color-ink] px-3 py-0.5 text-[11px] font-bold shadow-[2px_2px_0_var(--color-ink)]"
+              )}
+              style={{ background: isOpen ? "#fff" : "var(--color-bg-soft)", color: "var(--color-ink)" }}
+            >
+              <span className="relative flex h-1.5 w-1.5">
+                {isOpen && (
+                  <span
+                    className="absolute inset-0 animate-ping rounded-full opacity-70"
+                    style={{ background: statusDot }}
+                  />
+                )}
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: statusDot }} />
+              </span>
+              {statusLabel}
             </span>
-            {bullet}
-          </li>
-        ))}
-      </ul>
+          )}
+        </div>
+        <motion.span
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.25 }}
+          className="mt-1 shrink-0 text-[--color-ink]"
+        >
+          <ChevronDown size={18} strokeWidth={2.5} />
+        </motion.span>
+      </button>
 
-      <a
-        href={batch.featured ? "#aplicar" : "#"}
-        data-cursor={batch.cta}
-        className="toon-btn relative z-10 mt-7"
-        style={batch.featured ? undefined : { background: "#fff" }}
-      >
-        {batch.cta}
-        <ArrowRight size={14} />
-      </a>
+      {/* Contenido expandible */}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="relative z-10 flex h-[26rem] flex-col justify-between px-6 pb-6">
+              <p className="text-sm leading-relaxed text-[--color-ink]/85">{batch.desc}</p>
+
+              <ul className="mt-4 space-y-2 text-sm">
+                {batch.bullets.map((bullet) => (
+                  <li key={bullet} className="flex items-center gap-2 text-[--color-ink]">
+                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white">
+                      <Check size={12} className="text-[--color-ink]" strokeWidth={3} />
+                    </span>
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-6 flex flex-col gap-3">
+                {hasTesimonios && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onOpenTestimonios(); }}
+                    className="toon-btn w-full justify-center"
+                    style={{ background: "#fff" }}
+                  >
+                    Ver testimonios
+                    <ArrowRight size={14} />
+                  </button>
+                )}
+                {batch.featured && (
+                  <a
+                    href="#aplicar"
+                    data-cursor={batch.cta}
+                    className="toon-btn w-full justify-center"
+                  >
+                    {batch.cta}
+                    <ArrowRight size={14} />
+                  </a>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {isSoon && <ProximamenteBanner />}
     </article>
+  );
+}
+
+function ProximamenteBanner() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute -right-6 top-8 z-20 rotate-[25deg] whitespace-nowrap bg-[var(--color-ink)] px-6 py-2 font-display text-sm font-extrabold uppercase tracking-widest text-white shadow-[4px_4px_0_rgba(0,0,0,0.4)]"
+    >
+      <span className="inline-flex items-center gap-1.5">
+        <Sprout size={13} strokeWidth={2.5} />
+        Próximamente
+      </span>
+    </div>
   );
 }
 
@@ -157,17 +230,6 @@ function CrossedToolsWatermark() {
           style={{ transform: "rotate(45deg)" }}
         />
       </div>
-    </div>
-  );
-}
-
-function ProximamenteBanner() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute right-2 top-6 z-20 rotate-[10deg] whitespace-nowrap border-2 border-[--color-ink] bg-[var(--color-ink)] px-3 py-1 font-display text-[11px] font-extrabold uppercase tracking-widest text-[--color-accent-soft] shadow-[3px_3px_0_var(--color-ink)] md:right-[-30px] md:top-7 md:rotate-[12deg] md:px-5 md:py-1.5 md:text-base md:shadow-[4px_4px_0_var(--color-ink)]"
-    >
-      Próximamente
     </div>
   );
 }
