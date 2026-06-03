@@ -47,7 +47,7 @@ export function BatchTestimonios() {
         {/* Título */}
         <Reveal delay={0.05} className="mb-10 max-w-2xl">
           <h2 className="text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-[--color-ink] md:text-5xl">
-            Lo que vivieron{" "}
+            Ellos lo vivieron.{" "}
             <span
               className="font-handwritten"
               style={{
@@ -58,9 +58,12 @@ export function BatchTestimonios() {
                 transform: "rotate(-2deg)",
               }}
             >
-              en cada batch.
+              Ellos lo cuentan.
             </span>
           </h2>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-[--color-fg-muted]">
+            Cada batch es una historia distinta. Aquí van las palabras de quienes lo vivieron desde adentro — sin editar, sin filtros.
+          </p>
         </Reveal>
 
         {/* Tabs de batch */}
