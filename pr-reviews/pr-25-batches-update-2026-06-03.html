@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review · PR #25 — Batches interactiva + Voces del Semillero</title>
+<style>
+  :root{
+    --bg:#0f172a; --bg-soft:#1e293b; --card:#1e293b; --border:#334155;
+    --fg:#e2e8f0; --fg-muted:#94a3b8; --accent:#2dd4bf; --accent-2:#38bdf8;
+    --red:#f87171; --orange:#fb923c; --yellow:#facc15; --blue:#60a5fa; --green:#34d399;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    line-height:1.6; font-size:15px;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:32px 20px 80px}
+  h1{font-size:1.7rem; line-height:1.25; margin:0 0 8px}
+  h2{font-size:1.25rem; margin:38px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border)}
+  h3{font-size:1.05rem; margin:26px 0 8px}
+  h4{font-size:.98rem; margin:20px 0 6px}
+  a{color:var(--accent-2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  p{margin:.5em 0}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.86em;
+    background:#0b1220; border:1px solid var(--border); border-radius:4px; padding:1px 5px; color:#7dd3fc}
+  pre{background:#0b1220; border:1px solid var(--border); border-radius:8px; padding:14px 16px;
+    overflow-x:auto; font-size:.84rem; line-height:1.5}
+  pre code{background:none; border:none; padding:0; color:#cbd5e1}
+  .meta{width:100%; border-collapse:collapse; margin:14px 0 6px; font-size:.92rem}
+  .meta td{border:1px solid var(--border); padding:7px 11px; vertical-align:top}
+  .meta td:first-child{width:160px; color:var(--fg-muted); font-weight:600}
+  .verdict{display:inline-block; font-weight:700; font-size:1.05rem; padding:10px 16px;
+    border-radius:10px; background:rgba(251,146,60,.13); border:1px solid var(--orange); color:#fdba74; margin:6px 0 4px}
+  ul{margin:.4em 0; padding-left:1.3em}
+  li{margin:.25em 0}
+  table.findings{width:100%; border-collapse:collapse; margin:14px 0; font-size:.88rem}
+  table.findings th, table.findings td{border:1px solid var(--border); padding:8px 10px; text-align:left; vertical-align:top}
+  table.findings th{background:#0b1220; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--fg-muted)}
+  table.findings tbody tr:nth-child(odd){background:rgba(148,163,184,.05)}
+  .badge{display:inline-block; font-weight:700; font-size:.72rem; padding:2px 8px; border-radius:999px; white-space:nowrap}
+  .b-crit{background:rgba(248,113,113,.16); color:#fca5a5; border:1px solid var(--red)}
+  .b-med{background:rgba(251,146,60,.16); color:#fdba74; border:1px solid var(--orange)}
+  .b-min{background:rgba(250,204,21,.14); color:#fde047; border:1px solid var(--yellow)}
+  .b-sug{background:rgba(96,165,250,.16); color:#93c5fd; border:1px solid var(--blue)}
+  .b-ok{background:rgba(52,211,153,.16); color:#6ee7b7; border:1px solid var(--green)}
+  .finding{border:1px solid var(--border); border-radius:10px; padding:4px 18px 16px; margin:16px 0; background:var(--card)}
+  .finding.med{border-left:4px solid var(--orange)}
+  .finding.min{border-left:4px solid var(--yellow)}
+  .finding.sug{border-left:4px solid var(--blue)}
+  .loc{font-family:ui-monospace,monospace; font-size:.82rem; color:#7dd3fc}
+  .check{list-style:none; padding-left:0}
+  .check li{padding-left:26px; position:relative}
+  .check li::before{content:"☐"; position:absolute; left:2px; color:var(--fg-muted)}
+  .foot{margin-top:40px; padding-top:14px; border-top:1px solid var(--border); color:var(--fg-muted); font-size:.85rem}
+  @media (max-width:640px){
+    .wrap{padding:20px 14px 60px}
+    h1{font-size:1.4rem}
+    .meta td:first-child{width:auto; display:block}
+    table.findings{font-size:.8rem}
+    table.findings th, table.findings td{padding:6px 7px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Review · PR #25 — Sección de batches interactiva + Voces del Semillero</h1>
+
+<table class="meta">
+  <tr><td>PR</td><td><a href="https://github.com/REN-ORDO/SeedProgram/pull/25">#25</a> — <code>feat(batches): sección de batches interactiva + Voces del Semillero + testimonios por batch</code></td></tr>
+  <tr><td>Rama</td><td><code>feat/batches-update</code> → <code>main</code></td></tr>
+  <tr><td>Autor</td><td>Maileth Vallejo (<code>maivp22</code>)</td></tr>
+  <tr><td>Fecha review</td><td>2026-06-03</td></tr>
+  <tr><td>Tamaño</td><td>10 archivos · +451 / −147</td></tr>
+  <tr><td>Stack</td><td>Next.js 16 (App Router) · React 19 · Tailwind v4 · Framer Motion · TS</td></tr>
+</table>
+
+<h2>Veredicto</h2>
+<p><span class="verdict">🟠 Aprobar con cambios</span></p>
+<p>El PR funciona (build y TypeScript pasan, lint limpio en los archivos tocados) y la feature está bien armada. Hay <strong>2 hallazgos medios</strong> (modal sin scroll-lock / <code>z-index</code> por debajo del Nav, y FAQ desincronizada con la renumeración de batches) que conviene resolver antes de mergear. El resto son nits y sugerencias.</p>
+
+<h2>Resumen ejecutivo</h2>
+<ul>
+  <li>Renumera los batches: el antiguo "Nivel Pro · Claude Code" pasa de Batch 8 → <strong>Batch 9</strong>, se inserta un nuevo <strong>Batch 8 "Project Manager AI"</strong>, y "Próximamente" pasa de 9 → <strong>Batch 10</strong>. Actualiza todas las referencias de UI (hero, CTA, OG image).</li>
+  <li>Convierte las tarjetas de batch en un <strong>acordeón</strong> (una abierta a la vez) con grid de 4 columnas y banner "Próximamente" rediseñado.</li>
+  <li>Agrega <strong>"Voces del Semillero"</strong> (<code>batch-testimonios.tsx</code>): tabs por batch, grid de tarjetas y modal de detalle, conectada al acordeón vía un <code>CustomEvent</code> (<code>filter-testimonios</code>).</li>
+  <li>Suma el testimonio de <strong>Andrés Camilo Jaimes Luna</strong> (<code>batchOnly: true</code>) y reescribe en primera persona los textos de Sebastián, Sharikg, Manuela y Maileth.</li>
+  <li><strong>Verificaciones automáticas:</strong> <code>npm run build</code> ✅ (compila, TS OK, 16 páginas estáticas) · <code>npm run lint</code> ✅ en los archivos del PR (los 6 errores de lint del repo son preexistentes en <code>plant-cursor.tsx</code>/<code>seed-cursor.tsx</code>).</li>
+</ul>
+
+<h2>Tabla de hallazgos</h2>
+<table class="findings">
+  <thead><tr><th>Sev</th><th>Ubicación</th><th>Dimensión</th><th>Descripción</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-med">Medio</span></td><td class="loc">batch-testimonios.tsx:182-243</td><td>A11y / UX</td><td>Modal sin scroll-lock, sin <code>role="dialog"</code>/<code>aria-modal</code>, y con <code>z-50</code> queda al nivel o por debajo del Nav (<code>z-50</code>/<code>z-[60]</code>).</td></tr>
+    <tr><td><span class="badge b-med">Medio</span></td><td class="loc">faq.tsx:64</td><td>Correctness / Contenido</td><td>La FAQ atribuye la certificación al "Batch 8", pero tras la renumeración ese batch es ahora "Project Manager AI". La certificación corresponde al Batch 9.</td></tr>
+    <tr><td><span class="badge b-min">Menor</span></td><td class="loc">programa-semilla-cooweb.md</td><td>Docs</td><td>Fuente canónica desincronizada: sigue diciendo "Batch 8 — Nivel Pro con Claude Code" y "Batch 9 — Próximamente".</td></tr>
+    <tr><td><span class="badge b-min">Menor</span></td><td class="loc">batch-testimonios.tsx:136,215</td><td>Performance</td><td><code>&lt;Image fill&gt;</code> sin prop <code>sizes</code> → Next sirve la imagen a ~100vw aunque se renderice a 56/80px.</td></tr>
+    <tr><td><span class="badge b-min">Menor</span></td><td class="loc">batch-testimonios.tsx:159 (+modal)</td><td>Estilo</td><td>Comillas literales <code>"..."</code> en JSX en vez de las entidades <code>&amp;ldquo;</code>/<code>&amp;rdquo;</code> que usa el resto del repo.</td></tr>
+    <tr><td><span class="badge b-min">Menor</span></td><td class="loc">batch-testimonios.tsx + testimonio.tsx</td><td>UX / Contenido</td><td>Sebastián, Sharikg, Manuela y Maileth aparecen dos veces en la landing, con <code>quote</code> repetido. A confirmar con el líder.</td></tr>
+    <tr><td><span class="badge b-min">Menor</span></td><td class="loc">batch-testimonios.tsx:147</td><td>Robustez</td><td><code>t.badge.split("·").slice(-1)[0].trim()</code> para derivar el "nivel" es frágil; depende del formato exacto del badge.</td></tr>
+    <tr><td><span class="badge b-sug">Sugerencia</span></td><td class="loc">batches.tsx:93 · batch-testimonios.tsx:11</td><td>Performance</td><td><code>.some()</code>/<code>.filter()</code> recalculado en cada render (impacto despreciable hoy, ~10 items).</td></tr>
+    <tr><td><span class="badge b-sug">Sugerencia</span></td><td class="loc">Proyecto</td><td>Tests</td><td>No hay tests (consistente con el repo); la lógica de filtrado por batch sería testeable.</td></tr>
+    <tr><td><span class="badge b-ok">Elogio</span></td><td class="loc">testimonio.tsx:10</td><td>Correctness</td><td>Filtro <code>batchOnly</code> bien resuelto: Andrés sale del carrusel y solo aparece en la sección nueva.</td></tr>
+    <tr><td><span class="badge b-ok">Elogio</span></td><td class="loc">lib/data.ts:243-246</td><td>Contenido</td><td>Se quitó el bullet "Compensación desde día 1 ($)" — alineado con la regla de no exponer montos.</td></tr>
+  </tbody>
+</table>
+
+<h2>Detalle por hallazgo</h2>
+
+<div class="finding med">
+<h3>🟠 1 · Modal de testimonio: scroll-lock, semántica ARIA y <code>z-index</code></h3>
+<p class="loc">components/batch-testimonios.tsx:182-243</p>
+<p>El modal nuevo no sigue el patrón ya establecido en <code>components/niveles-animacion.tsx:28-50</code>, que sí bloquea el scroll del body, declara <code>role="dialog"</code> + <code>aria-modal="true"</code> y usa <code>z-[120]</code> para superar al Nav. Tres problemas:</p>
+<ul>
+  <li><strong>Scroll del fondo no bloqueado:</strong> con el modal abierto, el body sigue scrolleable detrás del backdrop.</li>
+  <li><strong>Sin semántica de diálogo:</strong> falta <code>role="dialog"</code>, <code>aria-modal="true"</code> y <code>aria-label</code>. Tampoco hay focus trap ni foco inicial.</li>
+  <li><strong><code>z-index</code> insuficiente:</strong> backdrop y panel usan <code>z-50</code>. El Nav es <code>fixed … z-50</code> (<code>nav.tsx:62</code>) y su menú móvil es <code>z-[60]</code> (<code>nav.tsx:154</code>). El Nav queda clickeable sobre el backdrop y el menú móvil quedaría por encima del modal.</li>
+</ul>
+<p><strong>Por qué importa:</strong> rompe la sensación de modal e inconsistente con el otro modal del sitio; la falta de ARIA degrada accesibilidad.</p>
+<pre><code>// reemplazar el useEffect de Escape:
+useEffect(() => {
+  if (!selected) return;
+  const onKey = (e: KeyboardEvent) =&gt; { if (e.key === "Escape") setSelected(null); };
+  window.addEventListener("keydown", onKey);
+  const prev = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+  return () =&gt; {
+    window.removeEventListener("keydown", onKey);
+    document.body.style.overflow = prev;
+  };
+}, [selected]);
+
+// backdrop / panel: z-index por encima del Nav (z-[60])
+className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm"   // backdrop
+className="... z-[120] ..."                                       // panel
+// panel: role="dialog" aria-modal="true" aria-label={selected.name}</code></pre>
+</div>
+
+<div class="finding med">
+<h3>🟠 2 · FAQ desincronizada con la renumeración de batches</h3>
+<p class="loc">components/faq.tsx:64</p>
+<pre><code>a: "Sí. Al completar cada fase recibes reconocimiento formal de tu nivel.
+    El Batch 8 ya integró certificación oficial vinculada a proyectos reales
+    del ecosistema CooWeb."</code></pre>
+<p>Tras este PR, el batch con certificación + proyecto pasó a ser el <strong>Batch 9</strong> (<code>lib/data.ts:225-235</code>). El nuevo <strong>Batch 8</strong> es "Project Manager AI" (<code>data.ts:212-222</code>), que no menciona certificación. La FAQ afirma algo que ya no corresponde a ese número.</p>
+<p><strong>Por qué importa:</strong> es contenido de cara al usuario (audiencia secundaria = padres, que leen FAQ buscando legitimidad). Una incoherencia entre secciones de la misma página resta credibilidad.</p>
+<p><strong>Fix:</strong> actualizar a "El Batch 9 ya integró certificación…" o redactar sin número.</p>
+</div>
+
+<div class="finding min">
+<h3>🟡 3 · Fuente canónica de contenido sin actualizar</h3>
+<p class="loc">programa-semilla-cooweb.md</p>
+<p>CLAUDE.md sí se actualizó, pero la fuente de verdad documentada (<code>programa-semilla-cooweb.md</code>) quedó con la numeración vieja. Por convención del repo (CLAUDE.md §9), conviene sincronizarla o anotar que la web es ahora la referencia.</p>
+</div>
+
+<div class="finding min">
+<h3>🟡 4 · <code>&lt;Image fill&gt;</code> sin <code>sizes</code></h3>
+<p class="loc">components/batch-testimonios.tsx:136 y :215</p>
+<p>Sin <code>sizes</code>, Next asume <code>100vw</code> y puede descargar una variante mucho mayor que los 56px (tarjeta) / 80px (modal) reales. Las fotos de testimonios pesan ~900 KB–1 MB.</p>
+<pre><code>&lt;Image src={t.photo} alt={t.name} fill sizes="56px" className="object-cover" /&gt;   // tarjeta
+&lt;Image src={selected.photo} alt={selected.name} fill sizes="80px" className="object-cover" /&gt; // modal</code></pre>
+</div>
+
+<div class="finding min">
+<h3>🟡 5 · Comillas literales en JSX</h3>
+<p class="loc">components/batch-testimonios.tsx:159 (grid) y modal</p>
+<p>Usa comillas dobles ASCII. El resto del repo usa entidades tipográficas (<code>testimonio.tsx:185</code>: <code>&amp;ldquo;{…}&amp;rdquo;</code>). No rompe el build, pero es inconsistente y produce comillas rectas.</p>
+</div>
+
+<div class="finding min">
+<h3>🟡 6 · Contenido duplicado entre "Historias" y "Voces del Semillero"</h3>
+<p class="loc">components/batch-testimonios.tsx + components/testimonio.tsx</p>
+<p>Los testimonios con <code>batch</code> se muestran en ambas secciones y el modal repite el mismo <code>quote</code>. <strong>A confirmar con el líder</strong> si la duplicación es intencional (carrusel = vista rápida, sección = profundidad por batch). No es un bug.</p>
+</div>
+
+<div class="finding min">
+<h3>🟡 7 · Derivación frágil del "nivel" desde el badge</h3>
+<p class="loc">components/batch-testimonios.tsx:147 (también en testimonio.tsx)</p>
+<pre><code>{t.badge.split("·").slice(-1)[0].trim()}</code></pre>
+<p>Toma el último segmento del badge como "nivel". Funciona con los datos actuales pero se rompe silenciosamente si el formato cambia. Patrón ya presente en el repo (deuda heredada). A futuro: un campo explícito <code>level</code> en <code>Testimonio</code>.</p>
+</div>
+
+<h2>Por dimensión</h2>
+
+<h4>🐛 Correctness / Bugs</h4>
+<ul>
+  <li>Build y TypeScript pasan limpios. La lógica del acordeón (<code>openIndex</code>, una sola abierta) es correcta. El <code>CustomEvent</code> está bien tipado y el listener se limpia en el unmount.</li>
+  <li>El botón "Ver testimonios" solo se renderiza con <code>hasTesimonios</code> true → nunca dispara el evento para un batch sin testimonios. ✅</li>
+  <li><code>stopPropagation</code> evita que "Ver testimonios" colapse el acordeón. ✅</li>
+  <li>Único hallazgo de correctness de cara al usuario: la FAQ (#2). El resto son a11y/UX (#1).</li>
+  <li><strong>A confirmar:</strong> el grid de <code>RevealStagger</code> vive en un <code>motion.div</code> con <code>key={activeBatch}</code> y <code>AnimatePresence mode="wait"</code>. Al cambiar de tab se remonta y los <code>RevealItem</code> arrancan en <code>hidden</code>, dependiendo de <code>whileInView</code>. Verificar manualmente que reaparezcan al cambiar de tab estando scrolleado en la sección.</li>
+</ul>
+
+<h4>🔒 Seguridad</h4>
+<p>Sin hallazgos. No hay input de usuario, fetch, ni <code>dangerouslySetInnerHTML</code>. El <code>CustomEvent</code> viaja dentro de la misma página. Contenido estático desde <code>lib/data.ts</code>.</p>
+
+<h4>⚡ Performance</h4>
+<ul>
+  <li><code>&lt;Image fill&gt;</code> sin <code>sizes</code> (#4) — único punto con impacto real, en móvil.</li>
+  <li>Recálculos de <code>.some()</code>/<code>.filter()</code> por render — despreciable a esta escala.</li>
+  <li>Animaciones de <code>height: auto</code> fuerzan layout, pero acotadas a un elemento a la vez.</li>
+</ul>
+
+<h4>🧪 Tests</h4>
+<p>El repo no tiene suite de tests (consistente con CLAUDE.md). El PR no agrega ninguno. La lógica de filtrado es pura y testeable si se introduce un runner. No bloquea.</p>
+
+<h4>🧹 Estilo / Mantenibilidad</h4>
+<ul>
+  <li>Código limpio y consistente (toon-card, Reveal, paleta). Buen uso de <code>cn()</code> y tokens de tema.</li>
+  <li><code>ProximamenteBanner</code> movido y rediseñado dentro de <code>batches.tsx</code> — bien.</li>
+  <li>Nits: comillas literales (#5), derivación del nivel por split (#7).</li>
+  <li><strong>Paleta:</strong> colores introducidos (<code>#BAE6FD</code>, <code>#5EEAD4</code>, <code>#2DD4BF</code>, <code>#38BDF8</code>, <code>#7DD3FC</code>) todos dentro de las familias documentadas. ✅</li>
+</ul>
+
+<h4>📚 Docs / DX</h4>
+<ul>
+  <li>CLAUDE.md actualizado con la nueva numeración. ✅</li>
+  <li>Falta sincronizar <code>programa-semilla-cooweb.md</code> (#3) y la FAQ (#2).</li>
+  <li>Nuevos campos de <code>Testimonio</code> (<code>batch</code>, <code>batchExperience</code>, <code>batchOnly</code>) comentados en <code>lib/data.ts</code>. ✅</li>
+  <li><strong>Proceso:</strong> el cuerpo del PR incluye atribución a IA, que contradice la convención del repo de no atribuir IA en PRs/commits. Conviene quitarla.</li>
+</ul>
+
+<h2>Checklist de merge</h2>
+<ul class="check">
+  <li><strong>(🟠 #2)</strong> Actualizar <code>faq.tsx:64</code>: la certificación ahora es del Batch 9, no del 8.</li>
+  <li><strong>(🟠 #1)</strong> Modal: scroll-lock + <code>role="dialog"</code>/<code>aria-modal</code> + subir <code>z-index</code> por encima de <code>z-[60]</code>.</li>
+  <li><strong>(🟡 #3)</strong> Sincronizar <code>programa-semilla-cooweb.md</code> con la nueva numeración.</li>
+  <li><strong>(🟡 #4)</strong> Agregar <code>sizes</code> a los <code>&lt;Image fill&gt;</code> de la sección nueva.</li>
+  <li><strong>(🟡 #6)</strong> Confirmar si la duplicación de testimonios entre las dos secciones es intencional.</li>
+  <li><strong>(nit #5)</strong> Usar entidades tipográficas para las comillas en JSX.</li>
+  <li>Quitar la línea de atribución a IA del cuerpo del PR.</li>
+  <li>Verificación manual: cambiar de tab en "Voces del Semillero" estando scrolleado + flujo "Ver testimonios" desde el acordeón.</li>
+</ul>
+
+<p class="foot">Verificado localmente sobre <code>feat/batches-update</code>: <code>npm run build</code> ✅, <code>npm run lint</code> (archivos del PR) ✅.</p>
+
+</div>
+</body>
+</html>
