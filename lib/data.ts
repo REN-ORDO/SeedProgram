@@ -211,6 +211,19 @@ export const batches: Batch[] = [
   {
     id: "batch-8",
     title: "Batch 8",
+    subtitle: "Project Manager AI",
+    status: "cerrado",
+    desc: "Track intensivo de gestión de proyectos con IA. Se realizó en un día de formación concentrada y una semana después tuvo su demo final — proyecto entregado.",
+    bullets: [
+      "Formación intensiva en un día",
+      "Demo final a la semana",
+      "Gestión de proyectos con IA",
+    ],
+    cta: "Ver historia",
+  },
+  {
+    id: "batch-9",
+    title: "Batch 9",
     subtitle: "Nivel Pro · Claude Code",
     status: "cerrado",
     desc: "Track avanzado en IA aplicada a código. Convocatoria cerrada — cohorte en marcha con certificación + proyecto final.",
@@ -222,8 +235,8 @@ export const batches: Batch[] = [
     cta: "Ver silabus",
   },
   {
-    id: "batch-9",
-    title: "Batch 9",
+    id: "batch-10",
+    title: "Batch 10",
     subtitle: "Próxima convocatoria",
     status: "proximamente",
     desc: "Siguiente cohorte abriendo pronto. Mismo programa base de 4 semanas + ciclo de evaluación trimestral. Déjanos tu correo y te avisamos cuando abra.",

@@ -23,7 +23,7 @@ export function Batches() {
         <div className="mb-14 max-w-3xl">
           <Reveal delay={0.05}>
             <h2 className="text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-[--color-ink] md:text-6xl">
-              Batches 7 y 8 en marcha.{" "}
+              Batches 7, 8 y 9 en marcha.{" "}
               <span
                 className="font-handwritten"
                 style={{
@@ -34,14 +34,14 @@ export function Batches() {
                   transform: "rotate(-2deg)",
                 }}
               >
-                Sigue el 9
+                Sigue el 10
               </span>
               .
             </h2>
           </Reveal>
         </div>
 
-        <RevealStagger className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <RevealStagger className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {batches.map((b, i) => (
             <RevealItem key={b.id}>
               <BatchCard batch={b} index={i} />

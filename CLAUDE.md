@@ -97,8 +97,9 @@ No test suite exists yet.
 
 ### Batches
 - **Batch 7** — Enero 2026, cerrado, en formación activa.
-- **Batch 8** — Nivel Pro con Claude Code, cerrado, certificación + proyecto en curso.
-- **Batch 9** — Próximamente. Próxima convocatoria general.
+- **Batch 8** — Project Manager AI, cerrado. Formación intensiva de un día + demo final una semana después.
+- **Batch 9** — Nivel Pro con Claude Code, cerrado, certificación + proyecto en curso.
+- **Batch 10** — Próximamente. Próxima convocatoria general.
 
 ### Cultura CooWeb (ADN, 5 valores)
 1. **Respeto ante todo** — ideas se discuten, personas se cuidan.

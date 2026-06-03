@@ -12,7 +12,7 @@ export default async function Image() {
       title: "Aquí no solo creces profesionalmente,",
       accent: "creces como persona.",
       subtitle: "Encontramos talento donde otros no miran.",
-      cta: "Postúlate al Batch 9 →",
+      cta: "Postúlate al Batch 10 →",
     }),
     { ...OG_SIZE, ...(fonts.length ? { fonts } : {}) },
   );

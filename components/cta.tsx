@@ -257,7 +257,7 @@ export function CTA() {
               <span className="absolute inset-0 animate-ping rounded-full bg-[#2DD4BF] opacity-70" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#2DD4BF]" />
             </span>
-            Batch 9 · Próximamente
+            Batch 10 · Próximamente
           </span>
         </Reveal>
 
@@ -296,7 +296,7 @@ export function CTA() {
                   boxShadow: "4px 4px 0px #0C4A6E",
                 }}
               >
-                Postularme al Batch 9
+                Postularme al Batch 10
                 <ArrowRight size={15} />
               </a>
             </Magnetic>
