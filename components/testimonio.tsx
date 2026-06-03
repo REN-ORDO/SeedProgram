@@ -5,8 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Sprout } from "lucide-react";
 import { Reveal } from "@/components/reveal";
-import { testimonios, batches, type Testimonio } from "@/lib/data";
-import { cn } from "@/lib/utils";
+import { testimonios, type Testimonio } from "@/lib/data";
 
 const AUTO_MS = 3000;
 
@@ -21,53 +20,23 @@ const slideVariants = {
   exit: (dir: number) => ({ x: dir > 0 ? -80 : 80, opacity: 0 }),
 };
 
-// Batches que tienen al menos un testimonio asignado
-const batchesConTestimonios = batches.filter((b) =>
-  testimonios.some((t) => t.batch === b.id)
-);
-
 export function TestimonioSection() {
   const reduce = useReducedMotion();
   const [[index, direction], setIndexState] = useState<[number, number]>([0, 0]);
   const [paused, setPaused] = useState(false);
-  const [activeBatch, setActiveBatch] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
 
-  const filtered = activeBatch
-    ? testimonios.filter((t) => t.batch === activeBatch)
-    : testimonios;
-
-  const goto = useCallback(
-    (i: number, dir?: number) => {
-      setIndexState(([prev]) => {
-        const total = filtered.length;
-        const next = ((i % total) + total) % total;
-        const resolvedDir = dir ?? (next > prev ? 1 : next < prev ? -1 : 1);
-        return [next, resolvedDir];
-      });
-    },
-    [filtered.length]
-  );
+  const goto = useCallback((i: number, dir?: number) => {
+    setIndexState(([prev]) => {
+      const total = testimonios.length;
+      const next = ((i % total) + total) % total;
+      const resolvedDir = dir ?? (next > prev ? 1 : next < prev ? -1 : 1);
+      return [next, resolvedDir];
+    });
+  }, []);
 
   const next = useCallback(() => goto(index + 1, 1), [goto, index]);
   const prev = useCallback(() => goto(index - 1, -1), [goto, index]);
-
-  // Escucha evento de batch cards para filtrar
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const batchId = (e as CustomEvent<{ batchId: string }>).detail.batchId;
-      setActiveBatch(batchId);
-      setIndexState([0, 1]);
-      document.getElementById("testimonios")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    };
-    window.addEventListener("filter-testimonios", handler);
-    return () => window.removeEventListener("filter-testimonios", handler);
-  }, []);
-
-  // Resetea índice al cambiar filtro
-  useEffect(() => {
-    setIndexState([0, 1]);
-  }, [activeBatch]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -81,16 +50,17 @@ export function TestimonioSection() {
   useEffect(() => {
     if (reduce || paused) return;
     timerRef.current = window.setTimeout(next, AUTO_MS);
-    return () => { if (timerRef.current) window.clearTimeout(timerRef.current); };
+    return () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
   }, [index, paused, reduce, next]);
 
-  const safeIndex = Math.min(index, filtered.length - 1);
-  const t = filtered[safeIndex];
-  const total = filtered.length;
+  const t = testimonios[index];
+  const total = testimonios.length;
 
   const useWindow = total > DOT_WINDOW;
   const dotStart = useWindow
-    ? Math.max(0, Math.min(safeIndex - Math.floor(DOT_WINDOW / 2), total - DOT_WINDOW))
+    ? Math.max(0, Math.min(index - Math.floor(DOT_WINDOW / 2), total - DOT_WINDOW))
     : 0;
   const dotsContainerWidth = useWindow
     ? DOT_WINDOW * DOT_SIZE + (DOT_WINDOW - 1) * DOT_GAP
@@ -98,7 +68,6 @@ export function TestimonioSection() {
 
   return (
     <section
-      id="testimonios"
       aria-label="Historia"
       aria-roledescription="carousel"
       className="relative px-5 py-16 md:px-10 md:py-32"
@@ -109,91 +78,59 @@ export function TestimonioSection() {
       onBlur={() => setPaused(false)}
     >
       <div className="mx-auto max-w-6xl">
-        <Reveal className="mb-6 flex flex-col gap-4">
-          {/* Eyebrow + controles */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
-              <span className="font-bold text-[--color-ink]">·</span>
-              <span>Historias</span>
-              <span className="text-[--color-fg-subtle]">
-                {String(safeIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                aria-label="Historia anterior"
-                onClick={prev}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-              >
-                <ChevronLeft size={18} strokeWidth={3} />
-              </button>
-
-              <div className="overflow-hidden" style={{ width: dotsContainerWidth, height: DOT_SIZE }}>
-                <motion.div
-                  className="flex items-center"
-                  style={{ gap: DOT_GAP }}
-                  animate={{ x: -dotStart * DOT_STEP }}
-                  transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 320, damping: 32, mass: 0.6 }}
-                >
-                  {filtered.map((tt, i) => (
-                    <button
-                      key={tt.id}
-                      type="button"
-                      aria-label={`Ver historia ${i + 1}`}
-                      aria-current={i === safeIndex}
-                      onClick={() => goto(i)}
-                      className="group inline-flex shrink-0 items-center justify-center"
-                      style={{ width: DOT_SIZE, height: DOT_SIZE }}
-                    >
-                      <span
-                        className="h-3 w-3 rounded-full border-2 border-[--color-ink] transition-colors"
-                        style={{ background: i === safeIndex ? "var(--color-accent)" : "#fff" }}
-                      />
-                    </button>
-                  ))}
-                </motion.div>
-              </div>
-
-              <button
-                type="button"
-                aria-label="Siguiente historia"
-                onClick={next}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-[var(--color-accent)] text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-              >
-                <ChevronRight size={18} strokeWidth={3} />
-              </button>
-            </div>
+        <Reveal className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
+            <span className="font-bold text-[--color-ink]">·</span>
+            <span>Historias</span>
+            <span className="text-[--color-fg-subtle]">
+              {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+            </span>
           </div>
 
-          {/* Filtros por batch */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-3 self-end sm:self-auto">
             <button
-              onClick={() => setActiveBatch(null)}
-              className={cn(
-                "rounded-full border-2 border-[--color-ink] px-4 py-1 font-mono text-[11px] font-bold uppercase tracking-widest transition-all",
-                activeBatch === null
-                  ? "bg-[var(--color-ink)] text-white shadow-[2px_2px_0_var(--color-accent)]"
-                  : "bg-white text-[--color-ink] shadow-[2px_2px_0_var(--color-ink)] hover:scale-105"
-              )}
+              type="button"
+              aria-label="Historia anterior"
+              onClick={prev}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             >
-              Todos
+              <ChevronLeft size={18} strokeWidth={3} />
             </button>
-            {batchesConTestimonios.map((b) => (
-              <button
-                key={b.id}
-                onClick={() => setActiveBatch(b.id)}
-                className={cn(
-                  "rounded-full border-2 border-[--color-ink] px-4 py-1 font-mono text-[11px] font-bold uppercase tracking-widest transition-all",
-                  activeBatch === b.id
-                    ? "bg-[var(--color-ink)] text-white shadow-[2px_2px_0_var(--color-accent)]"
-                    : "bg-white text-[--color-ink] shadow-[2px_2px_0_var(--color-ink)] hover:scale-105"
-                )}
+
+            <div className="overflow-hidden" style={{ width: dotsContainerWidth, height: DOT_SIZE }}>
+              <motion.div
+                className="flex items-center"
+                style={{ gap: DOT_GAP }}
+                animate={{ x: -dotStart * DOT_STEP }}
+                transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 320, damping: 32, mass: 0.6 }}
               >
-                {b.title}
-              </button>
-            ))}
+                {testimonios.map((tt, i) => (
+                  <button
+                    key={tt.id}
+                    type="button"
+                    aria-label={`Ver historia ${i + 1}`}
+                    aria-current={i === index}
+                    onClick={() => goto(i)}
+                    className="group inline-flex shrink-0 items-center justify-center"
+                    style={{ width: DOT_SIZE, height: DOT_SIZE }}
+                  >
+                    <span
+                      className="h-3 w-3 rounded-full border-2 border-[--color-ink] transition-colors"
+                      style={{ background: i === index ? "var(--color-accent)" : "#fff" }}
+                    />
+                  </button>
+                ))}
+              </motion.div>
+            </div>
+
+            <button
+              type="button"
+              aria-label="Siguiente historia"
+              onClick={next}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-[var(--color-accent)] text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+            >
+              <ChevronRight size={18} strokeWidth={3} />
+            </button>
           </div>
         </Reveal>
 

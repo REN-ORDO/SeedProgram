@@ -1,4 +1,5 @@
 import { Batches } from "@/components/batches";
+import { BatchTestimonios } from "@/components/batch-testimonios";
 import { CTA } from "@/components/cta";
 import { FAQ } from "@/components/faq";
 import { Cultura } from "@/components/cultura";
@@ -26,6 +27,7 @@ export default function Home() {
         <TestimonioSection />
         <Cultura />
         <Batches />
+        <BatchTestimonios />
         <CTA />
         <FAQ />
       </main>
