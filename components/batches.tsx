@@ -67,33 +67,37 @@ export function Batches() {
         </RevealStagger>
       </div>
 
-      {/* Modal testimonios */}
+      {/* Drawer lateral testimonios */}
       <AnimatePresence>
         {modalBatchId && (
           <>
+            {/* Fondo oscuro */}
             <motion.div
               key="backdrop"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
               onClick={() => setModalBatchId(null)}
             />
+
+            {/* Panel derecho */}
             <motion.div
-              key="modal"
-              initial={{ opacity: 0, y: 40, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 40, scale: 0.96 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-2xl -translate-y-1/2 overflow-hidden rounded-2xl border-2 border-[--color-ink] bg-[var(--color-bg)] shadow-[6px_6px_0_var(--color-ink)] md:inset-x-auto md:w-full"
+              key="drawer"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col border-l-2 border-[--color-ink] bg-[var(--color-bg)] shadow-[-6px_0_0_var(--color-ink)]"
             >
-              {/* Header modal */}
-              <div className="flex items-center justify-between border-b-2 border-[--color-ink] px-6 py-4">
+              {/* Header */}
+              <div className="flex shrink-0 items-center justify-between border-b-2 border-[--color-ink] px-6 py-5">
                 <div>
                   <p className="font-mono text-[11px] font-bold uppercase tracking-widest text-[--color-fg-subtle]">
                     {modalBatch?.title}
                   </p>
-                  <h3 className="font-display text-xl font-bold text-[--color-ink]">
+                  <h3 className="font-display text-2xl font-bold text-[--color-ink]">
                     Testimonios
                   </h3>
                 </div>
@@ -105,8 +109,8 @@ export function Batches() {
                 </button>
               </div>
 
-              {/* Testimonios */}
-              <div className="max-h-[60vh] overflow-y-auto p-6">
+              {/* Lista */}
+              <div className="flex-1 overflow-y-auto p-6">
                 {modalTestimonios.length === 0 ? (
                   <p className="text-center text-sm text-[--color-fg-muted]">
                     Aún no hay testimonios para este batch.
@@ -119,7 +123,6 @@ export function Batches() {
                         className="toon-card flex gap-4 p-5"
                         style={{ background: t.accent ?? "var(--color-bg-soft)" }}
                       >
-                        {/* Foto */}
                         <div className="shrink-0">
                           {t.photo ? (
                             <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
@@ -131,7 +134,6 @@ export function Batches() {
                             </div>
                           )}
                         </div>
-                        {/* Contenido */}
                         <div className="flex-1">
                           <p className="font-display text-sm font-bold text-[--color-ink]">{t.name}</p>
                           <p className="text-[11px] text-[--color-ink]/60">{t.badge}</p>
