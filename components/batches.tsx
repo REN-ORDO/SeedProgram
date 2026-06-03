@@ -8,6 +8,7 @@ import { batches, type Batch } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export function Batches() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   return (
     <section
       id="batches"
@@ -46,7 +47,12 @@ export function Batches() {
         <RevealStagger className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {batches.map((b, i) => (
             <RevealItem key={b.id}>
-              <BatchCard batch={b} index={i} />
+              <BatchCard
+                batch={b}
+                index={i}
+                expanded={openIndex === i}
+                onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+              />
             </RevealItem>
           ))}
         </RevealStagger>
@@ -55,8 +61,7 @@ export function Batches() {
   );
 }
 
-function BatchCard({ batch, index }: { batch: Batch; index: number }) {
-  const [expanded, setExpanded] = useState(false);
+function BatchCard({ batch, index, expanded, onToggle }: { batch: Batch; index: number; expanded: boolean; onToggle: () => void }) {
   const isOpen = batch.status === "abierto";
   const isSoon = batch.status === "proximamente";
   const isClosed = batch.status === "cerrado";
@@ -83,7 +88,7 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
 
       {/* Header — siempre visible, clickeable */}
       <button
-        onClick={() => setExpanded((v) => !v)}
+        onClick={onToggle}
         className="relative z-10 flex w-full items-start justify-between gap-3 p-6 text-left min-h-[10rem]"
       >
         <div className="flex-1">
