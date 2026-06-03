@@ -2,20 +2,13 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, ChevronDown, Hammer, Wrench, Sprout, X, Quote } from "lucide-react";
-import Image from "next/image";
+import { ArrowRight, Check, ChevronDown, Hammer, Wrench, Sprout } from "lucide-react";
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
 import { batches, testimonios, type Batch } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export function Batches() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [modalBatchId, setModalBatchId] = useState<string | null>(null);
-
-  const modalTestimonios = modalBatchId
-    ? testimonios.filter((t) => t.batch === modalBatchId)
-    : [];
-  const modalBatch = batches.find((b) => b.id === modalBatchId);
 
   return (
     <section
@@ -60,97 +53,15 @@ export function Batches() {
                 index={i}
                 expanded={openIndex === i}
                 onToggle={() => setOpenIndex(openIndex === i ? null : i)}
-                onOpenTestimonios={() => setModalBatchId(b.id)}
+                onOpenTestimonios={() =>
+                  window.dispatchEvent(new CustomEvent("filter-testimonios", { detail: { batchId: b.id } }))
+                }
               />
             </RevealItem>
           ))}
         </RevealStagger>
       </div>
 
-      {/* Drawer lateral testimonios */}
-      <AnimatePresence>
-        {modalBatchId && (
-          <>
-            {/* Fondo oscuro */}
-            <motion.div
-              key="backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-              onClick={() => setModalBatchId(null)}
-            />
-
-            {/* Panel derecho */}
-            <motion.div
-              key="drawer"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col border-l-2 border-[--color-ink] bg-[var(--color-bg)] shadow-[-6px_0_0_var(--color-ink)]"
-            >
-              {/* Header */}
-              <div className="flex shrink-0 items-center justify-between border-b-2 border-[--color-ink] px-6 py-5">
-                <div>
-                  <p className="font-mono text-[11px] font-bold uppercase tracking-widest text-[--color-fg-subtle]">
-                    {modalBatch?.title}
-                  </p>
-                  <h3 className="font-display text-2xl font-bold text-[--color-ink]">
-                    Testimonios
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setModalBatchId(null)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[2px_2px_0_var(--color-ink)] transition-transform hover:scale-105"
-                >
-                  <X size={16} strokeWidth={2.5} />
-                </button>
-              </div>
-
-              {/* Lista scrolleable */}
-              <div className="flex-1 overflow-y-auto p-6">
-                {modalTestimonios.length === 0 ? (
-                  <p className="text-center text-sm text-[--color-fg-muted]">
-                    Aún no hay testimonios para este batch.
-                  </p>
-                ) : (
-                  <div className="space-y-5">
-                    {modalTestimonios.map((t) => (
-                      <div
-                        key={t.id}
-                        className="toon-card flex gap-4 p-5"
-                        style={{ background: t.accent ?? "var(--color-bg-soft)" }}
-                      >
-                        <div className="shrink-0">
-                          {t.photo ? (
-                            <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
-                              <Image src={t.photo} alt={t.name} fill className="object-cover" />
-                            </div>
-                          ) : (
-                            <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white font-display text-xl font-bold text-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
-                              {t.initial ?? t.name[0]}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-display text-sm font-bold text-[--color-ink]">{t.name}</p>
-                          <p className="text-[11px] text-[--color-ink]/60">{t.badge}</p>
-                          <p className="mt-2 text-sm italic leading-relaxed text-[--color-ink]/80">
-                            <Quote size={12} className="mr-1 inline opacity-50" />
-                            {t.quote}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </section>
   );
 }
