@@ -96,7 +96,7 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
           }}
         >
           <span className="relative flex h-1.5 w-1.5">
-            {(isOpen || isSoon) && (
+            {isOpen && (
               <span
                 className="absolute inset-0 animate-ping rounded-full opacity-70"
                 style={{ background: statusDot }}
