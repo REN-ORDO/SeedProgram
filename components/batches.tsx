@@ -86,16 +86,16 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
             {batch.subtitle}
           </h3>
         </div>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border-2 border-[--color-ink] px-3 py-1 text-[11px] font-bold shadow-[2px_2px_0_var(--color-ink)]"
-          )}
-          style={{
-            background: isOpen ? "#fff" : isClosed ? "var(--color-bg-soft)" : "#fff",
-            color: "var(--color-ink)",
-          }}
-        >
-          {!isSoon && (
+        {!isSoon && (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border-2 border-[--color-ink] px-3 py-1 text-[11px] font-bold shadow-[2px_2px_0_var(--color-ink)]"
+            )}
+            style={{
+              background: isOpen ? "#fff" : "var(--color-bg-soft)",
+              color: "var(--color-ink)",
+            }}
+          >
             <span className="relative flex h-1.5 w-1.5">
               {isOpen && (
                 <span
@@ -108,9 +108,9 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
                 style={{ background: statusDot }}
               />
             </span>
-          )}
-          {statusLabel}
-        </span>
+            {statusLabel}
+          </span>
+        )}
       </div>
 
       <p className="relative z-10 mt-5 text-sm leading-relaxed text-[--color-ink]/85">{batch.desc}</p>
