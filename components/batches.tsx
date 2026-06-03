@@ -84,7 +84,7 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
       {/* Header — siempre visible, clickeable */}
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="relative z-10 flex w-full items-start justify-between gap-3 p-6 text-left"
+        className="relative z-10 flex w-full items-start justify-between gap-3 p-6 text-left min-h-[10rem]"
       >
         <div className="flex-1">
           <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[--color-ink]/70">
