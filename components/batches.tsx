@@ -95,18 +95,20 @@ function BatchCard({ batch, index }: { batch: Batch; index: number }) {
             color: "var(--color-ink)",
           }}
         >
-          <span className="relative flex h-1.5 w-1.5">
-            {isOpen && (
+          {!isSoon && (
+            <span className="relative flex h-1.5 w-1.5">
+              {isOpen && (
+                <span
+                  className="absolute inset-0 animate-ping rounded-full opacity-70"
+                  style={{ background: statusDot }}
+                />
+              )}
               <span
-                className="absolute inset-0 animate-ping rounded-full opacity-70"
+                className="relative inline-flex h-1.5 w-1.5 rounded-full"
                 style={{ background: statusDot }}
               />
-            )}
-            <span
-              className="relative inline-flex h-1.5 w-1.5 rounded-full"
-              style={{ background: statusDot }}
-            />
-          </span>
+            </span>
+          )}
           {statusLabel}
         </span>
       </div>
