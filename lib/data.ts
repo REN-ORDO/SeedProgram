@@ -263,6 +263,7 @@ export type Testimonio = {
   placeholder?: boolean; // TODO marker for content team
   batch?: string;      // batch id, e.g. "batch-7"
   batchExperience?: string; // texto corto de experiencia en el batch (reemplazar después)
+  batchOnly?: boolean; // si true, no aparece en el carrusel de Historias
 };
 
 // Orden carousel: Fanny (Coordinadora, voz institucional) abre; luego se
@@ -452,7 +453,9 @@ export const testimonios: Testimonio[] = [
     headline: "Renuncié a lo seguro para apostar por lo incierto.",
     body: "Estaba en capacitación para un call center cuando un amigo lo animó a aplicar. Renunció y perdió el pago de días trabajados para apostar por una oportunidad que no sabía si iba a funcionar. Integrar un chatbot con n8n lo lanzó al fondo sin red — pero no se rindió. Hoy trabaja como desarrollador junior con autonomía sobre su tiempo y su futuro.",
     quote: "El punto Nemo es el lugar más alejado de cualquier costa, pero aprendí que incluso desde ahí se puede llegar. Lo importante es no dejar de avanzar aunque todavía no puedas ver la tierra firme.",
+    batch: "batch-7",
     batchExperience: "Renuncié a mi trabajo en un call center para apostar por algo incierto. Me sentí perdido más de una vez — como lanzado al punto más profundo del mar. Pero aquí aprendí que avanzar sin ver la orilla es parte del proceso.",
+    batchOnly: true,
     photo: "/img-jaimes.jpeg",
     accent: "#5EEAD4",
   },

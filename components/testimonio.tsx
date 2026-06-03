@@ -5,7 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Sprout } from "lucide-react";
 import { Reveal } from "@/components/reveal";
-import { testimonios, type Testimonio } from "@/lib/data";
+import { testimonios as allTestimonios, type Testimonio } from "@/lib/data";
+
+const testimonios = allTestimonios.filter((t) => !t.batchOnly);
 
 const AUTO_MS = 3000;
 
