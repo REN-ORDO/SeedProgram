@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, ChevronDown, Hammer, Wrench, Sprout, X, Quote } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, ChevronDown, Hammer, Wrench, Sprout, X, Quote } from "lucide-react";
 import Image from "next/image";
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
 import { batches, testimonios, type Batch } from "@/lib/data";
@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 export function Batches() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [modalBatchId, setModalBatchId] = useState<string | null>(null);
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
 
   const modalTestimonios = modalBatchId
     ? testimonios.filter((t) => t.batch === modalBatchId)
@@ -60,7 +62,7 @@ export function Batches() {
                 index={i}
                 expanded={openIndex === i}
                 onToggle={() => setOpenIndex(openIndex === i ? null : i)}
-                onOpenTestimonios={() => setModalBatchId(b.id)}
+                onOpenTestimonios={() => { setModalBatchId(b.id); setSlideIndex(0); }}
               />
             </RevealItem>
           ))}
@@ -109,42 +111,108 @@ export function Batches() {
                 </button>
               </div>
 
-              {/* Lista */}
-              <div className="flex-1 overflow-y-auto p-6">
+              {/* Carrusel */}
+              <div className="flex flex-1 flex-col overflow-hidden">
                 {modalTestimonios.length === 0 ? (
-                  <p className="text-center text-sm text-[--color-fg-muted]">
+                  <p className="p-6 text-center text-sm text-[--color-fg-muted]">
                     Aún no hay testimonios para este batch.
                   </p>
                 ) : (
-                  <div className="space-y-5">
-                    {modalTestimonios.map((t) => (
-                      <div
-                        key={t.id}
-                        className="toon-card flex gap-4 p-5"
-                        style={{ background: t.accent ?? "var(--color-bg-soft)" }}
-                      >
-                        <div className="shrink-0">
-                          {t.photo ? (
-                            <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
-                              <Image src={t.photo} alt={t.name} fill className="object-cover" />
-                            </div>
-                          ) : (
-                            <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white font-display text-xl font-bold text-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
-                              {t.initial ?? t.name[0]}
-                            </div>
-                          )}
+                  <>
+                    {/* Slide */}
+                    <div className="relative flex-1 overflow-hidden">
+                      <AnimatePresence initial={false} custom={direction} mode="wait">
+                        <motion.div
+                          key={slideIndex}
+                          custom={direction}
+                          variants={{
+                            enter: (d: number) => ({ x: d > 0 ? "100%" : "-100%", opacity: 0 }),
+                            center: { x: 0, opacity: 1 },
+                            exit: (d: number) => ({ x: d > 0 ? "-100%" : "100%", opacity: 0 }),
+                          }}
+                          initial="enter"
+                          animate="center"
+                          exit="exit"
+                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                          className="absolute inset-0 overflow-y-auto p-6"
+                        >
+                          {(() => {
+                            const t = modalTestimonios[slideIndex];
+                            return (
+                              <div
+                                className="toon-card flex h-full flex-col gap-5 p-6"
+                                style={{ background: t.accent ?? "var(--color-bg-soft)" }}
+                              >
+                                {/* Foto + nombre */}
+                                <div className="flex items-center gap-4">
+                                  {t.photo ? (
+                                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
+                                      <Image src={t.photo} alt={t.name} fill className="object-cover" />
+                                    </div>
+                                  ) : (
+                                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white font-display text-2xl font-bold text-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
+                                      {t.initial ?? t.name[0]}
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="font-display text-lg font-bold text-[--color-ink]">{t.name}</p>
+                                    <p className="text-xs text-[--color-ink]/60">{t.badge}</p>
+                                    <p className="text-xs text-[--color-ink]/50">{t.tenure}</p>
+                                  </div>
+                                </div>
+                                {/* Headline */}
+                                <p className="font-display text-base font-bold text-[--color-ink]">{t.headline}</p>
+                                {/* Quote */}
+                                <blockquote className="flex-1 border-l-4 border-[--color-ink] pl-4 text-sm italic leading-relaxed text-[--color-ink]/80">
+                                  "{t.quote}"
+                                </blockquote>
+                              </div>
+                            );
+                          })()}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Navegación */}
+                    <div className="shrink-0 border-t-2 border-[--color-ink] px-6 py-4">
+                      <div className="flex items-center justify-between">
+                        {/* Flechas */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => { setDirection(-1); setSlideIndex((i) => Math.max(0, i - 1)); }}
+                            disabled={slideIndex === 0}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[2px_2px_0_var(--color-ink)] transition-all hover:scale-105 disabled:opacity-30 disabled:shadow-none"
+                          >
+                            <ArrowLeft size={15} strokeWidth={2.5} />
+                          </button>
+                          <button
+                            onClick={() => { setDirection(1); setSlideIndex((i) => Math.min(modalTestimonios.length - 1, i + 1)); }}
+                            disabled={slideIndex === modalTestimonios.length - 1}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[2px_2px_0_var(--color-ink)] transition-all hover:scale-105 disabled:opacity-30 disabled:shadow-none"
+                          >
+                            <ArrowRight size={15} strokeWidth={2.5} />
+                          </button>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-display text-sm font-bold text-[--color-ink]">{t.name}</p>
-                          <p className="text-[11px] text-[--color-ink]/60">{t.badge}</p>
-                          <p className="mt-2 text-sm italic leading-relaxed text-[--color-ink]/80">
-                            <Quote size={12} className="mr-1 inline opacity-50" />
-                            {t.quote}
-                          </p>
+                        {/* Dots */}
+                        <div className="flex gap-2">
+                          {modalTestimonios.map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => { setDirection(i > slideIndex ? 1 : -1); setSlideIndex(i); }}
+                              className={cn(
+                                "h-2.5 rounded-full border-2 border-[--color-ink] transition-all",
+                                i === slideIndex ? "w-6 bg-[--color-ink]" : "w-2.5 bg-white"
+                              )}
+                            />
+                          ))}
                         </div>
+                        {/* Contador */}
+                        <span className="font-mono text-xs font-bold text-[--color-ink]/50">
+                          {slideIndex + 1} / {modalTestimonios.length}
+                        </span>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
             </motion.div>
