@@ -263,6 +263,9 @@ export type Testimonio = {
   placeholder?: boolean; // TODO marker for content team
   batch?: string;      // batch id, e.g. "batch-7"
   batchExperience?: string; // texto corto de experiencia en el batch (reemplazar después)
+  batchHeadline?: string; // headline solo para el modal de Batches (fallback → headline)
+  batchBody?: string;  // body solo para el modal de Batches (fallback → body)
+  batchQuote?: string; // quote solo para el modal de Batches (fallback → quote)
   batchOnly?: boolean; // si true, no aparece en el carrusel de Historias
 };
 
@@ -292,6 +295,10 @@ export const testimonios: Testimonio[] = [
     body: "Entré al Batch 7 sin saber bien qué esperar. Los primeros días fueron un golpe de realidad: el ritmo era otro, las exigencias eran otras, y yo tenía que estar a la altura. Pasé de recibir instrucciones paso a paso a tomar decisiones sobre piezas reales del ecosistema. No fue fácil — hubo semanas donde el código no salía y la frustración era real. Pero cada code review, cada pair programming con el mentor, me fue dando más criterio. En cinco meses ascendí a Junior 1. Hoy sostengo procesos en producción y ya no reconozco al que llegó desorientado aquel primer día.",
     quote:
       "Llegué a CooWeb desorientado y con la expectativa por el suelo. Hoy soy Junior del equipo — hace cinco meses no me reconocería.",
+    batchHeadline: "Un ritmo real, y nunca lo enfrenté solo.",
+    batchBody: "El batch me puso al ritmo real de la industria, y eso fue justo lo que me hizo crecer. Cada reto venía con acompañamiento: mentores que revisaban mi código y me daban criterio cuando me trababa, nunca me dejaron a la deriva. Trabajamos sobre proyectos reales — una landing para una óptica, toda enfocada en la experiencia de usuario, y una demo day donde montamos un chatbot conversacional para el negocio de un cliente. Ahí entendí algo que aplico hasta hoy: la eficiencia y la funcionalidad van sobre la perfección, lo importante es entregar valor sin quedarte atascado. Y nunca lo viví solo — el Discord siempre activo y la gente del batch hicieron que aprender se sintiera como un equipo, no como una carrera.",
+    batchQuote:
+      "Aprendí que entregar valor pesa más que perseguir la perfección — y que nunca tienes que hacerlo solo.",
     photo: "/image-ordo.png",
     accent: "#5EEAD4",
   },

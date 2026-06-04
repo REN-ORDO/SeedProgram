@@ -151,7 +151,7 @@ export function BatchTestimonios() {
 
                       {/* Headline */}
                       <p className="font-display text-sm font-bold leading-snug text-[--color-ink]">
-                        {t.headline}
+                        {t.batchHeadline ?? t.headline}
                       </p>
 
                       {/* Experiencia batch */}
@@ -228,12 +228,12 @@ export function BatchTestimonios() {
 
               {/* Contenido */}
               <div className="max-h-[55vh] overflow-y-auto px-7 py-6">
-                <h3 className="font-display text-2xl font-bold text-[--color-ink]">{selected.headline}</h3>
-                <p className="mt-4 text-sm leading-relaxed text-[--color-fg-muted]">{selected.body}</p>
+                <h3 className="font-display text-2xl font-bold text-[--color-ink]">{selected.batchHeadline ?? selected.headline}</h3>
+                <p className="mt-4 text-sm leading-relaxed text-[--color-fg-muted]">{selected.batchBody ?? selected.body}</p>
                 <blockquote className="mt-6 flex gap-3 rounded-xl border-2 border-[--color-ink] bg-[#BAE6FD] p-5 shadow-[3px_3px_0_var(--color-ink)]" style={{ transform: "rotate(-0.5deg)" }}>
                   <Quote size={18} className="mt-0.5 shrink-0 text-[--color-ink]/40" />
                   <p className="font-handwritten text-xl leading-snug text-[--color-ink]">
-                    {selected.quote}
+                    {selected.batchQuote ?? selected.quote}
                   </p>
                 </blockquote>
               </div>
