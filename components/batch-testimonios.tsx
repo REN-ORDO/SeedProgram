@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sprout, X, Quote } from "lucide-react";
-import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
+import { Sprout, X, Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import { Reveal } from "@/components/reveal";
 import { testimonios, batches, type Testimonio } from "@/lib/data";
 import { cn } from "@/lib/utils";
+
+const VISIBLE = 3;
 
 const batchesConTestimonios = batches.filter((b) =>
   testimonios.some((t) => t.batch === b.id)
@@ -15,26 +17,53 @@ const batchesConTestimonios = batches.filter((b) =>
 export function BatchTestimonios() {
   const [activeBatch, setActiveBatch] = useState(batchesConTestimonios[0]?.id ?? null);
   const [selected, setSelected] = useState<Testimonio | null>(null);
+  const [page, setPage] = useState(0);
+  const [direction, setDirection] = useState(1);
+
+  const filtered = testimonios.filter((t) => t.batch === activeBatch);
+  const activeBatchData = batches.find((b) => b.id === activeBatch);
+  const totalPages = Math.ceil(filtered.length / VISIBLE);
+  const slice = filtered.slice(page * VISIBLE, page * VISIBLE + VISIBLE);
+
+  const goTo = useCallback((next: number, dir: number) => {
+    setDirection(dir);
+    setPage(next);
+  }, []);
+
+  const prev = () => page > 0 && goTo(page - 1, -1);
+  const next = () => page < totalPages - 1 && goTo(page + 1, 1);
+
+  // Reset page when batch changes
+  useEffect(() => { setPage(0); }, [activeBatch]);
 
   useEffect(() => {
     const handler = (e: Event) => {
       const batchId = (e as CustomEvent<{ batchId: string }>).detail.batchId;
       setActiveBatch(batchId);
+      setPage(0);
       document.getElementById("batch-testimonios")?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
     window.addEventListener("filter-testimonios", handler);
     return () => window.removeEventListener("filter-testimonios", handler);
   }, []);
 
-  // Cierra con Escape
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSelected(null); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelected(null);
+      if (!selected) {
+        if (e.key === "ArrowLeft") prev();
+        if (e.key === "ArrowRight") next();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [selected, page, totalPages]);
 
-  const filtered = testimonios.filter((t) => t.batch === activeBatch);
-  const activeBatchData = batches.find((b) => b.id === activeBatch);
+  const variants = {
+    enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 60 : -60 }),
+    center: { opacity: 1, x: 0 },
+    exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -60 : 60 }),
+  };
 
   return (
     <section
@@ -105,77 +134,134 @@ export function BatchTestimonios() {
           </motion.p>
         </AnimatePresence>
 
-        {/* Grid de tarjetas */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeBatch}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-          >
-            <RevealStagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((t, i) => (
-                <RevealItem key={t.id}>
-                  <button
-                    onClick={() => setSelected(t)}
-                    className="w-full text-left"
-                    aria-label={`Ver más sobre ${t.name}`}
-                  >
-                    <article
-                      className="toon-card flex h-full cursor-pointer flex-col gap-4 p-6 transition-transform hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-ink)]"
-                      style={{
-                        background: t.accent ?? "var(--color-bg-soft)",
-                        transform: i % 2 === 0 ? "rotate(-1deg)" : "rotate(1deg)",
-                      }}
+        {/* Carrusel */}
+        {filtered.length === 0 ? (
+          <p className="text-center text-sm text-[--color-fg-muted]">
+            Próximamente testimonios de este batch.
+          </p>
+        ) : (
+          <div className="relative">
+            {/* Área de tarjetas */}
+            <div className="overflow-hidden px-2 pb-3 pt-2">
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.div
+                  key={`${activeBatch}-${page}`}
+                  custom={direction}
+                  variants={variants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                >
+                  {slice.map((t, i) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setSelected(t)}
+                      className="w-full text-left"
+                      aria-label={`Ver más sobre ${t.name}`}
                     >
-                      {/* Foto + nombre */}
-                      <div className="flex items-center gap-3">
-                        {t.photo ? (
-                          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
-                            <Image src={t.photo} alt={t.name} fill className="object-cover" />
+                      <article
+                        className="toon-card flex h-full cursor-pointer flex-col gap-4 p-6 transition-transform hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-ink)]"
+                        style={{
+                          background: t.accent ?? "var(--color-bg-soft)",
+                          transform: i % 2 === 0 ? "rotate(-1deg)" : "rotate(1deg)",
+                        }}
+                      >
+                        {/* Foto + nombre */}
+                        <div className="flex items-center gap-3">
+                          {t.photo ? (
+                            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
+                              <Image src={t.photo} alt={t.name} fill className="object-cover" />
+                            </div>
+                          ) : (
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white font-display text-xl font-bold text-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
+                              {t.initial ?? t.name[0]}
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-display text-base font-bold text-[--color-ink]">{t.name}</p>
+                            <span className="inline-flex items-center gap-1 rounded-full border border-[--color-ink]/30 bg-white/60 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[--color-ink]/70">
+                              <Sprout size={10} strokeWidth={2.5} />
+                              {t.badge.split("·").slice(-1)[0].trim()}
+                            </span>
                           </div>
-                        ) : (
-                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white font-display text-xl font-bold text-[--color-ink] shadow-[2px_2px_0_var(--color-ink)]">
-                            {t.initial ?? t.name[0]}
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-display text-base font-bold text-[--color-ink]">{t.name}</p>
-                          <span className="inline-flex items-center gap-1 rounded-full border border-[--color-ink]/30 bg-white/60 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[--color-ink]/70">
-                            <Sprout size={10} strokeWidth={2.5} />
-                            {t.badge.split("·").slice(-1)[0].trim()}
-                          </span>
                         </div>
-                      </div>
 
-                      {/* Headline */}
-                      <p className="font-display text-sm font-bold leading-snug text-[--color-ink]">
-                        {t.batchHeadline ?? t.headline}
-                      </p>
+                        {/* Headline */}
+                        <p className="font-display text-sm font-bold leading-snug text-[--color-ink]">
+                          {t.batchHeadline ?? t.headline}
+                        </p>
 
-                      {/* Experiencia batch */}
-                      <blockquote className="mt-auto border-l-4 border-[--color-ink]/30 pl-3 font-handwritten text-lg leading-snug text-[--color-ink]">
-                        "{t.batchExperience ?? t.quote}"
-                      </blockquote>
+                        {/* Experiencia batch */}
+                        <blockquote className="mt-auto border-l-4 border-[--color-ink]/30 pl-3 font-handwritten text-lg leading-snug text-[--color-ink]">
+                          "{t.batchExperience ?? t.quote}"
+                        </blockquote>
 
-                      {/* Hint */}
-                      <p className="text-right font-mono text-[10px] font-bold uppercase tracking-widest text-[--color-ink]/40">
-                        Leer historia →
-                      </p>
-                    </article>
-                  </button>
-                </RevealItem>
-              ))}
-            </RevealStagger>
+                        {/* Hint */}
+                        <p className="text-right font-mono text-[10px] font-bold uppercase tracking-widest text-[--color-ink]/40">
+                          Leer historia →
+                        </p>
+                      </article>
+                    </button>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-            {filtered.length === 0 && (
-              <p className="text-center text-sm text-[--color-fg-muted]">
-                Próximamente testimonios de este batch.
-              </p>
+            {/* Controles — solo si hay más de una página */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-4">
+                {/* Flecha izquierda */}
+                <button
+                  onClick={prev}
+                  disabled={page === 0}
+                  aria-label="Anterior"
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[3px_3px_0_var(--color-ink)] transition-all",
+                    page === 0
+                      ? "cursor-not-allowed opacity-30"
+                      : "hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-ink)]"
+                  )}
+                >
+                  <ChevronLeft size={18} strokeWidth={2.5} />
+                </button>
+
+                {/* Dots */}
+                <div className="flex gap-2">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => goTo(i, i > page ? 1 : -1)}
+                      aria-label={`Página ${i + 1}`}
+                      className={cn(
+                        "rounded-full border-2 border-[--color-ink] transition-all",
+                        i === page
+                          ? "h-3 w-8 bg-[var(--color-ink)]"
+                          : "h-3 w-3 bg-white hover:bg-[var(--color-accent-soft)]"
+                      )}
+                    />
+                  ))}
+                </div>
+
+                {/* Flecha derecha */}
+                <button
+                  onClick={next}
+                  disabled={page === totalPages - 1}
+                  aria-label="Siguiente"
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[3px_3px_0_var(--color-ink)] transition-all",
+                    page === totalPages - 1
+                      ? "cursor-not-allowed opacity-30"
+                      : "hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-ink)]"
+                  )}
+                >
+                  <ChevronRight size={18} strokeWidth={2.5} />
+                </button>
+              </div>
             )}
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        )}
       </div>
 
       {/* Modal detalle */}
@@ -230,7 +316,10 @@ export function BatchTestimonios() {
               <div className="max-h-[55vh] overflow-y-auto px-7 py-6">
                 <h3 className="font-display text-2xl font-bold text-[--color-ink]">{selected.batchHeadline ?? selected.headline}</h3>
                 <p className="mt-4 text-sm leading-relaxed text-[--color-fg-muted]">{selected.batchBody ?? selected.body}</p>
-                <blockquote className="mt-6 flex gap-3 rounded-xl border-2 border-[--color-ink] bg-[#BAE6FD] p-5 shadow-[3px_3px_0_var(--color-ink)]" style={{ transform: "rotate(-0.5deg)" }}>
+                <blockquote
+                  className="mt-6 flex gap-3 rounded-xl border-2 border-[--color-ink] bg-[#BAE6FD] p-5 shadow-[3px_3px_0_var(--color-ink)]"
+                  style={{ transform: "rotate(-0.5deg)" }}
+                >
                   <Quote size={18} className="mt-0.5 shrink-0 text-[--color-ink]/40" />
                   <p className="font-handwritten text-xl leading-snug text-[--color-ink]">
                     {selected.batchQuote ?? selected.quote}
