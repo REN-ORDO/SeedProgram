@@ -48,16 +48,16 @@ export function BatchTestimonios() {
   }, []);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelected(null);
-      if (!selected) {
-        if (e.key === "ArrowLeft") prev();
-        if (e.key === "ArrowRight") next();
-      }
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSelected(null); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selected, page, totalPages]);
+  }, []);
+
+  const onSectionKey = (e: React.KeyboardEvent) => {
+    if (selected) return;
+    if (e.key === "ArrowLeft") prev();
+    if (e.key === "ArrowRight") next();
+  };
 
   const variants = {
     enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 60 : -60 }),
@@ -69,8 +69,10 @@ export function BatchTestimonios() {
     <section
       id="batch-testimonios"
       aria-label="Testimonios por batch"
-      className="relative px-5 py-16 md:px-10 md:py-32"
+      className="relative px-5 py-16 md:px-10 md:py-32 outline-none"
       style={{ background: "var(--color-bg-soft)" }}
+      onKeyDown={onSectionKey}
+      tabIndex={-1}
     >
       <div className="mx-auto max-w-6xl">
         {/* Eyebrow */}

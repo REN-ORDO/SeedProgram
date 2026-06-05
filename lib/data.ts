@@ -313,7 +313,7 @@ export const testimonios: Testimonio[] = [
     body: "Mientras estudiaba en la universidad sentía que me quedaba atrás comparado con mis compañeros, y cargaba un miedo enorme a no cumplir las expectativas de nadie. Fueron mis amigos y mis tías quienes me insistieron tanto que al final me empujaron a aplicar — confieso que entré dudando de mi propia capacidad. El primer golpe de realidad no fue tirando código, sino aprendiendo a ser QA en el proyecto Cava: documentos de requerimientos larguísimos y flujos nuevos que tenía que revisar con lupa para que la plataforma cuadrara exactamente con lo escrito en el papel. Luego pasé al frontend en Telemed, configurando módulos existentes y arreglando flujos en caliente. Había presión, pero nunca llegué al colapso porque mis compañeros siempre estuvieron ahí tirándome un cable cuando me trababa. Esa red de apoyo fue mi verdadero quiebre interno: entendí que no necesitaba saberlo todo de memoria para avanzar, que el equipo te sostiene. Hoy veo un antes y un después absoluto. Ya no soy el estudiante asustado — soy alguien que disfruta el proceso. Y me llevo una regla de vida muy clara: nunca más me quedo estático en un solo lugar.",
     quote: "Entendí que no necesitaba saberlo todo de memoria para avanzar — el equipo te sostiene, y eso lo cambia todo.",
     batchOnly: true,
-    photo: "/img-avendaño.png",
+    photo: "/img-avendano.png",
     accent: "#BAE6FD",
   },
   {
@@ -443,7 +443,6 @@ export const testimonios: Testimonio[] = [
       "Cuando tienes ganas, y tokens, siempre puedes. En CooWeb siempre puedes — y desde que empiezas como semilla, te das cuenta.",
     photo: "/img-arteta.png",
     accent: "#2DD4BF",
-
   },
   {
     id: "sharikg-perez",
@@ -453,7 +452,7 @@ export const testimonios: Testimonio[] = [
     batchExperience: "El Batch 9 me demostró que gestionar con IA no es el futuro — es el presente. En un día aprendí a estructurar, priorizar y entregar. La demo final fue la prueba de que sí se puede.",
     tenure: "De “no sé si puedo” a gestionar equipos y clientes",
     headline: "De “no sé si puedo” a liderar equipos.",
-    body: "Llegué al Batch 8 sin saber que en un solo día iba a cambiar la forma en que veía la gestión de proyectos. La metodología era nueva, la IA era nueva, el ritmo era intenso — pero todo tenía un propósito claro. Lo que más me sorprendió fue darme cuenta de cuánto podía lograr cuando tienes las herramientas correctas y alguien que te guía. La demo final fue el momento en que entendí que ya no era la misma persona que había entrado esa mañana. Hoy lidero equipos y gestiono clientes — y todo empezó con esa apuesta de un día.",
+    body: "Llegué al Batch 9 sin saber que en un solo día iba a cambiar la forma en que veía la gestión de proyectos. La metodología era nueva, la IA era nueva, el ritmo era intenso — pero todo tenía un propósito claro. Lo que más me sorprendió fue darme cuenta de cuánto podía lograr cuando tienes las herramientas correctas y alguien que te guía. La demo final fue el momento en que entendí que ya no era la misma persona que había entrado esa mañana. Hoy lidero equipos y gestiono clientes — y todo empezó con esa apuesta de un día.",
     quote:
       "Entré con miedo de no estar lista para algo tan grande, pero terminé descubriendo que sí soy capaz de aprender, liderar y crecer muchísimo más de lo que imaginaba.",
     photo: "/img-shari.png",
@@ -467,7 +466,7 @@ export const testimonios: Testimonio[] = [
     batchExperience: "Entrar al Batch 8 fue lanzarme sin red. Pero el entorno hace que confíes en el proceso — cada semana se siente el avance y eso te mantiene.",
     tenure: "Aprendizaje · Curiosidad · Crecimiento",
     headline: "Comenzando un camino de crecimiento.",
-    body: "Entré al Batch 9 buscando algo más que clases. Quería un entorno donde aprender tuviera consecuencias reales, donde equivocarse no fuera el fin sino parte del proceso. Lo encontré. Desde la primera semana sentí que cada tarea importaba, que cada feedback tenía peso. Lo que más valoro es que nadie te deja solo: hay alguien siempre dispuesto a orientarte sin hacerte sentir menos. Apenas comienzo, pero ya siento que estoy en el lugar correcto en el momento correcto.",
+    body: "Entré al Batch 8 buscando algo más que clases. Quería un entorno donde aprender tuviera consecuencias reales, donde equivocarse no fuera el fin sino parte del proceso. Lo encontré. Desde la primera semana sentí que cada tarea importaba, que cada feedback tenía peso. Lo que más valoro es que nadie te deja solo: hay alguien siempre dispuesto a orientarte sin hacerte sentir menos. Apenas comienzo, pero ya siento que estoy en el lugar correcto en el momento correcto.",
     quote:
       "Semilla me recordó que cada gran proyecto empieza con una pequeña oportunidad para aprender y atreverse a crecer.",
     photo: "/img-maiguel.png",
@@ -481,7 +480,7 @@ export const testimonios: Testimonio[] = [
     batchExperience: "Lo que más me sorprendió del Batch 8 fue la comunidad. No estás solo aprendiendo — estás creciendo con personas que tienen las mismas ganas que tú.",
     tenure: "Colaboración · Aprendizaje · Nuevas oportunidades",
     headline: "Sembrando ideas para el futuro.",
-    body: "No sabía exactamente qué iba a encontrar en el Batch 9, pero sabía que quería algo distinto. Desde el primer día el ambiente fue diferente: personas con ganas reales, conversaciones que van más allá del código, retos que te obligan a pensar. Me di cuenta rápido de que aquí no solo se aprende tecnología — se aprende a trabajar, a comunicarse, a crecer con otros. Cada semana descubro algo nuevo sobre lo que soy capaz de hacer. El camino apenas empieza y ya no quiero parar.",
+    body: "No sabía exactamente qué iba a encontrar en el Batch 8, pero sabía que quería algo distinto. Desde el primer día el ambiente fue diferente: personas con ganas reales, conversaciones que van más allá del código, retos que te obligan a pensar. Me di cuenta rápido de que aquí no solo se aprende tecnología — se aprende a trabajar, a comunicarse, a crecer con otros. Cada semana descubro algo nuevo sobre lo que soy capaz de hacer. El camino apenas empieza y ya no quiero parar.",
     quote:
       "A veces no se trata de saber exactamente a dónde vas, sino de rodearte de personas y experiencias que te ayuden a descubrirlo.",
     photo: "/img-vallejo.png",
