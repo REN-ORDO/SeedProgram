@@ -159,6 +159,46 @@ const fieldLabels: Record<string, string> = {
 };
 
 // ============================================================
+// Traducción de errores de envío → mensaje accionable
+// ============================================================
+// El submit puede fallar por: (1) red caída antes de llegar al servidor
+// —fetch lanza "Failed to fetch" / "Load failed" (Safari) o un AbortError
+// por timeout—, (2) Cloudinary mal configurado, (3) reglas/cuota de
+// Firestore. Nunca mostramos el mensaje técnico crudo: confunde al usuario
+// y no le dice cómo recuperarse.
+
+function friendlySubmitError(err: unknown): string {
+  const raw = err instanceof Error ? err.message : "";
+
+  // Error de red: la petición ni siquiera llegó al servidor.
+  const isNetwork =
+    (typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code?: string }).code === "network") ||
+    (err instanceof DOMException && err.name === "AbortError") ||
+    /failed to fetch|load failed|networkerror|network request failed/i.test(
+      raw,
+    );
+  if (isNetwork) {
+    return "No pudimos conectar. Revisa tu conexión a internet e inténtalo de nuevo. Tus datos quedaron guardados como borrador.";
+  }
+
+  // Configuración faltante de Cloudinary (CV).
+  if (/cloudinary no está configurado/i.test(raw)) {
+    return "Ahora mismo no podemos recibir tu hoja de vida. Escríbenos y lo solucionamos enseguida.";
+  }
+
+  // Permisos / reglas de Firestore.
+  if (/permission|insufficient|unauthorized/i.test(raw)) {
+    return "No pudimos guardar tu postulación por un problema de permisos. Ya estamos al tanto; inténtalo más tarde.";
+  }
+
+  // Fallback genérico (sin filtrar detalles técnicos).
+  return "Hubo un problema enviando tu postulación. Inténtalo de nuevo en unos minutos; tus datos quedaron guardados como borrador.";
+}
+
+// ============================================================
 // Types
 // ============================================================
 
@@ -1171,13 +1211,10 @@ export function ApplicationForm() {
       setCvReminderName(null);
       setSuccess(true);
     } catch (err) {
-      // Mostramos el mensaje real para poder diagnosticar en producción
-      const message =
-        err instanceof Error ? err.message : "Error desconocido";
+      // Log técnico completo para diagnosticar en producción...
       console.error("Error guardando postulación:", err);
-      setErrorMsg(
-        `Hubo un problema enviando tu postulación: ${message}`,
-      );
+      // ...pero al usuario le mostramos un mensaje claro y accionable.
+      setErrorMsg(friendlySubmitError(err));
     } finally {
       setSubmitting(false);
     }
