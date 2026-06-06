@@ -29,6 +29,55 @@ export type CloudinaryUploadResult = {
   originalFilename: string;
 };
 
+/** Error de red identificable (la petición no llegó al servidor). */
+export class NetworkError extends Error {
+  readonly code = "network" as const;
+  constructor(message = "No se pudo conectar con el servidor.") {
+    super(message);
+    this.name = "NetworkError";
+  }
+}
+
+/**
+ * POST con timeout (AbortController) y un reintento ante fallos de red.
+ * Solo reintenta cuando el fetch falla a nivel de red o por timeout —
+ * NO ante respuestas HTTP 4xx/5xx (eso lo maneja quien llama).
+ */
+async function postWithRetry(
+  url: string,
+  body: FormData,
+  { timeoutMs = 30_000, retries = 1 } = {},
+): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, {
+        method: "POST",
+        body,
+        signal: controller.signal,
+      });
+    } catch (err) {
+      // fetch() rechaza con TypeError ("Failed to fetch" / "Load failed" en
+      // Safari) ante fallos de red, o con AbortError si vencio el timeout.
+      const isLastAttempt = attempt === retries;
+      if (isLastAttempt) {
+        const reason =
+          err instanceof DOMException && err.name === "AbortError"
+            ? "La conexión tardó demasiado."
+            : "No se pudo conectar con el servidor.";
+        throw new NetworkError(reason);
+      }
+      // Backoff breve antes de reintentar.
+      await new Promise((r) => setTimeout(r, 800));
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  // Inalcanzable: el bucle siempre retorna o lanza.
+  throw new NetworkError();
+}
+
 export async function uploadCvToCloudinary(
   file: File,
 ): Promise<CloudinaryUploadResult> {
@@ -46,13 +95,15 @@ export async function uploadCvToCloudinary(
   fd.append("upload_preset", preset);
   fd.append("folder", "cvs");
 
-  const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-    {
-      method: "POST",
-      body: fd,
-    },
-  );
+  const url = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+
+  // El fetch del navegador lanza `TypeError: Failed to fetch` cuando la
+  // petición ni siquiera llega al servidor (red caída, móvil con señal
+  // intermitente, bloqueador de anuncios/privacidad o proxy corporativo).
+  // Ese mensaje crudo no le dice nada al usuario, así que lo capturamos,
+  // reintentamos una vez (los cortes móviles suelen ser momentáneos) y, si
+  // persiste, lanzamos un error de red identificable (.code = "network").
+  const res = await postWithRetry(url, fd);
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
