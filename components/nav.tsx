@@ -1,20 +1,18 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Volume2, VolumeX, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Monogram } from "@/components/monogram";
+import { MuteButton } from "@/components/mute-button";
 import { navItems } from "@/lib/data";
-import { isMuted, setMuted, subscribeMuted } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<string>("#programa");
-  // Mute global de la web (mismo store que el toggle flotante y el modal 3D)
-  const muted = useSyncExternalStore(subscribeMuted, isMuted, () => false);
 
   // En /empresas el enlace cruzado apunta al home (aspirantes); en el resto, a /empresas.
   const pathname = usePathname();
@@ -136,16 +134,7 @@ export function Nav() {
             </a>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                aria-pressed={!muted}
-                aria-label={muted ? "Activar sonidos" : "Silenciar la web"}
-                title={muted ? "Activar sonidos" : "Silenciar la web"}
-                onClick={() => setMuted(!muted)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
-              >
-                {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-              </button>
+              <MuteButton />
 
               <button
                 type="button"
@@ -175,15 +164,7 @@ export function Nav() {
                 <span className="font-display text-lg font-bold text-[--color-ink]">CooWeb</span>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  aria-pressed={!muted}
-                  aria-label={muted ? "Activar sonidos" : "Silenciar la web"}
-                  onClick={() => setMuted(!muted)}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)]"
-                >
-                  {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-                </button>
+                <MuteButton />
                 <button
                   type="button"
                   aria-label="Cerrar menú"
