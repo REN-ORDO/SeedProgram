@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ApplicationForm } from "@/components/application-form";
 import { LoadingScreen } from "@/components/loading-screen";
+import { MuteButton } from "@/components/mute-button";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -96,12 +97,12 @@ export default function PostularPage() {
       )}
 
       <div className="relative z-10 mx-auto max-w-2xl">
-        {/* Back link */}
+        {/* Back link + mute */}
         <motion.div
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: EASE }}
-          className="mb-8"
+          className="mb-8 flex items-center justify-between"
         >
           <Link
             href="/"
@@ -116,6 +117,7 @@ export default function PostularPage() {
             </motion.span>
             Volver al inicio
           </Link>
+          <MuteButton />
         </motion.div>
 
         {/* Header */}

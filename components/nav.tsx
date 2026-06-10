@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Monogram } from "@/components/monogram";
+import { MuteButton } from "@/components/mute-button";
 import { navItems } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -132,15 +133,19 @@ export function Nav() {
               <span className="text-base">→</span>
             </a>
 
-            <button
-              type="button"
-              aria-label="Abrir menú"
-              aria-expanded={open}
-              onClick={() => setOpen(true)}
-              className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[3px_3px_0_var(--color-ink)]"
-            >
-              <Menu size={18} />
-            </button>
+            <div className="flex items-center gap-2">
+              <MuteButton />
+
+              <button
+                type="button"
+                aria-label="Abrir menú"
+                aria-expanded={open}
+                onClick={() => setOpen(true)}
+                className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[3px_3px_0_var(--color-ink)]"
+              >
+                <Menu size={18} />
+              </button>
+            </div>
           </div>
         </div>
       </motion.header>
@@ -158,14 +163,17 @@ export function Nav() {
                 <Monogram size={36} />
                 <span className="font-display text-lg font-bold text-[--color-ink]">CooWeb</span>
               </div>
-              <button
-                type="button"
-                aria-label="Cerrar menú"
-                onClick={() => setOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[3px_3px_0_var(--color-ink)]"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <MuteButton />
+                <button
+                  type="button"
+                  aria-label="Cerrar menú"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[3px_3px_0_var(--color-ink)]"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
             <nav className="flex flex-col gap-3 p-6 pt-8">
               {navItems.map((item, i) => (

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Fraunces, JetBrains_Mono, Manrope, Plus_Jakarta_Sans, Space_Grotesk, Caveat } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SoundEffects } from "@/components/sound-effects";
 import "./globals.css";
 
 const inter = Inter({
@@ -129,6 +130,7 @@ export default function RootLayout({
       </head>
       <body className="grain">
         <ThemeProvider>{children}</ThemeProvider>
+        <SoundEffects />
       </body>
     </html>
   );
