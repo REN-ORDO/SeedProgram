@@ -9,12 +9,13 @@
  *   (también con ← → del teclado).
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Sprout, X } from "lucide-react";
+import { RotateCcw, Sprout, Volume2, VolumeX, X } from "lucide-react";
 import { niveles } from "@/lib/data";
 import { STAGE_TIMES } from "@/lib/semilla-timeline";
+import { isMuted, setMuted, subscribeMuted } from "@/lib/sound";
 import type { SemillaSceneApi } from "@/components/semilla-scene";
 
 const SemillaScene = dynamic(
@@ -57,6 +58,8 @@ function AnimacionContent({ onClose }: { onClose: () => void }) {
   const [stage, setStage] = useState(0);
   const [runId, setRunId] = useState(0);
   const [finished, setFinished] = useState(false);
+  // Mute sincronizado con el toggle global de la web (store externo)
+  const mutedState = useSyncExternalStore(subscribeMuted, isMuted, () => false);
   const rootRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<SemillaSceneApi | null>(null);
 
@@ -154,13 +157,23 @@ function AnimacionContent({ onClose }: { onClose: () => void }) {
           <span className="h-px w-8 bg-white/25" />
           <span>De semilla a árbol</span>
         </div>
-        <button
-          onClick={onClose}
-          aria-label="Cerrar"
-          className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white/70 backdrop-blur-sm transition hover:bg-white/10 hover:text-white"
-        >
-          <X size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setMuted(!mutedState)}
+            aria-pressed={!mutedState}
+            aria-label={mutedState ? "Activar sonidos" : "Silenciar sonidos"}
+            className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white/70 backdrop-blur-sm transition hover:bg-white/10 hover:text-white"
+          >
+            {mutedState ? <VolumeX size={17} /> : <Volume2 size={17} />}
+          </button>
+          <button
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white/70 backdrop-blur-sm transition hover:bg-white/10 hover:text-white"
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       {/* HUD inferior: nivel actual + progreso + replay */}

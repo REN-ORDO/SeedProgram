@@ -19,6 +19,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { STAGE_TIMES, T_END } from "@/lib/semilla-timeline";
+import { playPop } from "@/lib/sound";
 
 export { STAGE_TIMES };
 
@@ -90,33 +91,6 @@ function getGradientMap() {
     _gradientMap.needsUpdate = true;
   }
   return _gradientMap;
-}
-
-/* ------------------------------ sonido (clicks) ----------------------------- */
-
-let _audio: AudioContext | null = null;
-
-/** Pop suave sintetizado — sin assets, pitch aleatorio tipo "burbuja". */
-function playPop(volume = 0.1) {
-  try {
-    _audio ??= new AudioContext();
-    if (_audio.state === "suspended") void _audio.resume();
-    const t0 = _audio.currentTime;
-    const osc = _audio.createOscillator();
-    const gain = _audio.createGain();
-    osc.type = "triangle";
-    const f = 320 + Math.random() * 440;
-    osc.frequency.setValueAtTime(f, t0);
-    osc.frequency.exponentialRampToValueAtTime(f * 0.55, t0 + 0.14);
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.17);
-    osc.connect(gain).connect(_audio.destination);
-    osc.start(t0);
-    osc.stop(t0 + 0.2);
-  } catch {
-    // audio bloqueado por el navegador: silencio, sin romper nada
-  }
 }
 
 /* ----------------------------- interacción usuario -------------------------- */
@@ -1363,8 +1337,10 @@ export function SemillaScene({
       onPointerCancel={endDrag}
       onPointerLeave={endDrag}
       // sin cursor propio: hereda cursor:none y manda el PlantCursor de la
-      // landing; data-cursor activa su variante hover (semilla grande) aquí
+      // landing; data-cursor activa su variante hover (semilla grande) aquí.
+      // data-sound-skip: la escena maneja sus propios pops (evita duplicar).
       data-cursor="Explora"
+      data-sound-skip
       style={{ touchAction: "none" }}
     >
       <Canvas
