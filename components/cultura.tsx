@@ -299,6 +299,7 @@ export function Cultura() {
                       {NODES.map((n) => (
                         <motion.g
                           key={`mn-${n.id}`}
+                          data-cursor="Valor"
                           onClick={() => setSelectedMobile(n.id as NodeId)}
                           animate={{ y: [-3, 3, -3], scale: [1, 1.03, 1] }}
                           transition={{ duration: 2.2 + n.floatDelay * 0.4, repeat: Infinity, ease: "easeInOut", delay: n.floatDelay }}
@@ -316,6 +317,7 @@ export function Cultura() {
 
                       {/* Nodo central CooWeb Talks */}
                       <motion.g
+                        data-cursor="Talks"
                         onClick={() => setSelectedMobile("cooweb-talks")}
                         animate={{ y: [-3, 3, -3], scale: [1, 1.03, 1] }}
                         transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 1 }}

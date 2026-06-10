@@ -296,6 +296,7 @@ export function Hero() {
             return (
               <div
                 key={m.label}
+                data-cursor="Dato"
                 className="toon-card px-5 py-6 text-center"
                 style={{
                   background: bgs[i % bgs.length],
