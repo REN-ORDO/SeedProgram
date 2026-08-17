@@ -248,7 +248,8 @@ Si se implementa: usar API propia (no exponer key cliente), considerar Claude/An
 - ✅ Conceptualización + paleta (este archivo)
 - ✅ Stack configurado (Next.js + Tailwind v4)
 - ✅ Landing v1 implementada — tema `theme-toon` activo (neobrutalism)
-- ⏳ Formulario de postulación (server action → destino por definir)
+- ✅ Formulario de postulación (aspirantes + empresas) → Firestore
+- ✅ Diagnóstico IA para empresas (Vertex AI · Gemini) — paso 3 del formulario de empresas
 - ⏳ Páginas internas (silabus detallado, batch individual)
 
 ---
