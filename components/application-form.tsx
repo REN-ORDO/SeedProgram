@@ -52,6 +52,11 @@ import {
   type FormDraft,
 } from "@/lib/form-draft";
 import { cn } from "@/lib/utils";
+import {
+  DiagnosisPanel,
+  type DiagnosisState,
+} from "@/components/empresas/diagnosis-panel";
+import { fallbackFor, normalizeArea } from "@/lib/diagnosis";
 
 // Easing canónico del sitio
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -216,7 +221,8 @@ const ASPIRANTE_STEPS: StepConfig[] = [
 const EMPRESA_STEPS: StepConfig[] = [
   { id: 1, label: "Empresa" },
   { id: 2, label: "Reto" },
-  { id: 3, label: "Modalidad" },
+  { id: 3, label: "Diagnóstico" },
+  { id: 4, label: "Modalidad" },
 ];
 
 // ============================================================
@@ -815,6 +821,16 @@ export function ApplicationForm() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cvFileName, setCvFileName] = useState<string | null>(null);
 
+  // ---- Diagnóstico IA (solo empresas, paso 3) ----
+  const [diagnostico, setDiagnosis] = useState<DiagnosisState>({
+    status: "loading",
+  });
+  // Cuántas veces regeneró. Tope de 2 para no quemar llamadas al modelo.
+  const [regens, setRegens] = useState(0);
+  const MAX_REGENS = 2;
+  // Aborta la petición anterior si el usuario regenera antes de que llegue.
+  const diagAbortRef = useRef<AbortController | null>(null);
+
   // Borrador detectado al montar (banner "Tienes un borrador guardado").
   const [draftPrompt, setDraftPrompt] = useState<FormDraft | null>(null);
   // Nombre del CV que tenía un borrador restaurado — recordatorio de re-subir.
@@ -915,6 +931,65 @@ export function ApplicationForm() {
     persistDraftDebounced();
   };
 
+  /**
+   * Pide el diagnóstico al endpoint. No lanza nunca: cualquier fallo cae al
+   * fallback local para que el usuario pueda seguir y enviar su postulación.
+   * Guarda el resultado en valuesRef (no en el DOM) porque el panel se
+   * desmonta al cambiar de paso.
+   */
+  const requestDiagnosis = async () => {
+    diagAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    diagAbortRef.current = ctrl;
+
+    setDiagnosis({ status: "loading" });
+    // Al regenerar, la opción elegida ya no significa lo mismo.
+    delete valuesRef.current.opcion_elegida;
+
+    const v = valuesRef.current;
+    const area = normalizeArea(v.area);
+
+    try {
+      const res = await fetch("/api/diagnostico", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: ctrl.signal,
+        body: JSON.stringify({
+          empresa: v.empresa ?? "",
+          area,
+          area_otro: v.area_otro ?? "",
+          reto: v.reto ?? "",
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const data = { resumen: json.resumen, opciones: json.opciones };
+      const fuente = json.fuente === "ia" ? "ia" : "fallback";
+      valuesRef.current.diagnostico_json = JSON.stringify(data);
+      valuesRef.current.diagnostico_fuente = fuente;
+      setDiagnosis({ status: "ready", data, fuente });
+    } catch (err) {
+      // Un abort es intencional (el usuario regeneró): no pisar el estado.
+      if (ctrl.signal.aborted) return;
+      console.error("Error pidiendo diagnóstico:", err);
+      const fb = fallbackFor(area);
+      valuesRef.current.diagnostico_json = JSON.stringify(fb);
+      valuesRef.current.diagnostico_fuente = "fallback";
+      setDiagnosis({ status: "ready", data: fb, fuente: "fallback" });
+    }
+  };
+
+  const handleRegenerate = () => {
+    if (regens >= MAX_REGENS) return;
+    setRegens((n) => n + 1);
+    setDefaults((d) => {
+      const next = { ...d };
+      delete next.opcion_elegida;
+      return next;
+    });
+    void requestDiagnosis();
+  };
+
   const steps = useMemo(
     () => (role === "aspirante" ? ASPIRANTE_STEPS : EMPRESA_STEPS),
     [role],
@@ -926,6 +1001,13 @@ export function ApplicationForm() {
     if (next < 1 || next > steps.length) return;
     // ANTES de cambiar de paso, capturar valores del panel actual
     captureCurrentPanel();
+    // Entrando al paso de diagnóstico desde el reto → pedirlo.
+    // Va acá (y no en handleNext) para cubrir también el submit accidental
+    // y el Enter, que también navegan vía goTo.
+    if (role === "empresa" && step === 2 && next === 3) {
+      setRegens(0);
+      void requestDiagnosis();
+    }
     lastTransitionAtRef.current = Date.now();
     setDirection(dir);
     setStep(next);
@@ -946,6 +1028,9 @@ export function ApplicationForm() {
     setCvReminderName(null);
     valuesRef.current = {};
     setDefaults({}); // limpia el snapshot también
+    diagAbortRef.current?.abort();
+    setDiagnosis({ status: "loading" });
+    setRegens(0);
   };
 
   // ---- Borrador: restaurar / descartar ----
@@ -976,6 +1061,13 @@ export function ApplicationForm() {
     if (!form) return true;
     const panel = form.querySelector<HTMLElement>("[data-active-panel]");
     if (!panel) return true;
+
+    // El paso de diagnóstico no se puede pasar mientras el modelo responde:
+    // todavía no hay opciones que elegir.
+    if (role === "empresa" && step === 3 && diagnostico.status === "loading") {
+      setErrorMsg("Dale un segundo, todavía estamos leyendo tu reto.");
+      return false;
+    }
 
     // 1) Validar campos requeridos vacíos + formatos de los campos requeridos
     const required = panel.querySelectorAll<HTMLElement>("[required]");
@@ -1427,7 +1519,17 @@ export function ApplicationForm() {
 
               {role === "empresa" && step === 1 && <EmpresaStep1 />}
               {role === "empresa" && step === 2 && <EmpresaStep2 />}
-              {role === "empresa" && step === 3 && <EmpresaStep3 />}
+              {role === "empresa" && step === 3 && (
+                <EmpresaStep3Diagnosis
+                  state={diagnostico}
+                  generation={regens}
+                  canRegenerate={
+                    regens < MAX_REGENS && diagnostico.status === "ready"
+                  }
+                  onRegenerate={handleRegenerate}
+                />
+              )}
+              {role === "empresa" && step === 4 && <EmpresaStep4 />}
             </div>
           </PanelMotion>
 
@@ -1959,7 +2061,36 @@ function EmpresaStep2() {
   );
 }
 
-function EmpresaStep3() {
+/**
+ * Wrapper del paso de diagnóstico: vive acá (y no dentro del panel) porque
+ * necesita `useFormCtx`, que es privado de este archivo. Le pasa al panel una
+ * fábrica de props de radio ya conectada al contexto, para que la opción
+ * elegida se persista entre pasos igual que cualquier otro campo.
+ */
+function EmpresaStep3Diagnosis({
+  state,
+  generation,
+  canRegenerate,
+  onRegenerate,
+}: {
+  state: DiagnosisState;
+  generation: number;
+  canRegenerate: boolean;
+  onRegenerate: () => void;
+}) {
+  const ctx = useFormCtx();
+  return (
+    <DiagnosisPanel
+      state={state}
+      generation={generation}
+      canRegenerate={canRegenerate}
+      onRegenerate={onRegenerate}
+      radioProps={(value) => radioProps("opcion_elegida", value, ctx)}
+    />
+  );
+}
+
+function EmpresaStep4() {
   return (
     <>
       <PanelHeader
