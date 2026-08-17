@@ -1277,6 +1277,23 @@ export function ApplicationForm() {
         }
       }
 
+      // El diagnóstico viaja como string JSON en valuesRef (el formulario
+      // solo maneja strings, y así el borrador de localStorage sigue siendo
+      // serializable). Acá lo volvemos objeto para Firestore.
+      if (role === "empresa") {
+        const rawDiag = data.diagnostico_json;
+        delete data.diagnostico_json;
+        try {
+          data.diagnostico =
+            typeof rawDiag === "string" && rawDiag ? JSON.parse(rawDiag) : null;
+        } catch {
+          data.diagnostico = null;
+        }
+        data.diagnostico_fuente = data.diagnostico ? (data.diagnostico_fuente ?? null) : null;
+        const idx = Number(data.opcion_elegida);
+        data.opcion_elegida = Number.isInteger(idx) && idx >= 0 && idx <= 2 ? idx : null;
+      }
+
       if (role === "aspirante") {
         // Subir CV a Cloudinary. Usamos cvFileRef (no cvInputRef.files) porque
         // el input se desmonta al navegar de paso y el File se perdería.
