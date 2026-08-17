@@ -56,7 +56,7 @@ import {
   DiagnosisPanel,
   type DiagnosisState,
 } from "@/components/empresas/diagnosis-panel";
-import { fallbackFor, normalizeArea } from "@/lib/diagnosis";
+import { fallbackFor, isDiagnosis, normalizeArea } from "@/lib/diagnosis";
 
 // Easing canónico del sitio
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -943,8 +943,15 @@ export function ApplicationForm() {
     diagAbortRef.current = ctrl;
 
     setDiagnosis({ status: "loading" });
-    // Al regenerar, la opción elegida ya no significa lo mismo.
+    // Al pedir un diagnóstico nuevo, la opción elegida antes ya no
+    // corresponde a estas opciones: hay que borrarla de valuesRef Y del
+    // snapshot `defaults`, o los radios se remontan con la vieja marcada.
     delete valuesRef.current.opcion_elegida;
+    setDefaults((d) => {
+      const next = { ...d };
+      delete next.opcion_elegida;
+      return next;
+    });
 
     const v = valuesRef.current;
     const area = normalizeArea(v.area);
@@ -963,8 +970,15 @@ export function ApplicationForm() {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-      const data = { resumen: json.resumen, opciones: json.opciones };
+      // `fuente` no forma parte del schema que valida isDiagnosis: se lee
+      // antes de la guarda para no depender del tipo ya angostado a
+      // Diagnosis (que no tiene esa propiedad).
       const fuente = json.fuente === "ia" ? "ia" : "fallback";
+      // Un 200 con forma inesperada (proxy, CDN, cambio futuro de la ruta)
+      // no puede tumbar el formulario: lo tratamos como fallo y caemos al
+      // fallback local.
+      if (!isDiagnosis(json)) throw new Error("Respuesta con forma inválida");
+      const data = { resumen: json.resumen, opciones: json.opciones };
       valuesRef.current.diagnostico_json = JSON.stringify(data);
       valuesRef.current.diagnostico_fuente = fuente;
       setDiagnosis({ status: "ready", data, fuente });
@@ -982,11 +996,6 @@ export function ApplicationForm() {
   const handleRegenerate = () => {
     if (regens >= MAX_REGENS) return;
     setRegens((n) => n + 1);
-    setDefaults((d) => {
-      const next = { ...d };
-      delete next.opcion_elegida;
-      return next;
-    });
     void requestDiagnosis();
   };
 
@@ -1003,8 +1012,10 @@ export function ApplicationForm() {
     captureCurrentPanel();
     // Entrando al paso de diagnóstico desde el reto → pedirlo.
     // Va acá (y no en handleNext) para cubrir también el submit accidental
-    // y el Enter, que también navegan vía goTo.
-    if (role === "empresa" && step === 2 && next === 3) {
+    // y el Enter, que también navegan vía goTo. La guarda depende solo del
+    // destino y la dirección (parámetros de goTo), nunca del `step`
+    // cerrado sobre el closure, que puede quedar desactualizado.
+    if (role === "empresa" && next === 3 && dir === "forward") {
       setRegens(0);
       void requestDiagnosis();
     }
