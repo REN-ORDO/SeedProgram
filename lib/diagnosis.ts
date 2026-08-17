@@ -3,24 +3,24 @@
  *
  * Este módulo lo importan TANTO el route handler (servidor) COMO el
  * formulario (cliente). Por eso no puede tocar `process.env` ni el SDK de
- * Vertex: el prompt y el schema viven aparte en `lib/diagnostico-prompt.ts`.
+ * Vertex: el prompt y el schema viven aparte en `lib/diagnosis-prompt.ts`.
  */
 
-export type OpcionDiagnostico = {
+export type SolutionOption = {
   titulo: string;
   descripcion: string;
   entregable: string;
   duracion_semanas: number;
 };
 
-export type Diagnostico = {
+export type Diagnosis = {
   resumen: string;
-  opciones: OpcionDiagnostico[];
+  opciones: SolutionOption[];
 };
 
-export type FuenteDiagnostico = "ia" | "fallback";
+export type DiagnosisSource = "ia" | "fallback";
 
-export type DiagnosticoResponse = Diagnostico & { fuente: FuenteDiagnostico };
+export type DiagnosisResponse = Diagnosis & { fuente: DiagnosisSource };
 
 export const AREAS = ["cs", "operaciones", "datos", "marketing", "otro"] as const;
 export type Area = (typeof AREAS)[number];
@@ -34,7 +34,7 @@ export const AREA_LABELS: Record<Area, string> = {
   otro: "Otro",
 };
 
-export type DiagnosticoRequest = {
+export type DiagnosisRequest = {
   empresa: string;
   area: Area;
   /** Texto libre cuando area === "otro". Cadena vacía si no aplica. */
@@ -42,8 +42,8 @@ export type DiagnosticoRequest = {
   reto: string;
 };
 
-export const RETO_MIN = 20;
-export const RETO_MAX = 2000;
+export const CHALLENGE_MIN = 20;
+export const CHALLENGE_MAX = 2000;
 
 export function normalizeArea(v: unknown): Area {
   return (AREAS as readonly string[]).includes(String(v))
@@ -55,9 +55,9 @@ export function normalizeArea(v: unknown): Area {
  * Valida el body de POST /api/diagnostico. Devuelve un discriminated union
  * en vez de lanzar, para que el handler responda 400 con un mensaje claro.
  */
-export function parseDiagnosticoRequest(
+export function parseDiagnosisRequest(
   raw: unknown,
-): { ok: true; value: DiagnosticoRequest } | { ok: false; error: string } {
+): { ok: true; value: DiagnosisRequest } | { ok: false; error: string } {
   if (typeof raw !== "object" || raw === null) {
     return { ok: false, error: "Body inválido." };
   }
@@ -69,10 +69,10 @@ export function parseDiagnosticoRequest(
   }
 
   const reto = typeof o.reto === "string" ? o.reto.trim() : "";
-  if (reto.length < RETO_MIN) {
+  if (reto.length < CHALLENGE_MIN) {
     return { ok: false, error: "Cuéntanos un poco más sobre el reto." };
   }
-  if (reto.length > RETO_MAX) {
+  if (reto.length > CHALLENGE_MAX) {
     return { ok: false, error: "El reto es demasiado largo." };
   }
 
@@ -82,7 +82,7 @@ export function parseDiagnosticoRequest(
   return { ok: true, value: { empresa, area: normalizeArea(o.area), area_otro, reto } };
 }
 
-function isOpcion(v: unknown): v is OpcionDiagnostico {
+function isSolutionOption(v: unknown): v is SolutionOption {
   if (typeof v !== "object" || v === null) return false;
   const o = v as Record<string, unknown>;
   return (
@@ -103,12 +103,12 @@ function isOpcion(v: unknown): v is OpcionDiagnostico {
  * Guard de la respuesta del modelo. Si esto devuelve false, el handler
  * responde con el fallback: preferimos plantilla honesta a JSON roto.
  */
-export function isDiagnostico(v: unknown): v is Diagnostico {
+export function isDiagnosis(v: unknown): v is Diagnosis {
   if (typeof v !== "object" || v === null) return false;
   const o = v as Record<string, unknown>;
   if (typeof o.resumen !== "string" || o.resumen.trim().length === 0) return false;
   if (!Array.isArray(o.opciones) || o.opciones.length !== 3) return false;
-  return o.opciones.every(isOpcion);
+  return o.opciones.every(isSolutionOption);
 }
 
 // ============================================================
@@ -118,10 +118,10 @@ export function isDiagnostico(v: unknown): v is Diagnostico {
 // cumple el schema. Son rutas típicas, deliberadamente genéricas: el copy
 // del panel avisa que un mentor Senior leerá el caso personalmente.
 
-const FALLBACK_RESUMEN =
+const FALLBACK_SUMMARY =
   "Todavía no pudimos procesar tu reto automáticamente, así que un mentor Senior de CooWeb lo va a leer personalmente. Mientras tanto, estas son rutas típicas por las que solemos empezar en casos como el tuyo.";
 
-const FALLBACKS: Record<Area, OpcionDiagnostico[]> = {
+const FALLBACKS: Record<Area, SolutionOption[]> = {
   cs: [
     {
       titulo: "Asistente de respuestas frecuentes",
@@ -239,6 +239,6 @@ const FALLBACKS: Record<Area, OpcionDiagnostico[]> = {
   ],
 };
 
-export function fallbackFor(area: Area): Diagnostico {
-  return { resumen: FALLBACK_RESUMEN, opciones: FALLBACKS[area] };
+export function fallbackFor(area: Area): Diagnosis {
+  return { resumen: FALLBACK_SUMMARY, opciones: FALLBACKS[area] };
 }
