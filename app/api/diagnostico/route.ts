@@ -100,28 +100,34 @@ async function generateWithVertex(req: DiagnosisRequest): Promise<Diagnosis | nu
     googleAuthOptions: { credentials: creds.credentials },
   });
 
-  const call = ai.models.generateContent({
-    model: process.env.VERTEX_MODEL ?? DEFAULT_MODEL,
-    contents: [{ role: "user", parts: [{ text: buildUserPrompt(req) }] }],
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      responseMimeType: "application/json",
-      responseSchema: RESPONSE_SCHEMA,
-      temperature: 0.8,
-      maxOutputTokens: 2048,
-    },
-  });
+  // El AbortController corta de verdad la petición a Vertex al vencer el
+  // timeout. Sin él, Promise.race solo dejaría de esperar y la llamada
+  // seguiría corriendo (y cobrándose) después de que ya respondimos.
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
 
-  const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("timeout")), TIMEOUT_MS),
-  );
+  try {
+    const res = await ai.models.generateContent({
+      model: process.env.VERTEX_MODEL ?? DEFAULT_MODEL,
+      contents: [{ role: "user", parts: [{ text: buildUserPrompt(req) }] }],
+      config: {
+        abortSignal: ctrl.signal,
+        systemInstruction: SYSTEM_PROMPT,
+        responseMimeType: "application/json",
+        responseSchema: RESPONSE_SCHEMA,
+        temperature: 0.8,
+        maxOutputTokens: 2048,
+      },
+    });
 
-  const res = await Promise.race([call, timeout]);
-  const text = res.text;
-  if (!text) return null;
+    const text = res.text;
+    if (!text) return null;
 
-  const parsed: unknown = JSON.parse(text);
-  return isDiagnosis(parsed) ? parsed : null;
+    const parsed: unknown = JSON.parse(text);
+    return isDiagnosis(parsed) ? parsed : null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // ---- Handler ---------------------------------------------------
