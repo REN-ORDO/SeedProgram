@@ -451,6 +451,8 @@ export const RESPONSE_SCHEMA = {
           },
           duracion_semanas: {
             type: "INTEGER",
+            minimum: 4,
+            maximum: 16,
             description: "Entero entre 4 y 16.",
           },
         },

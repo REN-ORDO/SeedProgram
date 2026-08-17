@@ -77,8 +77,14 @@ export const RESPONSE_SCHEMA = {
             type: "STRING",
             description: "El resultado concreto que recibe la empresa.",
           },
+          // El rango va como restricción del schema, no solo en la
+          // descripción: `isSolutionOption` rechaza cualquier valor fuera de
+          // 4-16, y como el guard es todo-o-nada, una sola opción con 20
+          // semanas tiraría el diagnóstico entero al fallback.
           duracion_semanas: {
             type: "INTEGER",
+            minimum: 4,
+            maximum: 16,
             description: "Entero entre 4 y 16.",
           },
         },
