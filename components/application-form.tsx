@@ -39,10 +39,12 @@ import {
   ChevronDown,
   List,
   ExternalLink,
+  MessageCircle,
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadCvToCloudinary } from "@/lib/cloudinary";
+import { COOWEB_WHATSAPP } from "@/lib/data";
 import { Magnetic } from "@/components/magnetic";
 import {
   saveDraft,
@@ -818,6 +820,9 @@ export function ApplicationForm() {
   const [direction, setDirection] = useState<Direction>("forward");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  // Nombre de la empresa capturado al enviar, para la pantalla de éxito.
+  // No se lee valuesRef.current directamente en el render (son refs).
+  const [successEmpresa, setSuccessEmpresa] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cvFileName, setCvFileName] = useState<string | null>(null);
 
@@ -1033,6 +1038,7 @@ export function ApplicationForm() {
     setStep(1);
     setDirection("forward");
     setSuccess(false);
+    setSuccessEmpresa(null);
     setErrorMsg(null);
     setCvFileName(null);
     cvFileRef.current = null;
@@ -1329,6 +1335,7 @@ export function ApplicationForm() {
       // Postulación enviada con éxito → limpiar borrador persistido.
       clearDraft();
       setCvReminderName(null);
+      setSuccessEmpresa(role === "empresa" ? valuesRef.current.empresa ?? null : null);
       setSuccess(true);
     } catch (err) {
       // Log técnico completo para diagnosticar en producción...
@@ -1388,8 +1395,32 @@ export function ApplicationForm() {
         >
           {role === "aspirante"
             ? "Recibimos tu postulación. Si haces match con el batch, te contactamos pronto."
-            : "Recibimos tu solicitud. Un mentor senior te contactará en menos de 48 horas."}
+            : "Un mentor Senior de CooWeb ya tiene tu diagnóstico y te contacta en las próximas 24-48 horas hábiles. Acompañamos todo el proceso, de principio a fin."}
         </motion.p>
+
+        {role === "empresa" && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: EASE, delay: 0.4 }}
+            className="relative mt-6"
+          >
+            <a
+              href={`https://wa.me/${COOWEB_WHATSAPP}?text=${encodeURIComponent(
+                `Hola, acabo de enviar el diagnóstico de ${
+                  successEmpresa ?? "mi empresa"
+                } desde la web.`,
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="toon-btn toon-btn--white inline-flex"
+            >
+              <MessageCircle size={16} />
+              Hablar con un Senior ahora
+            </a>
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1401,6 +1432,7 @@ export function ApplicationForm() {
               type="button"
               onClick={() => {
                 setSuccess(false);
+                setSuccessEmpresa(null);
                 setStep(1);
                 setCvFileName(null);
                 cvFileRef.current = null;
