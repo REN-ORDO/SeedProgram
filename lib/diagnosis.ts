@@ -20,8 +20,6 @@ export type Diagnosis = {
 
 export type DiagnosisSource = "ia" | "fallback";
 
-export type DiagnosisResponse = Diagnosis & { fuente: DiagnosisSource };
-
 export const AREAS = ["cs", "operaciones", "datos", "marketing", "otro"] as const;
 export type Area = (typeof AREAS)[number];
 
@@ -94,6 +92,7 @@ function isSolutionOption(v: unknown): v is SolutionOption {
     o.entregable.trim().length > 0 &&
     typeof o.duracion_semanas === "number" &&
     Number.isFinite(o.duracion_semanas) &&
+    Number.isInteger(o.duracion_semanas) &&
     o.duracion_semanas >= 4 &&
     o.duracion_semanas <= 16
   );

@@ -661,3 +661,7 @@ export const diagnosisCopy = {
  * TODO(sebas): reemplazar por el número real antes de publicar.
  */
 export const COOWEB_WHATSAPP = "573001234567";
+
+/** El botón de WhatsApp solo se muestra cuando hay un número real. Se
+ * queda oculto hasta que Sebastián reemplace el placeholder de arriba. */
+export const HAS_COOWEB_WHATSAPP = COOWEB_WHATSAPP !== "573001234567";

@@ -44,7 +44,7 @@ import {
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadCvToCloudinary } from "@/lib/cloudinary";
-import { COOWEB_WHATSAPP } from "@/lib/data";
+import { COOWEB_WHATSAPP, HAS_COOWEB_WHATSAPP } from "@/lib/data";
 import { Magnetic } from "@/components/magnetic";
 import {
   saveDraft,
@@ -58,10 +58,23 @@ import {
   DiagnosisPanel,
   type DiagnosisState,
 } from "@/components/empresas/diagnosis-panel";
-import { fallbackFor, isDiagnosis, normalizeArea } from "@/lib/diagnosis";
+import {
+  CHALLENGE_MAX,
+  CHALLENGE_MIN,
+  fallbackFor,
+  isDiagnosis,
+  normalizeArea,
+  type Diagnosis,
+} from "@/lib/diagnosis";
 
 // Easing canónico del sitio
 const EASE = [0.22, 1, 0.36, 1] as const;
+
+// Deadline del cliente para /api/diagnostico. Se queda por debajo del
+// timeout de la propia ruta (25s) para que, en el caso normal, sea el
+// servidor el que gane la carrera y devuelva su fallback; este timeout
+// solo debe activarse cuando la respuesta nunca llega al cliente.
+const CLIENT_TIMEOUT_MS = 15_000;
 
 // ============================================================
 // Validadores por campo
@@ -961,6 +974,16 @@ export function ApplicationForm() {
     const v = valuesRef.current;
     const area = normalizeArea(v.area);
 
+    // Deadline propio del cliente: si el fetch se cuelga (handoff móvil,
+    // portal cautivo, pestaña en background) nada del lado del servidor
+    // puede rescatarnos, así que abortamos nosotros. `timedOut` distingue
+    // ese abort del abort intencional que dispara handleRegenerate.
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      ctrl.abort();
+    }, CLIENT_TIMEOUT_MS);
+
     try {
       const res = await fetch("/api/diagnostico", {
         method: "POST",
@@ -983,13 +1006,17 @@ export function ApplicationForm() {
       // no puede tumbar el formulario: lo tratamos como fallo y caemos al
       // fallback local.
       if (!isDiagnosis(json)) throw new Error("Respuesta con forma inválida");
+      clearTimeout(timer);
       const data = { resumen: json.resumen, opciones: json.opciones };
       valuesRef.current.diagnostico_json = JSON.stringify(data);
       valuesRef.current.diagnostico_fuente = fuente;
       setDiagnosis({ status: "ready", data, fuente });
     } catch (err) {
-      // Un abort es intencional (el usuario regeneró): no pisar el estado.
-      if (ctrl.signal.aborted) return;
+      clearTimeout(timer);
+      // Un abort del usuario (pidió regenerar) no debe pisar el estado: ya
+      // hay otra petición en curso. Un abort por timeout sí, porque no viene
+      // nada más.
+      if (ctrl.signal.aborted && !timedOut) return;
       console.error("Error pidiendo diagnóstico:", err);
       const fb = fallbackFor(area);
       valuesRef.current.diagnostico_json = JSON.stringify(fb);
@@ -1290,14 +1317,22 @@ export function ApplicationForm() {
         const rawDiag = data.diagnostico_json;
         delete data.diagnostico_json;
         try {
-          data.diagnostico =
+          const parsed =
             typeof rawDiag === "string" && rawDiag ? JSON.parse(rawDiag) : null;
+          data.diagnostico = isDiagnosis(parsed) ? parsed : null;
         } catch {
           data.diagnostico = null;
         }
         data.diagnostico_fuente = data.diagnostico ? (data.diagnostico_fuente ?? null) : null;
+        // El índice solo es válido si hay diagnóstico Y cae dentro de sus
+        // opciones reales: sin diagnóstico, un `opcion_elegida` numérico
+        // sería un índice apuntando a nada.
         const idx = Number(data.opcion_elegida);
-        data.opcion_elegida = Number.isInteger(idx) && idx >= 0 && idx <= 2 ? idx : null;
+        const diag = data.diagnostico as Diagnosis | null;
+        data.opcion_elegida =
+          diag && Number.isInteger(idx) && idx >= 0 && idx < diag.opciones.length
+            ? idx
+            : null;
       }
 
       if (role === "aspirante") {
@@ -1398,7 +1433,7 @@ export function ApplicationForm() {
             : "Un mentor Senior de CooWeb ya tiene tu diagnóstico y te contacta en las próximas 24-48 horas hábiles. Acompañamos todo el proceso, de principio a fin."}
         </motion.p>
 
-        {role === "empresa" && (
+        {role === "empresa" && HAS_COOWEB_WHATSAPP && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2108,8 +2143,8 @@ function EmpresaStep2() {
         <textarea
           {...textProps("reto", ctx)}
           required
-          minLength={20}
-          maxLength={2000}
+          minLength={CHALLENGE_MIN}
+          maxLength={CHALLENGE_MAX}
           placeholder="Ej: Pasamos mucho tiempo respondiendo preguntas frecuentes de clientes..."
           className={cn(inputCls, "min-h-[120px] resize-y leading-relaxed")}
         />
