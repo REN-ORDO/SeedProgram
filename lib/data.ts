@@ -660,7 +660,10 @@ export const diagnosisCopy = {
  * (lo exige la URL de wa.me).
  * TODO(sebas): reemplazar por el número real antes de publicar.
  */
-export const COOWEB_WHATSAPP = "573001234567";
+// El `: string` es obligatorio. Sin él TypeScript infiere el tipo literal
+// "573001234567", y al poner el número real la comparación de abajo pasa a
+// ser entre dos literales sin solapamiento (TS2367) y revienta el build.
+export const COOWEB_WHATSAPP: string = "573001234567";
 
 /** El botón de WhatsApp solo se muestra cuando hay un número real. Se
  * queda oculto hasta que Sebastián reemplace el placeholder de arriba. */
