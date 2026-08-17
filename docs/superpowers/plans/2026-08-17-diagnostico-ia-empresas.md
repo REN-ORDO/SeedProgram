@@ -325,9 +325,12 @@ Esperado: sin errores. `tsc --noEmit` usa el `tsconfig.json` del proyecto y no e
 
 - [ ] **Step 3: Verificar los guards a mano con Node**
 
+Usa el scratchpad de la sesión, no `/tmp`:
+
 ```bash
-npx tsc lib/diagnostico.ts --outDir /tmp/diag-check --module esnext --target es2022 --moduleResolution bundler && node --input-type=module -e "
-import { parseDiagnosticoRequest, isDiagnostico, fallbackFor, normalizeArea } from '/tmp/diag-check/diagnostico.js';
+SCRATCH=/private/tmp/claude-501/-Users-sebas-Proyectos-SeedProgram/ea463af7-97a1-4d98-967d-37e4618cb87e/scratchpad
+npx tsc lib/diagnostico.ts --outDir $SCRATCH/diag-check --module esnext --target es2022 --moduleResolution bundler && node --input-type=module -e "
+import { parseDiagnosticoRequest, isDiagnostico, fallbackFor, normalizeArea } from '$SCRATCH/diag-check/diagnostico.js';
 const short = parseDiagnosticoRequest({ empresa: 'ACME', area: 'cs', reto: 'corto' });
 console.log('reto corto rechazado:', short.ok === false);
 const good = parseDiagnosticoRequest({ empresa: 'ACME', area: 'cs', reto: 'x'.repeat(30) });
@@ -344,7 +347,7 @@ Esperado: seis líneas, todas terminando en `true`.
 - [ ] **Step 4: Limpiar el directorio temporal y commitear**
 
 ```bash
-rm -rf /tmp/diag-check
+rm -rf $SCRATCH/diag-check
 git add lib/diagnostico.ts
 git commit -m "feat(diagnostico): tipos, validacion y rutas de fallback"
 ```
