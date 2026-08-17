@@ -1257,6 +1257,25 @@ git commit -m "feat(diagnostico): paso 3 cableado en el wizard de empresas"
 
 ---
 
+> **Nota post-implementación (commit 51b0c1a).** El código de la Task 5 tal como
+> está escrito arriba tiene dos defectos que la review encontró y que ya están
+> corregidos en la rama. Si vuelves a usar este plan como referencia, aplica
+> también estos tres cambios:
+> 1. El `setDefaults` que borra `opcion_elegida` va dentro de `requestDiagnosis`
+>    (justo tras el `delete valuesRef.current.opcion_elegida`), **no** dentro de
+>    `handleRegenerate`. Si no, al volver al paso 2, editar el reto y avanzar, los
+>    radios nuevos aparecen con la opción vieja marcada y se envía una elección
+>    que el usuario nunca hizo.
+> 2. Validar la forma de la respuesta antes de usarla:
+>    `if (!isDiagnosis(json)) throw new Error("Respuesta con forma inválida");`
+>    Un 200 con forma inesperada hacía crashear el render del formulario entero.
+>    Ojo: lee `json.fuente` **antes** del guard, porque `isDiagnosis` estrecha el
+>    tipo a `Diagnosis`, que no tiene ese campo.
+> 3. El disparo en `goTo` no debe depender del `step` cerrado en el closure:
+>    `if (role === "empresa" && next === 3 && dir === "forward")`.
+
+---
+
 ### Task 6: Guardar el diagnóstico en Firestore
 
 **Files:**
