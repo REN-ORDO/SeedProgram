@@ -33,27 +33,85 @@ const TIMEOUT_MS = 25_000;
 const DEFAULT_MODEL = "gemini-2.5-flash";
 const DEFAULT_LOCATION = "us-central1";
 
-// ---- Rate limit (best-effort) ----------------------------------
-// Mapa en memoria por IP. En serverless cada instancia tiene el suyo, así que
-// el límite real es más alto que 8/hora. Sirve para frenar un bucle
-// accidental del cliente, no un ataque decidido. Si aparece abuso real, el
-// siguiente paso es Turnstile o un token de sesión (fuera de alcance).
-const WINDOW_MS = 60 * 60 * 1000;
-const MAX_PER_WINDOW = 8;
-const hits = new Map<string, number[]>();
+// ---- Defensa del endpoint --------------------------------------
+// Este endpoint es publico y cada llamada a Vertex cuesta dinero, asi que
+// se defiende en cuatro capas, de la mas barata a la mas cara:
+//
+//   1. Tamano del body      — corta antes de leer nada.
+//   2. Origen               — corta el scripting desde fuera del sitio.
+//   3. Tope global de la instancia — acota el gasto aunque el atacante rote IPs.
+//   4. Tope por IP          — frena al usuario individual y al bucle accidental.
+//
+// Ninguna de estas capas es una garantia dura: en serverless el estado en
+// memoria vive por instancia, asi que las capas 3 y 4 limitan por instancia,
+// no globalmente. Siguen siendo utiles (acotan el gasto de cada instancia y
+// frenan lo torpe), pero la barrera real de produccion es la regla de rate
+// limit del WAF de Vercel sobre esta ruta. Ver docs/superpowers/specs/.
 
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
+const WINDOW_MS = 60 * 60 * 1000;
+
+/** Tope por IP: un humano real no pide 8 diagnosticos en una hora. */
+const MAX_PER_IP = 8;
+
+/**
+ * Tope global de la instancia. Es la capa que de verdad acota el gasto: aunque
+ * el atacante rote IPs, cada instancia deja de llamar a Vertex al llegar aca.
+ * Dimensionado muy por encima del trafico esperado del formulario.
+ */
+const MAX_PER_INSTANCE = 60;
+
+/** El reto tiene un tope de 2000 caracteres; 16 KB deja aire de sobra. */
+const MAX_BODY_BYTES = 16 * 1024;
+
+const hitsByIp = new Map<string, number[]>();
+let instanceHits: number[] = [];
+
+function prune(times: number[], now: number): number[] {
+  return times.filter((t) => now - t < WINDOW_MS);
+}
+
+/** Capa 4: tope por IP. Registra el intento y dice si se paso. */
+function ipLimited(ip: string, now: number): boolean {
+  const recent = prune(hitsByIp.get(ip) ?? [], now);
   recent.push(now);
-  hits.set(ip, recent);
+  hitsByIp.set(ip, recent);
   // Poda barata para que el mapa no crezca sin techo en instancias longevas.
-  if (hits.size > 500) {
-    for (const [k, v] of hits) {
-      if (v.every((t) => now - t >= WINDOW_MS)) hits.delete(k);
+  if (hitsByIp.size > 500) {
+    for (const [k, v] of hitsByIp) {
+      if (v.every((t) => now - t >= WINDOW_MS)) hitsByIp.delete(k);
     }
   }
-  return recent.length > MAX_PER_WINDOW;
+  return recent.length > MAX_PER_IP;
+}
+
+/** Capa 3: tope global de la instancia. */
+function instanceLimited(now: number): boolean {
+  instanceHits = prune(instanceHits, now);
+  instanceHits.push(now);
+  return instanceHits.length > MAX_PER_INSTANCE;
+}
+
+/** Capa 1: rechaza bodies desproporcionados sin llegar a leerlos. */
+function bodyTooLarge(req: Request): boolean {
+  const len = Number(req.headers.get("content-length"));
+  return Number.isFinite(len) && len > MAX_BODY_BYTES;
+}
+
+/**
+ * Capa 2: el formulario siempre manda Origin (es una peticion same-origin del
+ * navegador). Si viene de otro sitio, no es nuestro formulario.
+ *
+ * Ausencia de Origin NO se bloquea: curl y algunos clientes legitimos no lo
+ * mandan, y este chequeo es para frenar scripting torpe, no para autenticar.
+ */
+function foreignOrigin(req: Request): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return false;
+  try {
+    return new URL(origin).host !== new URL(req.url).host;
+  } catch {
+    return true;
+  }
 }
 
 function clientIp(req: Request): string {
@@ -132,7 +190,25 @@ async function generateWithVertex(req: DiagnosisRequest): Promise<Diagnosis | nu
 
 // ---- Handler ---------------------------------------------------
 
+/**
+ * Respuesta de "no vamos a llamar a Vertex por esta". Sale 200 con el fallback
+ * a proposito: el usuario legitimo que choca con un limite igual completa su
+ * postulacion, solo que con las rutas de plantilla.
+ */
+function fallbackResponse(area: Parameters<typeof fallbackFor>[0]) {
+  return NextResponse.json(
+    { ...fallbackFor(area), fuente: "fallback" },
+    { status: 200 },
+  );
+}
+
 export async function POST(request: Request) {
+  // Capa 1: body desproporcionado. Antes de leer nada, y sin area todavia,
+  // asi que aca si respondemos 413 en vez de fallback.
+  if (bodyTooLarge(request)) {
+    return NextResponse.json({ error: "Body demasiado grande." }, { status: 413 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -145,11 +221,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  if (rateLimited(clientIp(request))) {
-    return NextResponse.json(
-      { ...fallbackFor(parsed.value.area), fuente: "fallback" },
-      { status: 200 },
+  // Capa 2: peticion desde otro sitio. No es nuestro formulario.
+  if (foreignOrigin(request)) {
+    console.warn(
+      "[diagnostico] Origin ajeno rechazado:",
+      request.headers.get("origin"),
     );
+    return fallbackResponse(parsed.value.area);
+  }
+
+  // Capas 3 y 4: topes de frecuencia. El global va primero para que un
+  // atacante que rota IPs no infle el mapa por IP antes de ser frenado.
+  const now = Date.now();
+  if (instanceLimited(now)) {
+    console.warn("[diagnostico] Tope de la instancia alcanzado — usando fallback.");
+    return fallbackResponse(parsed.value.area);
+  }
+  if (ipLimited(clientIp(request), now)) {
+    console.warn("[diagnostico] Tope por IP alcanzado — usando fallback.");
+    return fallbackResponse(parsed.value.area);
   }
 
   try {
@@ -161,8 +251,5 @@ export async function POST(request: Request) {
     console.error("[diagnostico] Vertex falló:", err);
   }
 
-  return NextResponse.json(
-    { ...fallbackFor(parsed.value.area), fuente: "fallback" },
-    { status: 200 },
-  );
+  return fallbackResponse(parsed.value.area);
 }
