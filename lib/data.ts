@@ -527,10 +527,10 @@ export const taglines = [
 
 export const empresaHero = {
   eyebrow: "Empresas patrocinadoras",
-  title: "Transforma un reto técnico en una oportunidad de impacto social.",
-  highlight: "impacto social",
+  title: "¿Tienes un proceso que te está frenando?",
+  highlight: "frenando",
   subtitle:
-    "Conviértete en Empresa Patrocinadora del Semillero CooWeb: resuelve un “dolor” técnico de tu negocio mientras impulsas al próximo talento digital.",
+    "CooWeb diagnostica y resuelve los cuellos de botella de tus procesos y operaciones digitales con una célula de desarrollo acompañada por talento Senior.",
   ctaPrimary: "Solicitar diagnóstico gratuito",
   ctaSecondary: "Ver cómo funciona",
 };

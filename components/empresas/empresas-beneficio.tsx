@@ -13,6 +13,7 @@ const iconMap = {
 export function EmpresasBeneficio() {
   return (
     <section
+      id="beneficios"
       aria-label="Beneficio estratégico"
       className="relative px-5 py-16 md:px-10 md:py-32 toon-section toon-section--soft"
     >
@@ -58,8 +59,8 @@ function BeneficioCard({ beneficio }: { beneficio: EmpresaBeneficio }) {
   const Icon = iconMap[beneficio.icon];
   return (
     <article className="toon-card h-full bg-white p-7" data-cursor="Beneficio">
-      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-[--color-ink] bg-[var(--color-accent-soft)] text-[--color-ink] shadow-[3px_3px_0_var(--color-ink)]">
-        <Icon size={22} />
+      <span className="empresas-beneficio__icon inline-flex h-12 w-12 items-center justify-center rounded-2xl border-2 shadow-[3px_3px_0_var(--color-ink)]">
+        <Icon size={22} aria-hidden />
       </span>
       <h3 className="mt-5 font-display text-xl font-bold leading-tight text-[--color-ink]">
         {beneficio.title}

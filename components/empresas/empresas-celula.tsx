@@ -8,6 +8,7 @@ export function EmpresasCelula() {
   const { title, desc, joven, mentor } = empresaCelula;
   return (
     <section
+      id="celula"
       aria-label="Tu célula de desarrollo"
       className="relative px-5 py-16 md:px-10 md:py-32 toon-section toon-section--navy"
     >
@@ -29,11 +30,15 @@ export function EmpresasCelula() {
           </p>
         </Reveal>
 
-        <div className="mt-12 grid items-stretch gap-6 md:grid-cols-[1fr_auto_1fr]">
+        <div className="mt-12 grid items-stretch gap-6 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
+          <Reveal delay={0.12}>
+            <DuplaCard Icon={ShieldCheck} bg="var(--color-surface)" label="Empresa" role="Reto y contexto" desc="Define el reto, comparte el contexto del negocio y valida el resultado." />
+          </Reveal>
+          <div className="flex items-center justify-center"><span className="text-[#5eead4]">+</span></div>
           <Reveal delay={0.18}>
             <DuplaCard
               Icon={Sprout}
-              bg="#7DD3FC"
+              bg="var(--color-bg-elev)"
               label={joven.label}
               role={joven.role}
               desc={joven.desc}
@@ -41,15 +46,15 @@ export function EmpresasCelula() {
           </Reveal>
 
           <div className="flex items-center justify-center">
-            <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#0f172a] bg-white text-[#0f172a] shadow-[3px_3px_0_#0f172a]">
-              <Plus size={20} strokeWidth={3} />
+            <span className="text-[#5eead4]">
+              <Plus size={20} strokeWidth={2} />
             </span>
           </div>
 
           <Reveal delay={0.24}>
             <DuplaCard
               Icon={ShieldCheck}
-              bg="#BAE6FD"
+              bg="var(--color-surface)"
               label={mentor.label}
               role={mentor.role}
               desc={mentor.desc}
@@ -76,16 +81,16 @@ function DuplaCard({
 }) {
   return (
     <article className="toon-card h-full p-7" style={{ background: bg }} data-cursor="Rol">
-      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-[#0f172a] bg-white text-[#0f172a] shadow-[3px_3px_0_#0f172a]">
+      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-elev)] text-[#f8fafc]">
         <Icon size={22} />
       </span>
-      <h3 className="mt-5 font-display text-2xl font-bold leading-tight text-[#0f172a]">
+      <h3 className="mt-5 font-display text-2xl font-bold leading-tight text-[#f8fafc]">
         {label}
       </h3>
-      <p className="mt-1 font-mono text-xs uppercase tracking-wider text-[#0f172a]/70">
+      <p className="mt-1 font-mono text-xs uppercase tracking-wider text-[var(--color-fg-muted)]">
         {role}
       </p>
-      <p className="mt-3 text-sm leading-relaxed text-[#0f172a]/80">{desc}</p>
+      <p className="mt-3 text-sm leading-relaxed text-[var(--color-fg-muted)]">{desc}</p>
     </article>
   );
 }
