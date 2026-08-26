@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { Volume2, VolumeX } from "lucide-react";
 import {
   initSound,
@@ -26,8 +27,11 @@ const INTERACTIVE = 'a, button, [role="button"], [data-cursor], label, summary';
 const SKIP = "[data-sound-skip]";
 
 export function SoundEffects() {
+  const pathname = usePathname();
+  const isEmpresas = pathname === "/empresas";
   // El mute es un store externo (módulo lib/sound) — snapshot SSR: false
   const mutedState = useSyncExternalStore(subscribeMuted, isMuted, () => false);
+  const isEnterprise = usePathname() === "/empresas";
 
   useEffect(() => {
     initSound();
@@ -45,7 +49,7 @@ export function SoundEffects() {
       const now = performance.now();
       if (now - lastHover < 80) return;
       lastHover = now;
-      playHover();
+       playHover(isEnterprise ? "enterprise" : "default");
     };
 
     const onDown = (e: PointerEvent) => {
@@ -53,7 +57,7 @@ export function SoundEffects() {
       if (!target) return;
       if (target.closest(SKIP)) return;
       if (!target.closest(INTERACTIVE)) return;
-      playClick();
+       playClick(isEnterprise ? "enterprise" : "default");
     };
 
     window.addEventListener("pointerover", onOver, { passive: true });
@@ -62,7 +66,7 @@ export function SoundEffects() {
       window.removeEventListener("pointerover", onOver);
       window.removeEventListener("pointerdown", onDown);
     };
-  }, []);
+  }, [isEnterprise]);
 
   return (
     <button
@@ -76,7 +80,7 @@ export function SoundEffects() {
         setMuted(next);
         if (!next) playClick(); // confirmación sonora al reactivar
       }}
-      className="fixed bottom-5 right-5 z-[110] flex h-11 w-11 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white text-[--color-ink] opacity-80 shadow-[3px_3px_0_var(--color-ink)] transition hover:-translate-y-0.5 hover:opacity-100"
+      className={`fixed bottom-5 right-5 z-[110] flex h-11 w-11 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white text-[--color-ink] opacity-80 shadow-[3px_3px_0_var(--color-ink)] transition hover:-translate-y-0.5 hover:opacity-100 ${isEmpresas ? "sound-toggle--enterprise" : ""}`}
     >
       {mutedState ? <VolumeX size={18} /> : <Volume2 size={18} />}
     </button>

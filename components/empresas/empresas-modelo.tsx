@@ -3,7 +3,7 @@
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
 import { empresaPasos, type EmpresaPaso } from "@/lib/data";
 
-const cardBgs = ["#BAE6FD", "#7DD3FC", "#38BDF8"];
+const cardBgs = ["var(--color-surface)", "var(--color-bg-elev)", "var(--color-surface)"];
 const cardRotates = [-1.5, 1.5, -1];
 
 export function EmpresasModelo() {
@@ -53,21 +53,21 @@ export function EmpresasModelo() {
 
 function PasoCard({ paso, index }: { paso: EmpresaPaso; index: number }) {
   return (
-    <article
-      className="toon-card relative h-full p-7"
+            <article
+      className="empresas-stage toon-card relative h-full p-7"
       style={{
         background: cardBgs[index % cardBgs.length],
         transform: `rotate(${cardRotates[index % cardRotates.length]}deg)`,
       }}
       data-cursor="Paso"
     >
-      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-[#0f172a] bg-white font-display text-lg font-bold text-[#0f172a] shadow-[3px_3px_0_#0f172a]">
+      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-elev)] font-display text-lg font-bold text-white">
         {paso.num}
       </span>
-      <h3 className="mt-5 font-display text-2xl font-bold leading-tight text-[#0f172a]">
+      <h3 className="mt-5 font-display text-2xl font-bold leading-tight text-white">
         {paso.title}
       </h3>
-      <p className="mt-3 text-sm leading-relaxed text-[#0f172a]/80">
+      <p className="mt-3 text-sm leading-relaxed text-[var(--color-fg-muted)]">
         {paso.desc}
       </p>
     </article>

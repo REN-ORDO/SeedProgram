@@ -96,12 +96,20 @@ function blip(
 }
 
 /** Tick sutil al pasar el mouse por un elemento interactivo. */
-export function playHover() {
+export function playHover(profile: "default" | "enterprise" = "default") {
+  if (profile === "enterprise") {
+    blip("sine", 620 + Math.random() * 100, 820, 0.016, 0.055);
+    return;
+  }
   blip("sine", 850 + Math.random() * 350, 1250, 0.028, 0.07);
 }
 
 /** Pop de click para botones y links de la web. */
-export function playClick() {
+export function playClick(profile: "default" | "enterprise" = "default") {
+  if (profile === "enterprise") {
+    blip("sine", 210, 155, 0.042, 0.085);
+    return;
+  }
   const f = 300 + Math.random() * 380;
   blip("triangle", f, f * 0.55, 0.075, 0.16);
 }

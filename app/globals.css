@@ -76,11 +76,112 @@
    wrapper en /empresas. Sigue dentro de la paleta documentada.
    ============================================================ */
 .theme-empresas {
-  --color-accent: #0ea5e9;        /* sky-500 — CTAs, botones, focus */
-  --color-accent-soft: #7dd3fc;   /* sky-300 — pills, fondos suaves */
-  --color-accent-strong: #0369a1; /* sky-700 — handwritten, énfasis */
-  --color-heading: #0c4a6e;       /* navy */
+  --color-bg: #07101e;
+  --color-bg-soft: #0f172a;
+  --color-bg-elev: #111f35;
+  --color-surface: #0d1a30;
+  --color-fg: #f8fafc;
+  --color-fg-muted: #94a3b8;
+  --color-fg-subtle: #94a3b8;
+  --color-heading: #f8fafc;
+  --color-ink: #f8fafc;
+  --color-accent: #2dd4bf;
+  --color-accent-soft: #5eead4;
+  --color-accent-strong: #2dd4bf;
+  --empresas-accent: #2dd4bf;
+  --empresas-muted: #94a3b8;
+  --color-border: rgba(148, 163, 184, 0.22);
 }
+
+/* Enterprise layer: deliberately overrides toon helpers only inside /empresas. */
+.theme-empresas .toon-section,
+.theme-empresas .empresas-hero { border: 0; background: var(--color-bg-soft); color: #f8fafc; }
+.theme-empresas .toon-section--navy { background: var(--color-bg); }
+.theme-empresas .toon-section--soft { background: var(--color-bg-soft); }
+.theme-empresas .toon-card {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 8px;
+  background: var(--color-surface) !important;
+  box-shadow: none;
+  transform: none !important;
+}
+.theme-empresas .toon-card:hover { transform: translateY(-4px) !important; box-shadow: none; border-color: #5eead4; }
+.theme-empresas .toon-card h3,
+.theme-empresas .toon-card p,
+.theme-empresas .toon-card span { color: #f8fafc !important; }
+.theme-empresas .toon-card svg { color: #5eead4 !important; }
+.theme-empresas .empresas-problema__icon {
+  color: #bae6fd !important;
+  stroke: #bae6fd !important;
+}
+.theme-empresas .empresas-beneficio__icon {
+  border-color: #5eead4 !important;
+  background: #0c4a6e !important;
+  color: #bae6fd !important;
+}
+.theme-empresas .empresas-beneficio__icon svg {
+  color: #bae6fd !important;
+  stroke: #bae6fd !important;
+}
+.theme-empresas .font-handwritten { font-family: var(--font-display), sans-serif; }
+.theme-empresas .empresas-eyebrow { color: #5eead4; font: 600 0.75rem/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+.theme-empresas .empresas-button { display: inline-flex; align-items: center; gap: 8px; border-radius: 4px; padding: 12px 20px; font-weight: 700; transition: background .2s, color .2s, border-color .2s; }
+.theme-empresas .empresas-button--primary { background: #5eead4; color: #0f172a; }
+.theme-empresas .empresas-button--primary:hover { background: #38bdf8; }
+.theme-empresas .empresas-button--secondary { border: 1px solid rgba(148,163,184,.35); color: #f8fafc; }
+.theme-empresas .empresas-button--secondary:hover { border-color: #5eead4; color: #5eead4; }
+.theme-empresas .empresas-pipeline { display: grid; gap: 0; border: 1px solid rgba(148,163,184,.22); border-radius: 8px; background: var(--color-bg-elev); padding: 24px; }
+.theme-empresas .empresas-pipeline__stage { display: grid; grid-template-columns: 40px 1fr 20px; align-items: center; gap: 12px; border-bottom: 1px solid rgba(148,163,184,.18); padding: 20px 0; color: #f8fafc; font: 600 1.05rem var(--font-display); }
+.theme-empresas .empresas-pipeline__stage:last-of-type { border-bottom: 0; }
+.theme-empresas .empresas-pipeline__stage svg { color: #5eead4; }
+.theme-empresas .empresas-pipeline__number { color: #5eead4; font: 500 .75rem var(--font-mono); }
+.theme-empresas .empresas-pipeline__status { display: flex; align-items: center; gap: 8px; padding-top: 24px; color: #94a3b8; font-size: .875rem; }
+.theme-empresas .empresas-pipeline__status svg { color: #5eead4; }
+.theme-empresas .empresas-hero::before { position: absolute; inset: 0; background-image: linear-gradient(rgba(148,163,184,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.06) 1px, transparent 1px); background-size: 64px 64px; content: ""; pointer-events: none; }
+.theme-empresas .empresas-shell { z-index: 1; }
+.theme-empresas footer { border-color: rgba(148,163,184,.22); background: var(--color-bg) !important; color: #f8fafc; }
+.theme-empresas .footer--enterprise {
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  background: linear-gradient(180deg, #0f172a 0%, #07101e 100%) !important;
+  color: #f8fafc;
+}
+.theme-empresas .footer--enterprise__monogram { border: 0; box-shadow: none; }
+.theme-empresas .footer--enterprise [class*="text-[--color-ink]"] { color: #f8fafc; }
+.theme-empresas .footer--enterprise [class*="text-[--color-fg-muted]"] { color: #94a3b8; }
+.theme-empresas .footer--enterprise [class*="text-[--color-fg-subtle]"] { color: #64748b; }
+.theme-empresas .footer--enterprise a { color: #5eead4; }
+.theme-empresas .footer--enterprise a:hover { color: #2dd4bf; }
+.theme-empresas .toon-btn { border: 1px solid rgba(148,163,184,.35); border-radius: 4px; box-shadow: none; }
+.theme-empresas .toon-btn:hover { transform: translateY(-2px); box-shadow: none; }
+.theme-empresas .nav-shell {
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(7, 16, 30, 0.78);
+  color: #f8fafc;
+  backdrop-filter: blur(16px);
+}
+.theme-empresas .nav-shell--enterprise { box-shadow: none; }
+.theme-empresas .nav-shell a { color: #cbd5e1; }
+.theme-empresas .nav-shell a:hover { color: #f8fafc; }
+.theme-empresas .nav-active--enterprise { border: 1px solid rgba(94, 234, 212, 0.55); background: rgba(20, 184, 166, 0.14); }
+.theme-empresas .nav-cta--enterprise { border-radius: 8px; background: #14b8a6; color: #0f172a; padding: 8px 12px !important; font-size: .75rem !important; box-shadow: none; }
+.theme-empresas .nav-cta--enterprise:hover { background: #5eead4; color: #0f172a; }
+.theme-empresas .nav-shell .nav-control--enterprise,
+.theme-empresas .nav-shell .nav-menu__link--enterprise,
+.theme-empresas .nav-menu--enterprise .nav-control--enterprise,
+.theme-empresas .nav-menu--enterprise .nav-menu__link--enterprise { border: 1px solid rgba(148, 163, 184, 0.22); background: var(--color-surface); color: #f8fafc; box-shadow: none; }
+.theme-empresas .nav-shell .nav-control--enterprise:hover,
+.theme-empresas .nav-shell .nav-menu__link--enterprise:hover,
+.theme-empresas .nav-menu--enterprise .nav-control--enterprise:hover,
+.theme-empresas .nav-menu--enterprise .nav-menu__link--enterprise:hover { border-color: rgba(45, 212, 191, 0.7); background: var(--color-bg-elev); }
+.theme-empresas .nav-menu--enterprise { background: #07101e; color: #f8fafc; }
+.theme-empresas .nav-menu--enterprise .nav-menu__header { border-color: rgba(148, 163, 184, 0.22); }
+.theme-empresas .nav-menu--enterprise .nav-menu__link--enterprise { border-radius: 8px; }
+.theme-empresas .nav-menu--enterprise .nav-control--enterprise { border-color: rgba(148, 163, 184, 0.22); background: var(--color-surface); color: #f8fafc; box-shadow: none; }
+.sound-toggle--enterprise { border: 1px solid rgba(148, 163, 184, 0.28); background: #0D1A30; color: #F8FAFC; box-shadow: none; }
+.sound-toggle--enterprise:hover { border-color: rgba(45, 212, 191, 0.7); background: #111F35; }
+.theme-empresas ::selection { background: #2dd4bf; color: #f8fafc; }
+@media (max-width: 640px) { .theme-empresas .empresas-pipeline { padding: 16px; } .theme-empresas .empresas-pipeline__stage { padding: 16px 0; font-size: .95rem; } }
 
 /* Dark mode tokens — palette aligned with cooweb.co (base brand) */
 .theme-dark {
