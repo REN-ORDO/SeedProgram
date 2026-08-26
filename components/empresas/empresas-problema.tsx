@@ -38,11 +38,11 @@ const TEAL = "#27D3C3";
 const SKY  = "#58BFFF";
 
 const NODES = [
-  { id: "procesos",    title: "Procesos por optimizar",   desc: "Detectamos lo que hoy limita tu crecimiento.",  Icon: Search,     bg: "#DBEAFE" },
-  { id: "ideas",       title: "Ideas que no avanzan",      desc: "Proyectos que siempre quedan para después.",    Icon: Lightbulb,  bg: "#CCFBF1" },
-  { id: "talento",     title: "Talento con potencial",     desc: "Jóvenes acompañados por mentores Senior.",      Icon: Users,      bg: "#BAE6FD", featured: true },
-  { id: "resultados",  title: "Resultados reales",         desc: "Soluciones funcionales para tu negocio.",       Icon: Rocket,     bg: "#CCFBF1" },
-  { id: "impacto",     title: "Impacto que se multiplica", desc: "Tu empresa crece mientras formas talento.",     Icon: TrendingUp, bg: "#DBEAFE" },
+  { id: "procesos",    title: "Procesos por optimizar",   desc: "Detectamos lo que hoy limita tu crecimiento.",  Icon: Search,     bg: "var(--color-surface)" },
+  { id: "ideas",       title: "Ideas que no avanzan",      desc: "Proyectos que siempre quedan para después.",    Icon: Lightbulb,  bg: "var(--color-bg-elev)" },
+  { id: "talento",     title: "Talento con potencial",     desc: "Jóvenes acompañados por mentores Senior.",      Icon: Users,      bg: "var(--color-surface)", featured: true },
+  { id: "resultados",  title: "Resultados reales",         desc: "Soluciones funcionales para tu negocio.",       Icon: Rocket,     bg: "var(--color-bg-elev)" },
+  { id: "impacto",     title: "Impacto que se multiplica", desc: "Tu empresa crece mientras formas talento.",     Icon: TrendingUp, bg: "var(--color-surface)" },
 ];
 
 // SVG viewBox 0 0 800 90 — nodes at x = 0, 200, 400, 600, 800  y = 45
@@ -62,8 +62,9 @@ export function EmpresasProblema() {
 
   return (
     <section
+      id="problema"
       aria-label="El reto"
-      className="relative overflow-hidden px-5 py-16 md:px-10 md:py-28 toon-section toon-section--soft"
+      className="empresas-problema relative overflow-hidden px-5 py-16 md:px-10 md:py-28 toon-section toon-section--soft"
     >
       {/* Hoja izquierda grande — teal */}
       <Floater
@@ -242,7 +243,7 @@ export function EmpresasProblema() {
                         <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
                           <node.Icon
                             size={node.featured ? 34 : 28}
-                            color={NAVY}
+                            className="empresas-problema__icon"
                             strokeWidth={1.7}
                           />
                         </motion.div>
@@ -250,13 +251,13 @@ export function EmpresasProblema() {
 
                       <p
                         className="font-display font-bold text-sm leading-snug"
-                        style={{ color: NAVY, marginBottom: 5 }}
+                        style={{ color: "#F8FAFC", marginBottom: 5 }}
                       >
                         {node.title}
                       </p>
                       <p
                         className="px-1 text-xs leading-relaxed"
-                        style={{ color: "rgba(11,22,51,0.62)" }}
+                        style={{ color: "#94A3B8" }}
                       >
                         {node.desc}
                       </p>
@@ -360,18 +361,18 @@ export function EmpresasProblema() {
                   flexShrink: 0,
                 }}
               >
-                <node.Icon size={30} color={NAVY} strokeWidth={1.7} />
+                <node.Icon size={30} className="empresas-problema__icon" strokeWidth={1.7} />
               </motion.div>
 
               {/* Texto */}
               <div style={{ flex: 1, textAlign: node.side === "left" ? "left" : "right" }}>
                 <p
                   className="font-display font-bold"
-                  style={{ fontSize: 13, lineHeight: 1.25, color: NAVY, marginBottom: 5 }}
+                  style={{ fontSize: 13, lineHeight: 1.25, color: "#F8FAFC", marginBottom: 5 }}
                 >
                   {node.title}
                 </p>
-                <p style={{ fontSize: 11.5, lineHeight: 1.6, color: "rgba(11,22,51,0.62)" }}>
+                <p style={{ fontSize: 11.5, lineHeight: 1.6, color: "#94A3B8" }}>
                   {node.desc}
                 </p>
               </div>

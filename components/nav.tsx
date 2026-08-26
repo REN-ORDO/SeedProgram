@@ -9,6 +9,14 @@ import { MuteButton } from "@/components/mute-button";
 import { navItems } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
+const enterpriseNavItems = [
+  { index: "01", label: "Problema", href: "#problema" },
+  { index: "02", label: "Cómo funciona", href: "#modelo" },
+  { index: "03", label: "Soluciones", href: "#soluciones" },
+  { index: "04", label: "Célula", href: "#celula" },
+  { index: "05", label: "Beneficios", href: "#beneficios" },
+] as const;
+
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -17,10 +25,16 @@ export function Nav() {
   // En /empresas el enlace cruzado apunta al home (aspirantes); en el resto, a /empresas.
   const pathname = usePathname();
   const isEmpresas = pathname === "/empresas";
+  const currentNavItems = isEmpresas ? enterpriseNavItems : navItems;
   const crossLink = {
     href: isEmpresas ? "/" : "/empresas",
     label: isEmpresas ? "Para aspirantes" : "Para empresas",
     cursor: isEmpresas ? "Aspirantes" : "Empresas",
+  };
+  const cta = {
+    href: isEmpresas ? "#diagnostico" : "/postular",
+    label: isEmpresas ? "Diagnóstico" : "Postularme",
+    cursor: isEmpresas ? "Diagnóstico" : "Aplicar",
   };
 
   useEffect(() => {
@@ -39,12 +53,12 @@ export function Nav() {
       },
       { rootMargin: "-40% 0px -55% 0px", threshold: 0 }
     );
-    for (const item of navItems) {
+    for (const item of currentNavItems) {
       const el = document.querySelector(item.href);
       if (el) observer.observe(el);
     }
     return () => observer.disconnect();
-  }, []);
+  }, [currentNavItems]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -67,7 +81,8 @@ export function Nav() {
         <div className="mx-auto max-w-6xl px-4">
           <div
             className={cn(
-              "flex items-center justify-between rounded-full px-3 py-2 transition-all duration-300",
+              "nav-shell flex items-center justify-between px-3 py-2 transition-all duration-300",
+              isEmpresas && "nav-shell--enterprise",
               scrolled
                 ? "border-2 border-[--color-ink] bg-white shadow-[4px_4px_0_var(--color-ink)]"
                 : "border-2 border-transparent"
@@ -88,21 +103,24 @@ export function Nav() {
             </a>
 
             <nav className="hidden lg:flex items-center gap-1">
-              {navItems.map((item) => {
+              {currentNavItems.map((item) => {
                 const isActive = active === item.href;
                 return (
                   <a
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "group relative rounded-full px-3 py-1.5 text-sm font-semibold transition-colors",
+                      cn("group relative px-3 py-1.5 text-sm font-semibold transition-colors", isEmpresas ? "rounded-lg" : "rounded-full"),
                       isActive ? "text-[--color-ink]" : "text-[--color-fg-muted] hover:text-[--color-ink]"
                     )}
                   >
                     {isActive && (
                       <motion.span
                         layoutId="nav-active"
-                        className="absolute inset-0 rounded-full border-2 border-[--color-ink] bg-[var(--color-accent-soft)]"
+                        className={cn(
+                          cn("absolute inset-0 border-2 border-[--color-ink] bg-[var(--color-accent-soft)]", isEmpresas ? "rounded-md" : "rounded-full"),
+                          isEmpresas && "nav-active--enterprise"
+                        )}
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
                     )}
@@ -118,30 +136,33 @@ export function Nav() {
             <a
               href={crossLink.href}
               data-cursor={crossLink.cursor}
-              className="hidden lg:inline-flex items-center rounded-full px-3 py-1.5 text-sm font-semibold text-[--color-fg-muted] transition-colors hover:text-[--color-ink]"
+              className={cn("hidden lg:inline-flex items-center px-3 py-1.5 text-sm font-semibold text-[--color-fg-muted] transition-colors hover:text-[--color-ink]", isEmpresas ? "rounded-lg" : "rounded-full")}
             >
               {crossLink.label}
             </a>
 
             <a
-              href="/postular"
-              data-cursor="Aplicar"
-              className="hidden lg:inline-flex toon-btn"
+              href={cta.href}
+              data-cursor={cta.cursor}
+              className={cn("hidden lg:inline-flex toon-btn", isEmpresas && "nav-cta--enterprise")}
               style={{ padding: "8px 18px", fontSize: 14 }}
             >
-              Postularme
+              {cta.label}
               <span className="text-base">→</span>
             </a>
 
             <div className="flex items-center gap-2">
-              <MuteButton />
+              <MuteButton className={isEmpresas ? "nav-control--enterprise" : undefined} />
 
               <button
                 type="button"
                 aria-label="Abrir menú"
                 aria-expanded={open}
                 onClick={() => setOpen(true)}
-                className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[3px_3px_0_var(--color-ink)]"
+                className={cn(
+                  "lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[3px_3px_0_var(--color-ink)]",
+                  isEmpresas && "nav-control--enterprise"
+                )}
               >
                 <Menu size={18} />
               </button>
@@ -156,27 +177,30 @@ export function Nav() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-[var(--color-bg)] lg:hidden"
+            className={cn("fixed inset-0 z-[60] bg-[var(--color-bg)] lg:hidden", isEmpresas && "nav-menu--enterprise")}
           >
-            <div className="flex items-center justify-between border-b-2 border-[--color-ink] p-6">
+            <div className="nav-menu__header flex items-center justify-between border-b-2 border-[--color-ink] p-6">
               <div className="flex items-center gap-2.5">
                 <Monogram size={36} />
                 <span className="font-display text-lg font-bold text-[--color-ink]">CooWeb</span>
               </div>
               <div className="flex items-center gap-2">
-                <MuteButton />
+                <MuteButton className={isEmpresas ? "nav-control--enterprise" : undefined} />
                 <button
                   type="button"
                   aria-label="Cerrar menú"
                   onClick={() => setOpen(false)}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[3px_3px_0_var(--color-ink)]"
+                  className={cn(
+                    "inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[3px_3px_0_var(--color-ink)]",
+                    isEmpresas && "nav-control--enterprise"
+                  )}
                 >
                   <X size={18} />
                 </button>
               </div>
             </div>
             <nav className="flex flex-col gap-3 p-6 pt-8">
-              {navItems.map((item, i) => (
+              {currentNavItems.map((item, i) => (
                 <motion.a
                   key={item.href}
                   href={item.href}
@@ -184,7 +208,10 @@ export function Nav() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 + i * 0.06, duration: 0.4 }}
-                  className="group flex items-baseline justify-between rounded-2xl border-2 border-[--color-ink] bg-white px-5 py-4 shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5 hover:bg-[var(--color-accent-soft)]"
+                  className={cn(
+                    "nav-menu__link group flex items-baseline justify-between rounded-2xl border-2 border-[--color-ink] bg-white px-5 py-4 shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5 hover:bg-[var(--color-accent-soft)]",
+                    isEmpresas && "nav-menu__link--enterprise"
+                  )}
                 >
                   <span className="flex items-baseline gap-3">
                     <span className="font-mono text-xs text-[--color-fg-subtle]">{item.index}</span>
@@ -198,7 +225,10 @@ export function Nav() {
               <a
                 href={crossLink.href}
                 onClick={() => setOpen(false)}
-                className="group mt-4 flex items-baseline justify-between rounded-2xl border-2 border-[--color-ink] bg-white px-5 py-4 shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5 hover:bg-[var(--color-accent-soft)]"
+                className={cn(
+                  "nav-menu__link group mt-4 flex items-baseline justify-between rounded-2xl border-2 border-[--color-ink] bg-white px-5 py-4 shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5 hover:bg-[var(--color-accent-soft)]",
+                  isEmpresas && "nav-menu__link--enterprise"
+                )}
               >
                 <span className="font-display text-2xl font-bold text-[--color-ink]">
                   {crossLink.label}
@@ -208,11 +238,11 @@ export function Nav() {
                 </span>
               </a>
               <a
-                href="/postular"
+                href={cta.href}
                 onClick={() => setOpen(false)}
-                className="toon-btn mt-2 justify-center"
+                className={cn("toon-btn mt-2 justify-center", isEmpresas && "nav-cta--enterprise")}
               >
-                Postularme →
+                {cta.label} →
               </a>
             </nav>
           </motion.div>

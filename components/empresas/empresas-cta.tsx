@@ -74,7 +74,7 @@ export function EmpresasCTA() {
         position: "relative",
         overflow: "hidden",
         minHeight: 880,
-        background: "#000A1E",
+         background: "#0f172a",
       }}
     >
       {/* ── Capa 0: noise texture ─────────────────────────────────── */}
@@ -311,7 +311,7 @@ export function EmpresasCTA() {
                 style={{
                   background: "#2DD4BF",
                   color: "#000A1E",
-                  boxShadow: "4px 4px 0px #0C4A6E",
+                  boxShadow: "0 12px 32px rgba(7, 16, 30, 0.35)",
                 }}
               >
                 {empresaCTA.cta}

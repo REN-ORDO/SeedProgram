@@ -11,12 +11,13 @@ const iconMap = {
   support: Wrench,
 };
 
-const cardBgs = ["#BAE6FD", "#7DD3FC", "#38BDF8", "#0EA5E9"];
+const cardBgs = ["var(--color-surface)", "var(--color-bg-elev)", "var(--color-surface)", "var(--color-bg-elev)"];
 const cardRotates = [-1, 1.2, -1.2, 1];
 
 export function EmpresasAreas() {
   return (
     <section
+      id="soluciones"
       aria-label="Qué resolvemos"
       className="relative px-5 py-16 md:px-10 md:py-32 toon-section toon-section--soft"
     >

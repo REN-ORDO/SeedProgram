@@ -5,7 +5,7 @@ import { ChevronDown, ArrowRight, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Reveal } from "@/components/reveal";
 
-const cardBgs = ["#E0F2FE", "#F0F9FF", "#BAE6FD", "#E0F2FE", "#F0F9FF", "#BAE6FD", "#E0F2FE", "#F0F9FF"];
+const cardBgs = ["var(--color-surface)", "var(--color-bg-elev)"];
 
 const faqs = [
   {
@@ -65,7 +65,14 @@ function AccordionCard({
   return (
     <div
       onClick={onToggle}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onToggle();
+        }
+      }}
       role="button"
+      tabIndex={0}
       aria-expanded={open}
       className="toon-card cursor-pointer p-4"
       style={{
@@ -118,7 +125,7 @@ export function EmpresasFAQ() {
         position: "relative",
         overflow: "hidden",
         background: "var(--color-bg)",
-        borderTop: "1px solid #E4E8EE",
+         borderTop: "1px solid rgba(148, 163, 184, 0.22)",
       }}
       className="py-16 md:py-20"
     >
@@ -186,7 +193,7 @@ export function EmpresasFAQ() {
           <Reveal delay={0.16} className="shrink-0 self-start md:w-60 md:self-center lg:w-64">
             <div
               className="toon-card p-6"
-              style={{ background: "#BAE6FD", color: "var(--color-ink)", transform: "rotate(1deg)" }}
+              style={{ background: "var(--color-surface)", color: "var(--color-fg)", transform: "rotate(1deg)" }}
             >
               <span
                 className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-[--color-ink] shadow-[3px_3px_0_var(--color-ink)]"
