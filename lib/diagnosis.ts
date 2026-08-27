@@ -7,11 +7,16 @@
  */
 
 export type SolutionOption = {
+  paquete?: PackageName;
   titulo: string;
   descripcion: string;
   entregable: string;
-  duracion_semanas: number;
+  /** @deprecated Accepted only to read historical Firestore records. */
+  duracion_semanas?: number;
 };
+
+export const PACKAGE_NAMES = ["Chispa", "Impulso", "Celda", "Cantera"] as const;
+export type PackageName = (typeof PACKAGE_NAMES)[number];
 
 export type Diagnosis = {
   resumen: string;
@@ -90,12 +95,25 @@ function isSolutionOption(v: unknown): v is SolutionOption {
     o.descripcion.trim().length > 0 &&
     typeof o.entregable === "string" &&
     o.entregable.trim().length > 0 &&
-    typeof o.duracion_semanas === "number" &&
-    Number.isFinite(o.duracion_semanas) &&
-    Number.isInteger(o.duracion_semanas) &&
-    o.duracion_semanas >= 4 &&
-    o.duracion_semanas <= 16
+    ((typeof o.paquete === "string" &&
+      (PACKAGE_NAMES as readonly string[]).includes(o.paquete)) ||
+      (typeof o.duracion_semanas === "number" &&
+        Number.isFinite(o.duracion_semanas) &&
+        Number.isInteger(o.duracion_semanas) &&
+        o.duracion_semanas >= 4 &&
+        o.duracion_semanas <= 16))
   );
+}
+
+export function normalizeDiagnosis(v: unknown): Diagnosis | null {
+  if (!isDiagnosis(v)) return null;
+  return {
+    resumen: v.resumen,
+    opciones: v.opciones.map((option) => ({
+      ...option,
+      paquete: option.paquete ?? "Impulso",
+    })),
+  };
 }
 
 /**
@@ -127,21 +145,21 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
       descripcion:
         "Un semillero recopila tus preguntas repetidas y arma un asistente que responde con la información real de tu negocio, conectado al canal que ya usas.",
       entregable: "Asistente funcional en tu canal de atención, con panel para actualizar respuestas.",
-      duracion_semanas: 6,
+      paquete: "Chispa",
     },
     {
       titulo: "Tablero de conversaciones",
       descripcion:
         "Centralizamos lo que llega por distintos canales en un solo tablero, con etiquetas y prioridades, para que tu equipo deje de saltar entre apps.",
       entregable: "Tablero web con bandeja unificada y reporte semanal de volumen.",
-      duracion_semanas: 8,
+      paquete: "Impulso",
     },
     {
       titulo: "Mapa del recorrido de soporte",
       descripcion:
         "Antes de automatizar, medimos: dónde se traba tu atención, qué toma más tiempo y qué se puede resolver solo. Termina en un plan priorizado.",
       entregable: "Diagnóstico documentado con métricas y roadmap de automatización.",
-      duracion_semanas: 4,
+      paquete: "Celda",
     },
   ],
   operaciones: [
@@ -150,21 +168,21 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
       descripcion:
         "Elegimos el proceso manual que más horas te consume y lo automatizamos punta a punta, conectando las herramientas que ya usas.",
       entregable: "Flujo automatizado en producción con documentación de uso.",
-      duracion_semanas: 6,
+      paquete: "Chispa",
     },
     {
       titulo: "Herramienta interna a medida",
       descripcion:
         "Reemplazamos ese archivo compartido que todos editan por una herramienta web con roles, historial y validaciones.",
       entregable: "Aplicación interna desplegada, con manual y capacitación al equipo.",
-      duracion_semanas: 10,
+      paquete: "Impulso",
     },
     {
       titulo: "Mapa de procesos y plan de mejora",
       descripcion:
         "Levantamos cómo trabaja hoy tu equipo, detectamos los cuellos de botella y priorizamos qué conviene atacar primero.",
       entregable: "Mapa de procesos documentado y plan priorizado de automatización.",
-      duracion_semanas: 4,
+      paquete: "Celda",
     },
   ],
   datos: [
@@ -173,21 +191,21 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
       descripcion:
         "Conectamos tus fuentes de datos actuales y armamos un tablero que se actualiza solo, con los indicadores que de verdad usas para decidir.",
       entregable: "Tablero web con datos en vivo y definición escrita de cada indicador.",
-      duracion_semanas: 8,
+      paquete: "Chispa",
     },
     {
       titulo: "Reportes automáticos",
       descripcion:
         "Ese reporte que alguien arma a mano cada semana pasa a generarse y enviarse solo, siempre con el mismo formato.",
       entregable: "Reporte programado con envío automático y plantilla versionada.",
-      duracion_semanas: 6,
+      paquete: "Impulso",
     },
     {
       titulo: "Ordenar la casa de los datos",
       descripcion:
         "Revisamos de dónde salen tus datos, limpiamos duplicados e inconsistencias y dejamos una base confiable para construir encima.",
       entregable: "Base de datos consolidada y documentación de fuentes.",
-      duracion_semanas: 8,
+      paquete: "Celda",
     },
   ],
   marketing: [
@@ -196,21 +214,21 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
       descripcion:
         "Diseñamos y construimos una página enfocada en una sola acción, con analítica configurada desde el día uno para saber qué funciona.",
       entregable: "Landing publicada, responsive, con métricas de conversión activas.",
-      duracion_semanas: 5,
+      paquete: "Chispa",
     },
     {
       titulo: "Automatización del seguimiento comercial",
       descripcion:
         "Conectamos tus formularios con tu CRM y armamos el seguimiento automático, para que ningún prospecto se enfríe por olvido.",
       entregable: "Flujo de captación y seguimiento integrado, con tablero de estados.",
-      duracion_semanas: 6,
+      paquete: "Impulso",
     },
     {
       titulo: "Auditoría digital y plan",
       descripcion:
         "Revisamos tu presencia actual — sitio, velocidad, analítica, contenidos — y armamos un plan priorizado por impacto.",
       entregable: "Informe de auditoría con plan de acción priorizado.",
-      duracion_semanas: 4,
+      paquete: "Celda",
     },
   ],
   otro: [
@@ -219,21 +237,21 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
       descripcion:
         "Construimos una versión mínima y funcional de lo que tienes en mente, suficiente para ponerla frente a usuarios reales y aprender.",
       entregable: "Prototipo navegable desplegado y documento de aprendizajes.",
-      duracion_semanas: 6,
+      paquete: "Chispa",
     },
     {
       titulo: "Descubrimiento técnico",
       descripcion:
         "Una dupla junior + mentor Senior levanta tu situación actual, define el alcance real del reto y propone por dónde empezar.",
       entregable: "Documento de alcance con opciones técnicas y esfuerzo estimado.",
-      duracion_semanas: 4,
+      paquete: "Impulso",
     },
     {
       titulo: "Célula de desarrollo dedicada",
       descripcion:
         "Un joven talento acompañado por un mentor Senior trabaja tu reto en ciclos cortos, con entregas revisables cada semana.",
       entregable: "Entregas semanales funcionales y traspaso documentado al cierre.",
-      duracion_semanas: 12,
+      paquete: "Cantera",
     },
   ],
 };

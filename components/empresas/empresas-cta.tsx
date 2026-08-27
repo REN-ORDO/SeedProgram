@@ -74,7 +74,7 @@ export function EmpresasCTA() {
         position: "relative",
         overflow: "hidden",
         minHeight: 880,
-         background: "#0f172a",
+         background: "#F8FAFC",
       }}
     >
       {/* ── Capa 0: noise texture ─────────────────────────────────── */}
@@ -93,7 +93,7 @@ export function EmpresasCTA() {
       </svg>
 
       {/* ── Capa 1: glow ambiental teal+sky ──────────────────────── */}
-      <div
+           <div
         aria-hidden
         style={{
           position: "absolute",
@@ -150,14 +150,14 @@ export function EmpresasCTA() {
             position: "absolute",
             inset: 0,
             background:
-              "radial-gradient(ellipse 60% 70% at 50% 38%, transparent 30%, rgba(0,10,30,0.48) 68%, rgba(0,10,30,0.76) 100%)",
+               "radial-gradient(ellipse 60% 70% at 50% 38%, transparent 30%, rgba(15,23,42,0.10) 68%, rgba(15,23,42,0.18) 100%)",
           }}
         />
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: "rgba(0,10,30,0.28)",
+              background: "rgba(248,250,252,0.58)",
           }}
         />
       </div>
@@ -270,11 +270,11 @@ export function EmpresasCTA() {
       {/* ── Contenido centrado ────────────────────────────────────── */}
       <div
         style={{ position: "relative", zIndex: 4 }}
-        className="mx-auto flex max-w-3xl flex-col items-center px-6 pt-24 pb-10 text-center md:pt-32 md:pb-12"
+        className="mx-auto flex max-w-3xl flex-col items-center rounded-2xl border border-[rgba(15,23,42,0.10)] bg-[rgba(248,250,252,0.88)] px-6 pt-24 pb-10 text-center shadow-[0_16px_48px_rgba(15,23,42,0.10)] md:pt-32 md:pb-12"
       >
         {/* Badge */}
         <Reveal className="mb-7">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/6 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/55">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(15,23,42,0.10)] bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#475569]">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inset-0 animate-ping rounded-full bg-[#2DD4BF] opacity-70" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#2DD4BF]" />
@@ -286,7 +286,7 @@ export function EmpresasCTA() {
         {/* Headline */}
         <Reveal delay={0.08}>
           <h2
-            className="text-balance font-display font-bold leading-[1.06] tracking-tight text-white"
+            className="text-balance font-display font-bold leading-[1.06] tracking-tight text-[#0C4A6E]"
             style={{ fontSize: "clamp(2.1rem, 5vw, 3.6rem)" }}
           >
             {empresaCTA.title}
@@ -295,7 +295,7 @@ export function EmpresasCTA() {
 
         {/* Body */}
         <Reveal delay={0.16}>
-          <p className="mx-auto mt-6 max-w-xl text-base text-white/70 md:text-lg">
+          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#475569] md:text-lg">
             {empresaCTA.body}
           </p>
         </Reveal>
@@ -309,9 +309,9 @@ export function EmpresasCTA() {
                 data-cursor="Diagnóstico"
                 className="inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold transition-transform hover:scale-[1.03]"
                 style={{
-                  background: "#2DD4BF",
-                  color: "#000A1E",
-                  boxShadow: "0 12px 32px rgba(7, 16, 30, 0.35)",
+                  background: "#0D9488",
+                  color: "#FFFFFF",
+                  boxShadow: "0 12px 32px rgba(15, 23, 42, 0.18)",
                 }}
               >
                 {empresaCTA.cta}

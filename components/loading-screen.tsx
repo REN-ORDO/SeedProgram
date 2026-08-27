@@ -107,10 +107,10 @@ export function LoadingScreen() {
           >
             <Monogram size={48} />
             <div className="flex flex-col leading-none">
-              <span className={`font-display text-2xl font-bold ${isEnterprise ? "text-[#F8FAFC]" : "text-[--color-ink]"}`}>
+              <span className={`font-display text-2xl font-bold ${isEnterprise ? "text-[#0C4A6E]" : "text-[--color-ink]"}`}>
                 CooWeb
               </span>
-              <span className={`mt-1 text-[10px] uppercase tracking-[0.3em] ${isEnterprise ? "text-[#94A3B8]" : "text-[--color-fg-subtle]"}`}>
+              <span className={`mt-1 text-[10px] uppercase tracking-[0.3em] ${isEnterprise ? "text-[#64748B]" : "text-[--color-fg-subtle]"}`}>
                 Programa Semilla
               </span>
             </div>
@@ -125,7 +125,7 @@ export function LoadingScreen() {
             {[0, 1, 2].map((i) => (
               <motion.span
                 key={i}
-                className={`h-2.5 w-2.5 rounded-full border-2 ${isEnterprise ? "border-[#F8FAFC]" : "border-[--color-ink]"}`}
+                className={`h-2.5 w-2.5 rounded-full border-2 ${isEnterprise ? "border-[#0F172A]" : "border-[--color-ink]"}`}
                 style={{ background: "var(--color-accent)" }}
                 animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
                 transition={{

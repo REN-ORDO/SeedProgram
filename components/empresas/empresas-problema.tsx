@@ -33,9 +33,9 @@ function Floater({
   );
 }
 
-const NAVY = "#0B1633";
-const TEAL = "#27D3C3";
-const SKY  = "#58BFFF";
+const NAVY = "#0F172A";
+const TEAL = "#0D9488";
+const SKY  = "#0369A1";
 
 const NODES = [
   { id: "procesos",    title: "Procesos por optimizar",   desc: "Detectamos lo que hoy limita tu crecimiento.",  Icon: Search,     bg: "var(--color-surface)" },
@@ -129,27 +129,9 @@ export function EmpresasProblema() {
       <div className="mx-auto max-w-6xl">
 
         {/* ── Header ── */}
-        <div className="mx-auto mb-14 max-w-3xl text-center">
-          <Reveal>
-            <h2 className="text-balance font-display text-3xl font-bold leading-tight tracking-tight text-[--color-ink] md:text-5xl">
-              Esa tarea que llevas meses{" "}
-              <span
-                className="font-handwritten"
-                style={{
-                  color: SKY,
-                  fontWeight: 700,
-                  fontSize: "1.12em",
-                  display: "inline-block",
-                  transform: "rotate(-1.5deg)",
-                }}
-              >
-                posponiendo
-              </span>
-              .
-            </h2>
-          </Reveal>
-          <Reveal delay={0.12}>
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-[--color-fg-muted] md:text-lg">
+        <div className="mx-auto mb-12 max-w-3xl text-center">
+          <Reveal delay={0.05}>
+            <p className="mx-auto max-w-2xl text-base leading-relaxed text-[--color-fg-muted] md:text-lg">
               {empresaProblema.body}
             </p>
           </Reveal>
@@ -251,13 +233,13 @@ export function EmpresasProblema() {
 
                       <p
                         className="font-display font-bold text-sm leading-snug"
-                        style={{ color: "#F8FAFC", marginBottom: 5 }}
+                         style={{ color: "#0F172A", marginBottom: 5 }}
                       >
                         {node.title}
                       </p>
                       <p
                         className="px-1 text-xs leading-relaxed"
-                        style={{ color: "#94A3B8" }}
+                         style={{ color: "#475569" }}
                       >
                         {node.desc}
                       </p>
@@ -368,11 +350,11 @@ export function EmpresasProblema() {
               <div style={{ flex: 1, textAlign: node.side === "left" ? "left" : "right" }}>
                 <p
                   className="font-display font-bold"
-                  style={{ fontSize: 13, lineHeight: 1.25, color: "#F8FAFC", marginBottom: 5 }}
+                  style={{ fontSize: 13, lineHeight: 1.25, color: "#0F172A", marginBottom: 5 }}
                 >
                   {node.title}
                 </p>
-                <p style={{ fontSize: 11.5, lineHeight: 1.6, color: "#94A3B8" }}>
+                <p style={{ fontSize: 11.5, lineHeight: 1.6, color: "#475569" }}>
                   {node.desc}
                 </p>
               </div>

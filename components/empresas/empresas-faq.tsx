@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ArrowRight, Mail } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Reveal } from "@/components/reveal";
 
 const cardBgs = ["var(--color-surface)", "var(--color-bg-elev)"];
@@ -74,7 +74,7 @@ function AccordionCard({
       role="button"
       tabIndex={0}
       aria-expanded={open}
-      className="toon-card cursor-pointer p-4"
+      className="toon-card cursor-pointer p-6"
       style={{
         background: cardBgs[index % cardBgs.length],
         transform: `rotate(${rotate}deg)`,
@@ -82,7 +82,7 @@ function AccordionCard({
       }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.45, color: "var(--color-ink)" }}>
+        <span style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.5, color: "var(--color-ink)" }}>
           {faq.q}
         </span>
         <motion.div
@@ -104,7 +104,7 @@ function AccordionCard({
             transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
             style={{ overflow: "hidden" }}
           >
-            <p style={{ paddingTop: 10, fontSize: 13, lineHeight: 1.65, color: "var(--color-ink)" }}>
+            <p style={{ paddingTop: 16, fontSize: 16, lineHeight: 1.7, color: "var(--color-fg-muted)" }}>
               {faq.a}
             </p>
           </motion.div>
@@ -116,6 +116,7 @@ function AccordionCard({
 
 export function EmpresasFAQ() {
   const [openId, setOpenId] = useState<number | null>(null);
+  const reduce = useReducedMotion();
   const toggle = (id: number) => setOpenId((prev) => (prev === id ? null : id));
 
   return (
@@ -133,7 +134,7 @@ export function EmpresasFAQ() {
       <motion.div
         aria-hidden
         style={{ position: "absolute", top: 32, left: -20, width: 80, height: 80, opacity: 0.06, pointerEvents: "none" }}
-        animate={{ y: [-8, 8, -8], rotate: [-5, 5, -5] }}
+        animate={reduce ? undefined : { y: [-8, 8, -8], rotate: [-5, 5, -5] }}
         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
       >
         <svg viewBox="0 0 64 64" width="100%" height="100%" style={{ transform: "rotate(-22deg)" }}>
@@ -143,7 +144,7 @@ export function EmpresasFAQ() {
       <motion.div
         aria-hidden
         style={{ position: "absolute", bottom: 40, right: -16, width: 68, height: 68, opacity: 0.05, pointerEvents: "none", filter: "blur(1.5px)" }}
-        animate={{ y: [6, -6, 6], rotate: [7, -7, 7] }}
+        animate={reduce ? undefined : { y: [6, -6, 6], rotate: [7, -7, 7] }}
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
       >
         <svg viewBox="0 0 64 64" width="100%" height="100%" style={{ transform: "rotate(38deg)" }}>
@@ -169,7 +170,7 @@ export function EmpresasFAQ() {
                 tus dudas
               </span>
             </h2>
-            <p style={{ marginTop: 20, fontSize: 13, lineHeight: 1.7, color: "var(--color-ink)" }}>
+            <p style={{ marginTop: 20, fontSize: 16, lineHeight: 1.7, color: "var(--color-fg-muted)" }}>
               Todo lo que necesitas saber antes de vincular tu empresa al Programa SEMILLA.
             </p>
           </Reveal>
@@ -206,7 +207,7 @@ export function EmpresasFAQ() {
                 ¿Tienes más preguntas?
               </h3>
 
-              <p style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(15,23,42,0.75)", marginBottom: 24 }}>
+              <p style={{ fontSize: 16, lineHeight: 1.7, color: "var(--color-fg-muted)", marginBottom: 24 }}>
                 Agenda un diagnóstico gratuito de 15 minutos con nuestro equipo.
               </p>
 

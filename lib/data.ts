@@ -531,7 +531,7 @@ export const empresaHero = {
   highlight: "frenando",
   subtitle:
     "CooWeb diagnostica y resuelve los cuellos de botella de tus procesos y operaciones digitales con una célula de desarrollo acompañada por talento Senior.",
-  ctaPrimary: "Solicitar diagnóstico gratuito",
+  ctaPrimary: "Solicitar diagnóstico",
   ctaSecondary: "Ver cómo funciona",
 };
 
@@ -550,12 +550,12 @@ export const empresaPasos: EmpresaPaso[] = [
   {
     num: "01",
     title: "Postulas tu “dolor” técnico",
-    desc: "Nos cuentas qué proceso quieres automatizar, qué landing necesitas lanzar o qué problema digital quieres solucionar.",
+  desc: "Nos cuentas qué proceso quieres mejorar, qué necesitas construir o qué problema digital quieres conversar.",
   },
   {
     num: "02",
     title: "Evaluamos la viabilidad",
-    desc: "Nuestro equipo Senior analiza tu caso para asegurar que el reto sea compatible con las habilidades de los estudiantes en etapa práctica.",
+  desc: "Revisamos tu contexto y conversamos sobre la oportunidad, el alcance y la forma más útil de abordarla.",
   },
   {
     num: "03",
@@ -593,6 +593,60 @@ export const empresaAreas: EmpresaArea[] = [
   },
 ];
 
+export type EmpresaPaquete = {
+  name: "Chispa" | "Impulso" | "Celda" | "Cantera";
+  positioning: string;
+  includes: string[];
+  solutionType: string;
+};
+
+export const empresaPaquetes: EmpresaPaquete[] = [
+  {
+    name: "Chispa",
+    positioning: "Para convertir una necesidad puntual en una primera dirección.",
+    includes: ["Lectura inicial del reto", "Mapa de oportunidades", "Recomendación de siguiente paso"],
+    solutionType: "Exploración y diagnóstico",
+  },
+  {
+    name: "Impulso",
+    positioning: "Para destrabar una mejora concreta dentro de tu operación.",
+    includes: ["Priorización del problema", "Diseño de una solución enfocada", "Acompañamiento Senior"],
+    solutionType: "Optimización de procesos",
+  },
+  {
+    name: "Celda",
+    positioning: "Para construir y validar una solución digital con un equipo dedicado.",
+    includes: ["Joven Talento en ejecución", "Mentor Senior como garante", "Entregable funcional y documentado"],
+    solutionType: "Desarrollo de producto",
+  },
+  {
+    name: "Cantera",
+    positioning: "Para conectar retos reales con una estrategia de talento sostenible.",
+    includes: ["Ruta de colaboración a medida", "Visibilidad sobre nuevas capacidades", "Conversación estratégica con CooWeb"],
+    solutionType: "Talento y capacidad digital",
+  },
+];
+
+export type EmpresaCaso = {
+  sector: string;
+  label: "Ejemplo interno" | "Ejemplo externo";
+  desc: string;
+};
+
+// Collection prepared for verified cases; no company names or unsupported claims.
+export const empresaCasos: EmpresaCaso[] = [
+  {
+    sector: "Operaciones",
+    label: "Ejemplo interno",
+    desc: "Proyectos de CooWeb que ordenan procesos y convierten tareas repetitivas en oportunidades de mejora.",
+  },
+  {
+    sector: "Presencia digital",
+    label: "Ejemplo externo",
+    desc: "Casos de colaboración con organizaciones que buscan validar una experiencia digital antes de escalarla.",
+  },
+];
+
 export type EmpresaBeneficio = {
   title: string;
   desc: string;
@@ -601,8 +655,8 @@ export type EmpresaBeneficio = {
 
 export const empresaBeneficios: EmpresaBeneficio[] = [
   {
-    title: "Resuelves a fracción del costo",
-    desc: "Solucionas un problema interno real con acompañamiento Senior, muy por debajo del costo de mercado.",
+  title: "Conviertes un problema en una oportunidad",
+  desc: "Ordenas una necesidad real y encuentras una ruta de trabajo acompañada por talento en formación y mentoría Senior.",
     icon: "cost",
   },
   {
@@ -611,8 +665,8 @@ export const empresaBeneficios: EmpresaBeneficio[] = [
     icon: "talent",
   },
   {
-    title: "Contratas sin costo de reclutamiento",
-    desc: "Si el joven hace “match” con tu cultura, puedes contratarlo directamente al finalizar el programa.",
+  title: "Conoces nuevas capacidades",
+  desc: "La colaboración puede abrir conversaciones futuras sobre talento y capacidades, sin prometer una contratación.",
     icon: "hire",
   },
 ];
@@ -634,9 +688,9 @@ export const empresaCelula = {
 
 export const empresaCTA = {
   title: "¿Quieres vincular a tu empresa?",
-  body: "Los cupos de patrocinio por ciclo son limitados para garantizar el acompañamiento Senior de cada proyecto. Agenda una sesión de diagnóstico de 15 minutos (sin costo) para evaluar tu reto técnico y conocer los planes de patrocinio disponibles.",
-  cta: "Solicitar diagnóstico gratuito",
-  note: "Cupos limitados por ciclo",
+  body: "Cuéntanos qué quieres mejorar. Comenzamos con un diagnóstico, seguimos con una conversación y, si tiene sentido, construimos una propuesta personalizada.",
+  cta: "Hablemos de tu reto",
+  note: "Contacto para empresas",
 };
 
 // ============================================================
@@ -645,7 +699,7 @@ export const empresaCTA = {
 
 export const diagnosisCopy = {
   title: "Esto es lo que vemos",
-  desc: "Leímos tu reto y armamos tres rutas posibles. Elige la que más te suene.",
+  desc: "Leímos tu reto y armamos tres rutas posibles con un paquete recomendado. Elige la que mejor abra la conversación.",
   loading: "Estamos leyendo tu reto…",
   respaldo:
     "Esta es una primera lectura hecha con IA. Un mentor Senior de CooWeb la revisa y acompaña todo el proceso, de principio a fin.",

@@ -14,18 +14,18 @@ export function EmpresasCelula() {
     >
       <div className="mx-auto max-w-5xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[#7dd3fc]">
-          <span className="font-bold text-white">03</span>
-          <span className="h-[2px] w-12 bg-white" />
+          <span className="font-bold text-[#0F172A]">04</span>
+          <span className="h-[2px] w-12 bg-[#0F172A]" />
           <span>El equipo asignado</span>
         </Reveal>
 
         <Reveal delay={0.05}>
-          <h2 className="max-w-3xl text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-white md:text-5xl">
+          <h2 className="max-w-3xl text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-[#0C4A6E] md:text-5xl">
             {title}
           </h2>
         </Reveal>
         <Reveal delay={0.12}>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#bae6fd] md:text-lg">
+          <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#475569] md:text-lg">
             {desc}
           </p>
         </Reveal>
@@ -84,13 +84,13 @@ function DuplaCard({
       <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-elev)] text-[#f8fafc]">
         <Icon size={22} />
       </span>
-      <h3 className="mt-5 font-display text-2xl font-bold leading-tight text-[#f8fafc]">
+      <h3 className="mt-5 font-display text-2xl font-bold leading-tight text-[#0F172A]">
         {label}
       </h3>
       <p className="mt-1 font-mono text-xs uppercase tracking-wider text-[var(--color-fg-muted)]">
         {role}
       </p>
-      <p className="mt-3 text-sm leading-relaxed text-[var(--color-fg-muted)]">{desc}</p>
+       <p className="mt-3 text-base leading-relaxed text-[var(--color-fg-muted)]">{desc}</p>
     </article>
   );
 }

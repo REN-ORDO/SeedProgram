@@ -11,7 +11,7 @@
 
 import type { ChangeEventHandler } from "react";
 import { motion } from "framer-motion";
-import { Clock, Package, ShieldCheck, RefreshCw, Loader2 } from "lucide-react";
+import { Package, ShieldCheck, RefreshCw, Loader2 } from "lucide-react";
 import { diagnosisCopy } from "@/lib/data";
 import type { Diagnosis, DiagnosisSource } from "@/lib/diagnosis";
 
@@ -142,14 +142,11 @@ export function DiagnosisPanel({
                 {op.descripcion}
               </span>
               <span className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] font-medium text-[var(--color-ink)]">
-                <span className="inline-flex items-center gap-1.5">
-                  <Package size={13} className="flex-shrink-0" />
-                  {op.entregable}
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Clock size={13} className="flex-shrink-0" />
-                  {op.duracion_semanas} semanas
-                </span>
+                 <span className="inline-flex items-center gap-1.5">
+                   <Package size={13} className="flex-shrink-0" />
+                   Paquete recomendado: {op.paquete ?? "Impulso"}
+                 </span>
+                 <span className="block basis-full">{op.entregable}</span>
               </span>
             </span>
           </label>
