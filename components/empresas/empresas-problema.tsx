@@ -129,27 +129,9 @@ export function EmpresasProblema() {
       <div className="mx-auto max-w-6xl">
 
         {/* ── Header ── */}
-        <div className="mx-auto mb-14 max-w-3xl text-center">
-          <Reveal>
-            <h2 className="text-balance font-display text-3xl font-bold leading-tight tracking-tight text-[--color-ink] md:text-5xl">
-              Esa tarea que llevas meses{" "}
-              <span
-                className="font-handwritten"
-                style={{
-                  color: SKY,
-                  fontWeight: 700,
-                  fontSize: "1.12em",
-                  display: "inline-block",
-                  transform: "rotate(-1.5deg)",
-                }}
-              >
-                posponiendo
-              </span>
-              .
-            </h2>
-          </Reveal>
-          <Reveal delay={0.12}>
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-[--color-fg-muted] md:text-lg">
+        <div className="mx-auto mb-12 max-w-3xl text-center">
+          <Reveal delay={0.05}>
+            <p className="mx-auto max-w-2xl text-base leading-relaxed text-[--color-fg-muted] md:text-lg">
               {empresaProblema.body}
             </p>
           </Reveal>

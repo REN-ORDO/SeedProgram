@@ -1,4 +1,3 @@
-import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { LoadingScreen } from "@/components/loading-screen";
 import { EmpresasHero } from "@/components/empresas/empresas-hero";
@@ -15,7 +14,6 @@ export default function EmpresasPage() {
   return (
     <div className="theme-empresas">
       <LoadingScreen />
-      <Nav variant="empresas" />
       <main className="relative">
         <EmpresasHero />
         <EmpresasProblema />
