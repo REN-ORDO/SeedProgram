@@ -23,7 +23,7 @@ export function EmpresasAreas() {
     >
       <div className="mx-auto max-w-6xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
-          <span className="font-bold text-[--color-ink]">02</span>
+          <span className="font-bold text-[--color-ink]">03</span>
           <span className="h-[2px] w-12 bg-[var(--color-ink)]" />
           <span>Qué resolvemos juntos</span>
         </Reveal>

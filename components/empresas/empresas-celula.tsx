@@ -14,7 +14,7 @@ export function EmpresasCelula() {
     >
       <div className="mx-auto max-w-5xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[#7dd3fc]">
-          <span className="font-bold text-[#0F172A]">03</span>
+          <span className="font-bold text-[#0F172A]">04</span>
           <span className="h-[2px] w-12 bg-[#0F172A]" />
           <span>El equipo asignado</span>
         </Reveal>

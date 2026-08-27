@@ -19,7 +19,7 @@ export function EmpresasBeneficio() {
     >
       <div className="mx-auto max-w-6xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[--color-fg-subtle]">
-          <span className="font-bold text-[--color-ink]">04</span>
+          <span className="font-bold text-[--color-ink]">05</span>
           <span className="h-[2px] w-12 bg-[var(--color-ink)]" />
           <span>El beneficio estratégico</span>
         </Reveal>
