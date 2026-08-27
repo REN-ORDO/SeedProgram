@@ -65,7 +65,7 @@ function BeneficioCard({ beneficio }: { beneficio: EmpresaBeneficio }) {
       <h3 className="mt-5 font-display text-xl font-bold leading-tight text-[--color-ink]">
         {beneficio.title}
       </h3>
-      <p className="mt-3 text-sm leading-relaxed text-[--color-fg-muted]">
+       <p className="mt-3 text-base leading-relaxed text-[--color-fg-muted]">
         {beneficio.desc}
       </p>
     </article>

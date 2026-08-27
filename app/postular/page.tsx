@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { ApplicationForm } from "@/components/application-form";
 import { LoadingScreen } from "@/components/loading-screen";
 import { MuteButton } from "@/components/mute-button";
@@ -11,6 +12,11 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 
 export default function PostularPage() {
   const reduce = useReducedMotion();
+  const [isEmpresa, setIsEmpresa] = useState(false);
+
+  useEffect(() => {
+    setIsEmpresa(new URLSearchParams(window.location.search).get("rol") === "empresa");
+  }, []);
 
   return (
     <main className="relative min-h-dvh overflow-x-hidden px-5 pb-24 pt-28 md:px-8 md:pt-32">
@@ -105,7 +111,7 @@ export default function PostularPage() {
           className="mb-8 flex items-center justify-between"
         >
           <Link
-            href="/"
+            href={isEmpresa ? "/empresas" : "/"}
             className="group inline-flex items-center gap-2 font-display text-sm font-semibold text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-ink)]"
           >
             <motion.span

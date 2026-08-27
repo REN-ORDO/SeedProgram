@@ -15,13 +15,13 @@ export function EmpresasModelo() {
     >
       <div className="mx-auto max-w-6xl">
         <Reveal className="mb-3 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[#7dd3fc]">
-          <span className="font-bold text-white">01</span>
-          <span className="h-[2px] w-12 bg-white" />
+          <span className="font-bold text-[#0F172A]">01</span>
+          <span className="h-[2px] w-12 bg-[#0F172A]" />
           <span>El modelo de impacto</span>
         </Reveal>
 
         <Reveal delay={0.05}>
-          <h2 className="mb-14 max-w-3xl text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-white md:text-6xl">
+          <h2 className="mb-14 max-w-3xl text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-[#0C4A6E] md:text-6xl">
             ¿Cómo{" "}
             <span
               className="font-handwritten"
@@ -61,13 +61,13 @@ function PasoCard({ paso, index }: { paso: EmpresaPaso; index: number }) {
       }}
       data-cursor="Paso"
     >
-      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-elev)] font-display text-lg font-bold text-white">
+      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-elev)] font-display text-lg font-bold text-[#0F172A]">
         {paso.num}
       </span>
-      <h3 className="mt-5 font-display text-2xl font-bold leading-tight text-white">
+      <h3 className="mt-5 font-display text-2xl font-bold leading-tight text-[#0F172A]">
         {paso.title}
       </h3>
-      <p className="mt-3 text-sm leading-relaxed text-[var(--color-fg-muted)]">
+       <p className="mt-3 text-base leading-relaxed text-[var(--color-fg-muted)]">
         {paso.desc}
       </p>
     </article>

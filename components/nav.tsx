@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, ChevronDown, X } from "lucide-react";
 import { Monogram } from "@/components/monogram";
 import { MuteButton } from "@/components/mute-button";
 import { navItems } from "@/lib/data";
@@ -12,19 +11,28 @@ import { cn } from "@/lib/utils";
 const enterpriseNavItems = [
   { index: "01", label: "Problema", href: "#problema" },
   { index: "02", label: "Cómo funciona", href: "#modelo" },
-  { index: "03", label: "Soluciones", href: "#soluciones" },
-  { index: "04", label: "Célula", href: "#celula" },
-  { index: "05", label: "Beneficios", href: "#beneficios" },
+  { index: "03", label: "Paquetes", href: "#paquetes" },
+  { index: "04", label: "Soluciones", href: "#soluciones" },
+  { index: "05", label: "Célula", href: "#celula" },
+  { index: "06", label: "Beneficios", href: "#beneficios" },
 ] as const;
 
-export function Nav() {
+// Agrupación del dropdown "Explorar" para evitar que las secciones se junten.
+const enterpriseNavGroups = [
+  { label: "Descubrir", items: ["#problema", "#modelo"] },
+  { label: "Servicios", items: ["#paquetes", "#soluciones", "#celula"] },
+  { label: "Beneficios", items: ["#beneficios"] },
+] as const;
+
+export function Nav({ variant = "aspirantes" }: { variant?: "aspirantes" | "empresas" }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState<string | null>(null);
   const [active, setActive] = useState<string>("#programa");
 
-  // En /empresas el enlace cruzado apunta al home (aspirantes); en el resto, a /empresas.
-  const pathname = usePathname();
-  const isEmpresas = pathname === "/empresas";
+  // El variant llega por prop desde cada página (determinístico en server y cliente),
+  // para evitar hydration mismatch al branchar la estructura del menú.
+  const isEmpresas = variant === "empresas";
   const currentNavItems = isEmpresas ? enterpriseNavItems : navItems;
   const crossLink = {
     href: isEmpresas ? "/" : "/empresas",
@@ -32,10 +40,10 @@ export function Nav() {
     cursor: isEmpresas ? "Aspirantes" : "Empresas",
   };
   const cta = {
-    href: isEmpresas ? "#diagnostico" : "/postular",
     label: isEmpresas ? "Diagnóstico" : "Postularme",
     cursor: isEmpresas ? "Diagnóstico" : "Aplicar",
   };
+  const ctaHref = cta.label === "Diagnóstico" ? "/postular?rol=empresa" : "/postular";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -67,6 +75,16 @@ export function Nav() {
     };
   }, [open]);
 
+  // Cierra los submenús de los tabs "Explorar" del desktop al hacer click fuera de ellos.
+  useEffect(() => {
+    if (!exploreOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (!(e.target as Element).closest("[data-explore-menu]")) setExploreOpen(null);
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, [exploreOpen]);
+
   return (
     <>
       <motion.header
@@ -83,9 +101,13 @@ export function Nav() {
             className={cn(
               "nav-shell flex items-center justify-between px-3 py-2 transition-all duration-300",
               isEmpresas && "nav-shell--enterprise",
-              scrolled
-                ? "border-2 border-[--color-ink] bg-white shadow-[4px_4px_0_var(--color-ink)]"
-                : "border-2 border-transparent"
+              isEmpresas
+                ? scrolled
+                  ? "nav-shell--solid"
+                  : "nav-shell--ghost"
+                : scrolled
+                  ? "border-2 border-[--color-ink] bg-white shadow-[4px_4px_0_var(--color-ink)]"
+                  : "border-2 border-transparent"
             )}
           >
             <a
@@ -103,34 +125,110 @@ export function Nav() {
             </a>
 
             <nav className="hidden lg:flex items-center gap-1">
-              {currentNavItems.map((item) => {
-                const isActive = active === item.href;
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      cn("group relative px-3 py-1.5 text-sm font-semibold transition-colors", isEmpresas ? "rounded-lg" : "rounded-full"),
-                      isActive ? "text-[--color-ink]" : "text-[--color-fg-muted] hover:text-[--color-ink]"
-                    )}
-                  >
-                    {isActive && (
-                      <motion.span
-                        layoutId="nav-active"
-                        className={cn(
-                          cn("absolute inset-0 border-2 border-[--color-ink] bg-[var(--color-accent-soft)]", isEmpresas ? "rounded-md" : "rounded-full"),
-                          isEmpresas && "nav-active--enterprise"
-                        )}
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                    <span className="relative flex items-center gap-1.5">
-                      <span className="font-mono text-[10px] text-[--color-fg-subtle]">{item.index}</span>
-                      {item.label}
-                    </span>
-                  </a>
-                );
-              })}
+              {isEmpresas ? (
+                <div className="flex items-center gap-0.5" data-explore-menu>
+                  {enterpriseNavGroups.map((group) => {
+                    const isOpen = exploreOpen === group.label;
+                    const groupActive = group.items.some((href) => active === href);
+                    return (
+                      <div
+                        key={group.label}
+                        className="relative"
+                        onMouseEnter={() => setExploreOpen(group.label)}
+                        onMouseLeave={() => setExploreOpen(null)}
+                      >
+                        <button
+                          type="button"
+                          aria-haspopup="true"
+                          aria-expanded={isOpen}
+                          onClick={() => setExploreOpen(isOpen ? null : group.label)}
+                          className={cn(
+                            "group flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors rounded-lg",
+                            isOpen || groupActive
+                              ? "text-[--color-ink]"
+                              : "text-[--color-fg-muted] hover:text-[--color-ink]"
+                          )}
+                        >
+                          {group.label}
+                          <ChevronDown
+                            size={14}
+                            strokeWidth={2.25}
+                            aria-hidden
+                            className={cn(
+                              "text-current transition-transform duration-200",
+                              isOpen && "rotate-180"
+                            )}
+                          />
+                        </button>
+
+                        <AnimatePresence>
+                          {isOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 8 }}
+                              transition={{ duration: 0.16 }}
+                              className="nav-dropdown absolute left-0 top-full z-50 mt-2 w-56 origin-top-left rounded-xl border border-[var(--color-border)] bg-white p-1.5 shadow-[0_12px_32px_rgba(15,23,42,.12)]"
+                            >
+                              {group.items.map((href) => {
+                                const item = enterpriseNavItems.find((i) => i.href === href)!;
+                                const isActive = active === item.href;
+                                return (
+                                  <a
+                                    key={item.href}
+                                    href={item.href}
+                                    onClick={() => setExploreOpen(null)}
+                                    className={cn(
+                                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                                      isActive
+                                        ? "bg-[var(--color-accent-soft)] text-[--color-ink]"
+                                        : "text-[--color-fg-muted] hover:bg-[var(--color-bg-elev)] hover:text-[--color-ink]"
+                                    )}
+                                  >
+                                    <span className="font-mono text-[10px] text-[--color-fg-subtle]">
+                                      {item.index}
+                                    </span>
+                                    {item.label}
+                                  </a>
+                                );
+                              })}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                currentNavItems.map((item) => {
+                  const isActive = active === item.href;
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        cn("group relative px-3 py-1.5 text-sm font-semibold transition-colors", isEmpresas ? "rounded-lg" : "rounded-full"),
+                        isActive ? "text-[--color-ink]" : "text-[--color-fg-muted] hover:text-[--color-ink]"
+                      )}
+                    >
+                      {isActive && (
+                        <motion.span
+                          layoutId="nav-active"
+                          className={cn(
+                            cn("absolute inset-0 border-2 border-[--color-ink] bg-[var(--color-accent-soft)]", isEmpresas ? "rounded-md" : "rounded-full"),
+                            isEmpresas && "nav-active--enterprise"
+                          )}
+                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                      <span className="relative flex items-center gap-1.5">
+                        <span className="font-mono text-[10px] text-[--color-fg-subtle]">{item.index}</span>
+                        {item.label}
+                      </span>
+                    </a>
+                  );
+                })
+              )}
             </nav>
 
             <a
@@ -142,7 +240,7 @@ export function Nav() {
             </a>
 
             <a
-              href={cta.href}
+              href={ctaHref}
               data-cursor={cta.cursor}
               className={cn("hidden lg:inline-flex toon-btn", isEmpresas && "nav-cta--enterprise")}
               style={{ padding: "8px 18px", fontSize: 14 }}
@@ -238,7 +336,7 @@ export function Nav() {
                 </span>
               </a>
               <a
-                href={cta.href}
+                href={ctaHref}
                 onClick={() => setOpen(false)}
                 className={cn("toon-btn mt-2 justify-center", isEmpresas && "nav-cta--enterprise")}
               >

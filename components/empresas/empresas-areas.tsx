@@ -2,7 +2,7 @@
 
 import { Globe, Workflow, Rocket, Wrench } from "lucide-react";
 import { Reveal, RevealStagger, RevealItem } from "@/components/reveal";
-import { empresaAreas, type EmpresaArea } from "@/lib/data";
+import { empresaAreas, empresaCasos, type EmpresaArea } from "@/lib/data";
 
 const iconMap = {
   web: Globe,
@@ -63,6 +63,23 @@ export function EmpresasAreas() {
           ))}
         </RevealStagger>
       </div>
+      <div className="mx-auto mt-16 max-w-6xl">
+        <Reveal>
+          <h3 className="font-display text-2xl font-bold text-[var(--color-ink)]">Casos por sector</h3>
+          <p className="mt-2 max-w-2xl text-[var(--color-fg-muted)]">Ejemplos de referencia, sin nombres de empresas. Compartimos detalles concretos cuando contamos con autorización.</p>
+        </Reveal>
+        <RevealStagger className="mt-6 grid gap-6 md:grid-cols-2">
+          {empresaCasos.map((caso) => (
+            <RevealItem key={caso.sector}>
+              <article className="toon-card p-6">
+                <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--color-fg-muted)]">{caso.label}</p>
+                <h4 className="mt-3 font-display text-xl font-bold text-[var(--color-ink)]">{caso.sector}</h4>
+                <p className="mt-2 text-base leading-relaxed text-[var(--color-fg-muted)]">{caso.desc}</p>
+              </article>
+            </RevealItem>
+          ))}
+        </RevealStagger>
+      </div>
     </section>
   );
 }
@@ -85,7 +102,7 @@ function AreaCard({ area, index }: { area: EmpresaArea; index: number }) {
         <h3 className="font-display text-xl font-bold leading-tight text-[--color-ink]">
           {area.title}
         </h3>
-        <p className="mt-2 text-sm leading-relaxed text-[--color-ink]/80">
+         <p className="mt-2 text-base leading-relaxed text-[--color-fg-muted]">
           {area.desc}
         </p>
       </div>

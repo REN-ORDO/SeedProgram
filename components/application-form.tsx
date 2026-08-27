@@ -62,7 +62,7 @@ import {
   CHALLENGE_MAX,
   CHALLENGE_MIN,
   fallbackFor,
-  isDiagnosis,
+  normalizeDiagnosis,
   normalizeArea,
   type Diagnosis,
 } from "@/lib/diagnosis";
@@ -1005,9 +1005,10 @@ export function ApplicationForm() {
       // Un 200 con forma inesperada (proxy, CDN, cambio futuro de la ruta)
       // no puede tumbar el formulario: lo tratamos como fallo y caemos al
       // fallback local.
-      if (!isDiagnosis(json)) throw new Error("Respuesta con forma inválida");
-      clearTimeout(timer);
-      const data = { resumen: json.resumen, opciones: json.opciones };
+       const normalized = normalizeDiagnosis(json);
+       if (!normalized) throw new Error("Respuesta con forma inválida");
+       clearTimeout(timer);
+       const data = normalized;
       valuesRef.current.diagnostico_json = JSON.stringify(data);
       valuesRef.current.diagnostico_fuente = fuente;
       setDiagnosis({ status: "ready", data, fuente });
@@ -1319,7 +1320,7 @@ export function ApplicationForm() {
         try {
           const parsed =
             typeof rawDiag === "string" && rawDiag ? JSON.parse(rawDiag) : null;
-          data.diagnostico = isDiagnosis(parsed) ? parsed : null;
+           data.diagnostico = normalizeDiagnosis(parsed);
         } catch {
           data.diagnostico = null;
         }
