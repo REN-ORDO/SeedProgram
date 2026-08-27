@@ -38,8 +38,11 @@ export type FieldSection = {
   fields: Array<{
     key: string;
     label: string;
-    /** Si está, transforma el valor. Si no, se muestra raw. */
-    format?: (v: unknown) => React.ReactNode;
+    /** Si está, transforma el valor. Recibe también el doc completo, para
+     *  campos que dependen de otro (ej: diagnóstico + opción elegida). */
+    format?: (v: unknown, data: DocumentData) => React.ReactNode;
+    /** Ocupa las dos columnas de la grilla. Para bloques largos. */
+    fullWidth?: boolean;
   }>;
 };
 
@@ -242,12 +245,12 @@ export function PostulacionDetail({
               {section.fields.map((f) => {
                 const value = data[f.key];
                 const display = f.format
-                  ? f.format(value)
+                  ? f.format(value, data)
                   : value === undefined || value === null || value === ""
                     ? "—"
                     : String(value);
                 return (
-                  <div key={f.key}>
+                  <div key={f.key} className={f.fullWidth ? "sm:col-span-2" : undefined}>
                     <dt className="mb-1 font-display text-xs font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
                       {f.label}
                     </dt>

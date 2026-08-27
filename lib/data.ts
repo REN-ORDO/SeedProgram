@@ -638,3 +638,33 @@ export const empresaCTA = {
   cta: "Solicitar diagnóstico gratuito",
   note: "Cupos limitados por ciclo",
 };
+
+// ============================================================
+// Diagnóstico IA (paso 3 del formulario de empresas)
+// ============================================================
+
+export const diagnosisCopy = {
+  title: "Esto es lo que vemos",
+  desc: "Leímos tu reto y armamos tres rutas posibles. Elige la que más te suene.",
+  loading: "Estamos leyendo tu reto…",
+  respaldo:
+    "Esta es una primera lectura hecha con IA. Un mentor Senior de CooWeb la revisa y acompaña todo el proceso, de principio a fin.",
+  fallbackNota:
+    "Preferimos que un mentor Senior lea tu caso personalmente. Estas son rutas típicas para empezar la conversación.",
+  regenerar: "Ver otras opciones",
+  regenerarAgotado: "Un Senior revisará tu caso",
+};
+
+/**
+ * WhatsApp de contacto de CooWeb, en formato internacional sin signos
+ * (lo exige la URL de wa.me).
+ * TODO(sebas): reemplazar por el número real antes de publicar.
+ */
+// El `: string` es obligatorio. Sin él TypeScript infiere el tipo literal
+// "573001234567", y al poner el número real la comparación de abajo pasa a
+// ser entre dos literales sin solapamiento (TS2367) y revienta el build.
+export const COOWEB_WHATSAPP: string = "573001234567";
+
+/** El botón de WhatsApp solo se muestra cuando hay un número real. Se
+ * queda oculto hasta que Sebastián reemplace el placeholder de arriba. */
+export const HAS_COOWEB_WHATSAPP = COOWEB_WHATSAPP !== "573001234567";

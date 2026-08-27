@@ -39,10 +39,12 @@ import {
   ChevronDown,
   List,
   ExternalLink,
+  MessageCircle,
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadCvToCloudinary } from "@/lib/cloudinary";
+import { COOWEB_WHATSAPP, HAS_COOWEB_WHATSAPP } from "@/lib/data";
 import { Magnetic } from "@/components/magnetic";
 import {
   saveDraft,
@@ -52,9 +54,27 @@ import {
   type FormDraft,
 } from "@/lib/form-draft";
 import { cn } from "@/lib/utils";
+import {
+  DiagnosisPanel,
+  type DiagnosisState,
+} from "@/components/empresas/diagnosis-panel";
+import {
+  CHALLENGE_MAX,
+  CHALLENGE_MIN,
+  fallbackFor,
+  isDiagnosis,
+  normalizeArea,
+  type Diagnosis,
+} from "@/lib/diagnosis";
 
 // Easing canónico del sitio
 const EASE = [0.22, 1, 0.36, 1] as const;
+
+// Deadline del cliente para /api/diagnostico. Se queda por debajo del
+// timeout de la propia ruta (25s) para que, en el caso normal, sea el
+// servidor el que gane la carrera y devuelva su fallback; este timeout
+// solo debe activarse cuando la respuesta nunca llega al cliente.
+const CLIENT_TIMEOUT_MS = 15_000;
 
 // ============================================================
 // Validadores por campo
@@ -216,7 +236,8 @@ const ASPIRANTE_STEPS: StepConfig[] = [
 const EMPRESA_STEPS: StepConfig[] = [
   { id: 1, label: "Empresa" },
   { id: 2, label: "Reto" },
-  { id: 3, label: "Modalidad" },
+  { id: 3, label: "Diagnóstico" },
+  { id: 4, label: "Modalidad" },
 ];
 
 // ============================================================
@@ -812,8 +833,21 @@ export function ApplicationForm() {
   const [direction, setDirection] = useState<Direction>("forward");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  // Nombre de la empresa capturado al enviar, para la pantalla de éxito.
+  // No se lee valuesRef.current directamente en el render (son refs).
+  const [successEmpresa, setSuccessEmpresa] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cvFileName, setCvFileName] = useState<string | null>(null);
+
+  // ---- Diagnóstico IA (solo empresas, paso 3) ----
+  const [diagnostico, setDiagnosis] = useState<DiagnosisState>({
+    status: "loading",
+  });
+  // Cuántas veces regeneró. Tope de 2 para no quemar llamadas al modelo.
+  const [regens, setRegens] = useState(0);
+  const MAX_REGENS = 2;
+  // Aborta la petición anterior si el usuario regenera antes de que llegue.
+  const diagAbortRef = useRef<AbortController | null>(null);
 
   // Borrador detectado al montar (banner "Tienes un borrador guardado").
   const [draftPrompt, setDraftPrompt] = useState<FormDraft | null>(null);
@@ -915,6 +949,88 @@ export function ApplicationForm() {
     persistDraftDebounced();
   };
 
+  /**
+   * Pide el diagnóstico al endpoint. No lanza nunca: cualquier fallo cae al
+   * fallback local para que el usuario pueda seguir y enviar su postulación.
+   * Guarda el resultado en valuesRef (no en el DOM) porque el panel se
+   * desmonta al cambiar de paso.
+   */
+  const requestDiagnosis = async () => {
+    diagAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    diagAbortRef.current = ctrl;
+
+    setDiagnosis({ status: "loading" });
+    // Al pedir un diagnóstico nuevo, la opción elegida antes ya no
+    // corresponde a estas opciones: hay que borrarla de valuesRef Y del
+    // snapshot `defaults`, o los radios se remontan con la vieja marcada.
+    delete valuesRef.current.opcion_elegida;
+    setDefaults((d) => {
+      const next = { ...d };
+      delete next.opcion_elegida;
+      return next;
+    });
+
+    const v = valuesRef.current;
+    const area = normalizeArea(v.area);
+
+    // Deadline propio del cliente: si el fetch se cuelga (handoff móvil,
+    // portal cautivo, pestaña en background) nada del lado del servidor
+    // puede rescatarnos, así que abortamos nosotros. `timedOut` distingue
+    // ese abort del abort intencional que dispara handleRegenerate.
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      ctrl.abort();
+    }, CLIENT_TIMEOUT_MS);
+
+    try {
+      const res = await fetch("/api/diagnostico", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: ctrl.signal,
+        body: JSON.stringify({
+          empresa: v.empresa ?? "",
+          area,
+          area_otro: v.area_otro ?? "",
+          reto: v.reto ?? "",
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      // `fuente` no forma parte del schema que valida isDiagnosis: se lee
+      // antes de la guarda para no depender del tipo ya angostado a
+      // Diagnosis (que no tiene esa propiedad).
+      const fuente = json.fuente === "ia" ? "ia" : "fallback";
+      // Un 200 con forma inesperada (proxy, CDN, cambio futuro de la ruta)
+      // no puede tumbar el formulario: lo tratamos como fallo y caemos al
+      // fallback local.
+      if (!isDiagnosis(json)) throw new Error("Respuesta con forma inválida");
+      clearTimeout(timer);
+      const data = { resumen: json.resumen, opciones: json.opciones };
+      valuesRef.current.diagnostico_json = JSON.stringify(data);
+      valuesRef.current.diagnostico_fuente = fuente;
+      setDiagnosis({ status: "ready", data, fuente });
+    } catch (err) {
+      clearTimeout(timer);
+      // Un abort del usuario (pidió regenerar) no debe pisar el estado: ya
+      // hay otra petición en curso. Un abort por timeout sí, porque no viene
+      // nada más.
+      if (ctrl.signal.aborted && !timedOut) return;
+      console.error("Error pidiendo diagnóstico:", err);
+      const fb = fallbackFor(area);
+      valuesRef.current.diagnostico_json = JSON.stringify(fb);
+      valuesRef.current.diagnostico_fuente = "fallback";
+      setDiagnosis({ status: "ready", data: fb, fuente: "fallback" });
+    }
+  };
+
+  const handleRegenerate = () => {
+    if (regens >= MAX_REGENS) return;
+    setRegens((n) => n + 1);
+    void requestDiagnosis();
+  };
+
   const steps = useMemo(
     () => (role === "aspirante" ? ASPIRANTE_STEPS : EMPRESA_STEPS),
     [role],
@@ -926,6 +1042,15 @@ export function ApplicationForm() {
     if (next < 1 || next > steps.length) return;
     // ANTES de cambiar de paso, capturar valores del panel actual
     captureCurrentPanel();
+    // Entrando al paso de diagnóstico desde el reto → pedirlo.
+    // Va acá (y no en handleNext) para cubrir también el submit accidental
+    // y el Enter, que también navegan vía goTo. La guarda depende solo del
+    // destino y la dirección (parámetros de goTo), nunca del `step`
+    // cerrado sobre el closure, que puede quedar desactualizado.
+    if (role === "empresa" && next === 3 && dir === "forward") {
+      setRegens(0);
+      void requestDiagnosis();
+    }
     lastTransitionAtRef.current = Date.now();
     setDirection(dir);
     setStep(next);
@@ -940,12 +1065,16 @@ export function ApplicationForm() {
     setStep(1);
     setDirection("forward");
     setSuccess(false);
+    setSuccessEmpresa(null);
     setErrorMsg(null);
     setCvFileName(null);
     cvFileRef.current = null;
     setCvReminderName(null);
     valuesRef.current = {};
     setDefaults({}); // limpia el snapshot también
+    diagAbortRef.current?.abort();
+    setDiagnosis({ status: "loading" });
+    setRegens(0);
   };
 
   // ---- Borrador: restaurar / descartar ----
@@ -976,6 +1105,13 @@ export function ApplicationForm() {
     if (!form) return true;
     const panel = form.querySelector<HTMLElement>("[data-active-panel]");
     if (!panel) return true;
+
+    // El paso de diagnóstico no se puede pasar mientras el modelo responde:
+    // todavía no hay opciones que elegir.
+    if (role === "empresa" && step === 3 && diagnostico.status === "loading") {
+      setErrorMsg("Dale un segundo, todavía estamos leyendo tu reto.");
+      return false;
+    }
 
     // 1) Validar campos requeridos vacíos + formatos de los campos requeridos
     const required = panel.querySelectorAll<HTMLElement>("[required]");
@@ -1174,6 +1310,31 @@ export function ApplicationForm() {
         }
       }
 
+      // El diagnóstico viaja como string JSON en valuesRef (el formulario
+      // solo maneja strings, y así el borrador de localStorage sigue siendo
+      // serializable). Acá lo volvemos objeto para Firestore.
+      if (role === "empresa") {
+        const rawDiag = data.diagnostico_json;
+        delete data.diagnostico_json;
+        try {
+          const parsed =
+            typeof rawDiag === "string" && rawDiag ? JSON.parse(rawDiag) : null;
+          data.diagnostico = isDiagnosis(parsed) ? parsed : null;
+        } catch {
+          data.diagnostico = null;
+        }
+        data.diagnostico_fuente = data.diagnostico ? (data.diagnostico_fuente ?? null) : null;
+        // El índice solo es válido si hay diagnóstico Y cae dentro de sus
+        // opciones reales: sin diagnóstico, un `opcion_elegida` numérico
+        // sería un índice apuntando a nada.
+        const idx = Number(data.opcion_elegida);
+        const diag = data.diagnostico as Diagnosis | null;
+        data.opcion_elegida =
+          diag && Number.isInteger(idx) && idx >= 0 && idx < diag.opciones.length
+            ? idx
+            : null;
+      }
+
       if (role === "aspirante") {
         // Subir CV a Cloudinary. Usamos cvFileRef (no cvInputRef.files) porque
         // el input se desmonta al navegar de paso y el File se perdería.
@@ -1209,6 +1370,7 @@ export function ApplicationForm() {
       // Postulación enviada con éxito → limpiar borrador persistido.
       clearDraft();
       setCvReminderName(null);
+      setSuccessEmpresa(role === "empresa" ? valuesRef.current.empresa ?? null : null);
       setSuccess(true);
     } catch (err) {
       // Log técnico completo para diagnosticar en producción...
@@ -1268,8 +1430,32 @@ export function ApplicationForm() {
         >
           {role === "aspirante"
             ? "Recibimos tu postulación. Si haces match con el batch, te contactamos pronto."
-            : "Recibimos tu solicitud. Un mentor senior te contactará en menos de 48 horas."}
+            : "Un mentor Senior de CooWeb ya tiene tu diagnóstico y te contacta en las próximas 24-48 horas hábiles. Acompañamos todo el proceso, de principio a fin."}
         </motion.p>
+
+        {role === "empresa" && HAS_COOWEB_WHATSAPP && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: EASE, delay: 0.4 }}
+            className="relative mt-6"
+          >
+            <a
+              href={`https://wa.me/${COOWEB_WHATSAPP}?text=${encodeURIComponent(
+                `Hola, acabo de enviar el diagnóstico de ${
+                  successEmpresa ?? "mi empresa"
+                } desde la web.`,
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="toon-btn toon-btn--white inline-flex"
+            >
+              <MessageCircle size={16} />
+              Hablar con un Senior ahora
+            </a>
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1281,6 +1467,7 @@ export function ApplicationForm() {
               type="button"
               onClick={() => {
                 setSuccess(false);
+                setSuccessEmpresa(null);
                 setStep(1);
                 setCvFileName(null);
                 cvFileRef.current = null;
@@ -1427,7 +1614,17 @@ export function ApplicationForm() {
 
               {role === "empresa" && step === 1 && <EmpresaStep1 />}
               {role === "empresa" && step === 2 && <EmpresaStep2 />}
-              {role === "empresa" && step === 3 && <EmpresaStep3 />}
+              {role === "empresa" && step === 3 && (
+                <EmpresaStep3Diagnosis
+                  state={diagnostico}
+                  generation={regens}
+                  canRegenerate={
+                    regens < MAX_REGENS && diagnostico.status === "ready"
+                  }
+                  onRegenerate={handleRegenerate}
+                />
+              )}
+              {role === "empresa" && step === 4 && <EmpresaStep4 />}
             </div>
           </PanelMotion>
 
@@ -1946,8 +2143,8 @@ function EmpresaStep2() {
         <textarea
           {...textProps("reto", ctx)}
           required
-          minLength={20}
-          maxLength={2000}
+          minLength={CHALLENGE_MIN}
+          maxLength={CHALLENGE_MAX}
           placeholder="Ej: Pasamos mucho tiempo respondiendo preguntas frecuentes de clientes..."
           className={cn(inputCls, "min-h-[120px] resize-y leading-relaxed")}
         />
@@ -1959,7 +2156,36 @@ function EmpresaStep2() {
   );
 }
 
-function EmpresaStep3() {
+/**
+ * Wrapper del paso de diagnóstico: vive acá (y no dentro del panel) porque
+ * necesita `useFormCtx`, que es privado de este archivo. Le pasa al panel una
+ * fábrica de props de radio ya conectada al contexto, para que la opción
+ * elegida se persista entre pasos igual que cualquier otro campo.
+ */
+function EmpresaStep3Diagnosis({
+  state,
+  generation,
+  canRegenerate,
+  onRegenerate,
+}: {
+  state: DiagnosisState;
+  generation: number;
+  canRegenerate: boolean;
+  onRegenerate: () => void;
+}) {
+  const ctx = useFormCtx();
+  return (
+    <DiagnosisPanel
+      state={state}
+      generation={generation}
+      canRegenerate={canRegenerate}
+      onRegenerate={onRegenerate}
+      radioProps={(value) => radioProps("opcion_elegida", value, ctx)}
+    />
+  );
+}
+
+function EmpresaStep4() {
   return (
     <>
       <PanelHeader
