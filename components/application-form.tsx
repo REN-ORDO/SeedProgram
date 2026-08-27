@@ -273,12 +273,12 @@ function Stepper({
   current: number;
 }) {
   return (
-    <div className="mb-9 flex items-center gap-2">
+    <div className="mb-9 flex flex-wrap items-center gap-2">
       {steps.map((step, i) => {
         const isActive = current === step.id;
         const isDone = current > step.id;
         return (
-          <div key={step.id} className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <div key={step.id} className="flex items-center gap-2">
             <motion.div
               animate={
                 isActive
@@ -325,17 +325,27 @@ function Stepper({
                 )}
               </AnimatePresence>
             </motion.div>
-            <span
+            {/* Label tipo acordeón: solo el paso activo se expande y muestra
+                su texto; los demás colapsan a ancho 0 (solo queda el círculo).
+                Patrón grid 0fr/1fr para animar el ancho sin medir con JS. */}
+            <div
+              aria-hidden={!isActive}
               className={cn(
-                "hidden font-display text-sm font-semibold whitespace-nowrap transition-colors duration-300 sm:block",
-                isActive ? "text-[var(--color-ink)]" : "text-[var(--color-fg-subtle)]",
-                isDone && "text-[var(--color-fg-muted)]",
+                "hidden transition-[grid-template-columns] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:grid",
+                isActive ? "grid-cols-[1fr]" : "grid-cols-[0fr]",
               )}
             >
-              {step.label}
-            </span>
+              <span
+                className={cn(
+                  "min-w-0 overflow-hidden whitespace-nowrap font-display text-sm font-semibold transition-colors duration-300",
+                  isActive ? "text-[var(--color-ink)]" : "text-[var(--color-fg-subtle)]",
+                )}
+              >
+                {step.label}
+              </span>
+            </div>
             {i < steps.length - 1 && (
-              <div className="relative mx-1 h-[3px] w-6 min-w-4 sm:w-10 overflow-hidden border-y-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)]">
+              <div className="relative mx-1 h-[3px] w-6 min-w-3 sm:w-10 overflow-hidden border-y-2 border-[var(--color-ink)] bg-[var(--color-bg-soft)]">
                 <motion.div
                   initial={false}
                   animate={{ scaleX: isDone ? 1 : 0 }}
