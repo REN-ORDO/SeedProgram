@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sprout, X, Quote, ChevronLeft, ChevronRight } from "lucide-react";
@@ -19,6 +19,9 @@ export function BatchTestimonios() {
   const [selected, setSelected] = useState<Testimonio | null>(null);
   const [page, setPage] = useState(0);
   const [direction, setDirection] = useState(1);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   const filtered = testimonios.filter((t) => t.batch === activeBatch);
   const activeBatchData = batches.find((b) => b.id === activeBatch);
@@ -52,6 +55,42 @@ export function BatchTestimonios() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Bloquea el scroll de fondo mientras el modal está abierto
+  useEffect(() => {
+    if (!selected) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = originalOverflow; };
+  }, [selected]);
+
+  // Foco inicial en el modal y trampa de foco (Tab/Shift+Tab) + devolución de foco al cerrar
+  useEffect(() => {
+    if (!selected) return;
+    closeButtonRef.current?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !modalRef.current) return;
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      triggerRef.current?.focus();
+    };
+  }, [selected]);
 
   const onSectionKey = (e: React.KeyboardEvent) => {
     if (selected) return;
@@ -159,7 +198,10 @@ export function BatchTestimonios() {
                   {slice.map((t, i) => (
                     <button
                       key={t.id}
-                      onClick={() => setSelected(t)}
+                      onClick={(e) => {
+                        triggerRef.current = e.currentTarget;
+                        setSelected(t);
+                      }}
                       className="w-full text-left"
                       aria-label={`Ver más sobre ${t.name}`}
                     >
@@ -281,6 +323,10 @@ export function BatchTestimonios() {
             />
             <motion.div
               key="modal"
+              ref={modalRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="testimonio-modal-title"
               initial={{ opacity: 0, scale: 0.94, y: 24 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: 24 }}
@@ -293,7 +339,9 @@ export function BatchTestimonios() {
                 style={{ background: selected.accent ?? "var(--color-accent-soft)" }}
               >
                 <button
+                  ref={closeButtonRef}
                   onClick={() => setSelected(null)}
+                  aria-label="Cerrar"
                   className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[--color-ink] bg-white shadow-[2px_2px_0_var(--color-ink)] transition-transform hover:scale-105"
                 >
                   <X size={14} strokeWidth={2.5} />
@@ -308,7 +356,7 @@ export function BatchTestimonios() {
                   </div>
                 )}
                 <div className="pb-1">
-                  <p className="font-display text-xl font-bold text-[--color-ink]">{selected.name}</p>
+                  <p id="testimonio-modal-title" className="font-display text-xl font-bold text-[--color-ink]">{selected.name}</p>
                   <p className="text-sm text-[--color-ink]/70">{selected.badge}</p>
                   <p className="mt-0.5 font-mono text-[11px] text-[--color-ink]/50">{selected.tenure}</p>
                 </div>
