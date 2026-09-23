@@ -58,6 +58,7 @@ import {
   DiagnosisPanel,
   type DiagnosisState,
 } from "@/components/empresas/diagnosis-panel";
+import { RetoChat, type ChatState } from "@/components/empresas/reto-chat";
 import {
   CHALLENGE_MAX,
   CHALLENGE_MIN,
@@ -66,6 +67,7 @@ import {
   normalizeArea,
   type Diagnosis,
 } from "@/lib/diagnosis";
+import { normalizePreguntas } from "@/lib/entrevista";
 
 // Easing canónico del sitio
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -859,6 +861,18 @@ export function ApplicationForm() {
   // Aborta la petición anterior si el usuario regenera antes de que llegue.
   const diagAbortRef = useRef<AbortController | null>(null);
 
+  // ---- Chat de reto + entrevista IA (paso 2 de empresas) ----
+  // El reto y la entrevista viven en el MISMO paso, como un chat: la
+  // empresa escribe el reto, lo envía, y ahí mismo aparecen (si hacen
+  // falta) las preguntas de profundización. El paso 3 sigue siendo solo el
+  // diagnóstico, sin cambios respecto al flujo original.
+  const [chat, setChat] = useState<ChatState>({ phase: "writing" });
+  const entrevistaAbortRef = useRef<AbortController | null>(null);
+  // Lectura imperativa del textarea del reto: `onSendReto` necesita el
+  // valor más fresco en el momento del click, sin esperar a que el estado
+  // no controlado (valuesRef) se sincronice.
+  const retoInputRef = useRef<HTMLTextAreaElement>(null);
+
   // Borrador detectado al montar (banner "Tienes un borrador guardado").
   const [draftPrompt, setDraftPrompt] = useState<FormDraft | null>(null);
   // Nombre del CV que tenía un borrador restaurado — recordatorio de re-subir.
@@ -994,6 +1008,17 @@ export function ApplicationForm() {
       ctrl.abort();
     }, CLIENT_TIMEOUT_MS);
 
+    // Respuestas de la entrevista (si hubo): viajan como JSON en valuesRef,
+    // igual que el diagnóstico mismo — solo strings sobreviven entre pasos.
+    let respuestas_entrevista: string[] = [];
+    try {
+      const raw = v.entrevista_respuestas_json;
+      const parsed = typeof raw === "string" && raw ? JSON.parse(raw) : [];
+      respuestas_entrevista = normalizePreguntas(parsed);
+    } catch {
+      respuestas_entrevista = [];
+    }
+
     try {
       const res = await fetch("/api/diagnostico", {
         method: "POST",
@@ -1004,6 +1029,7 @@ export function ApplicationForm() {
           area,
           area_otro: v.area_otro ?? "",
           reto: v.reto ?? "",
+          respuestas_entrevista,
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1042,6 +1068,124 @@ export function ApplicationForm() {
     void requestDiagnosis();
   };
 
+  /**
+   * Pide las preguntas de profundización al endpoint, a partir del reto que
+   * la empresa acaba de enviar en el chat. Nunca lanza: un array vacío (por
+   * decisión del modelo o por cualquier fallo) cierra la conversación sin
+   * preguntas — nunca un error visible.
+   */
+  const requestEntrevista = async (reto: string) => {
+    entrevistaAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    entrevistaAbortRef.current = ctrl;
+
+    const v = valuesRef.current;
+    const area = normalizeArea(v.area);
+
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      ctrl.abort();
+    }, CLIENT_TIMEOUT_MS);
+
+    // Cierra el chat sin preguntas y deja lista la entrevista vacía para el
+    // diagnóstico. Se llama tanto en el camino feliz (el modelo decidió que
+    // no hacen falta preguntas) como en cualquier fallo.
+    const finishWithoutQuestions = (fuente: "ia" | "fallback") => {
+      clearTimeout(timer);
+      valuesRef.current.entrevista_preguntas_json = "[]";
+      valuesRef.current.entrevista_respuestas_json = "[]";
+      valuesRef.current.entrevista_fuente = fuente;
+      setChat({ phase: "done", reto, preguntas: [], respuestas: [], fuente });
+    };
+
+    try {
+      const res = await fetch("/api/entrevista", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: ctrl.signal,
+        body: JSON.stringify({
+          empresa: v.empresa ?? "",
+          area,
+          area_otro: v.area_otro ?? "",
+          reto,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const fuente = json.fuente === "ia" ? "ia" : "fallback";
+      const preguntas = normalizePreguntas(json.preguntas);
+      if (preguntas.length === 0) {
+        finishWithoutQuestions(fuente);
+        return;
+      }
+      clearTimeout(timer);
+      valuesRef.current.entrevista_preguntas_json = JSON.stringify(preguntas);
+      valuesRef.current.entrevista_fuente = fuente;
+      setChat({ phase: "asking", reto, preguntas, respuestas: [], fuente });
+    } catch (err) {
+      clearTimeout(timer);
+      if (ctrl.signal.aborted && !timedOut) return;
+      console.error("Error pidiendo entrevista:", err);
+      finishWithoutQuestions("fallback");
+    }
+  };
+
+  /**
+   * Envía el reto escrito en el chat (paso 2). Lee el valor directo del
+   * textarea (no de valuesRef) porque necesita el valor más fresco en el
+   * momento del click, sin esperar el ciclo de onChange.
+   */
+  const handleSendReto = () => {
+    const value = retoInputRef.current?.value.trim() ?? "";
+    if (value.length < CHALLENGE_MIN || value.length > CHALLENGE_MAX) {
+      setErrorMsg(
+        value.length < CHALLENGE_MIN
+          ? "Cuéntanos un poco más sobre el reto (mínimo 20 caracteres)."
+          : "El reto es demasiado largo.",
+      );
+      return;
+    }
+    if (!valuesRef.current.area) {
+      setErrorMsg("Selecciona primero el área que quieres potenciar.");
+      return;
+    }
+    setErrorMsg(null);
+    valuesRef.current.reto = value;
+    setDefaults((d) => ({ ...d, reto: value }));
+    setChat({ phase: "thinking", reto: value });
+    void requestEntrevista(value);
+  };
+
+  /** Registra la respuesta a la pregunta actual del chat y revela la
+   * siguiente, o cierra la conversación si era la última. */
+  const handleAnswerPregunta = (respuesta: string) => {
+    if (chat.phase !== "asking") return;
+    const respuestas = [...chat.respuestas, respuesta];
+    if (respuestas.length >= chat.preguntas.length) {
+      valuesRef.current.entrevista_respuestas_json = JSON.stringify(respuestas);
+      setChat({
+        phase: "done",
+        reto: chat.reto,
+        preguntas: chat.preguntas,
+        respuestas,
+        fuente: chat.fuente,
+      });
+    } else {
+      setChat({ ...chat, respuestas });
+    }
+  };
+
+  /** Vuelve al reto en blanco (pre-rellenado con lo ya escrito) para que la
+   * empresa lo edite y dispare una nueva entrevista. */
+  const handleEditReto = () => {
+    entrevistaAbortRef.current?.abort();
+    valuesRef.current.entrevista_preguntas_json = "[]";
+    valuesRef.current.entrevista_respuestas_json = "[]";
+    delete valuesRef.current.entrevista_fuente;
+    setChat({ phase: "writing" });
+  };
+
   const steps = useMemo(
     () => (role === "aspirante" ? ASPIRANTE_STEPS : EMPRESA_STEPS),
     [role],
@@ -1053,11 +1197,13 @@ export function ApplicationForm() {
     if (next < 1 || next > steps.length) return;
     // ANTES de cambiar de paso, capturar valores del panel actual
     captureCurrentPanel();
-    // Entrando al paso de diagnóstico desde el reto → pedirlo.
-    // Va acá (y no en handleNext) para cubrir también el submit accidental
-    // y el Enter, que también navegan vía goTo. La guarda depende solo del
-    // destino y la dirección (parámetros de goTo), nunca del `step`
-    // cerrado sobre el closure, que puede quedar desactualizado.
+    // Entrando al paso de diagnóstico desde el reto → pedirlo. El chat de
+    // entrevista (paso 2) ya corrió antes de llegar acá — las respuestas
+    // viven en valuesRef.current.entrevista_respuestas_json y requestDiagnosis
+    // las lee de ahí. Va acá (y no en handleNext) para cubrir también el
+    // submit accidental y el Enter, que también navegan vía goTo. La guarda
+    // depende solo del destino y la dirección (parámetros de goTo), nunca
+    // del `step` cerrado sobre el closure, que puede quedar desactualizado.
     if (role === "empresa" && next === 3 && dir === "forward") {
       setRegens(0);
       void requestDiagnosis();
@@ -1085,6 +1231,8 @@ export function ApplicationForm() {
     setDefaults({}); // limpia el snapshot también
     diagAbortRef.current?.abort();
     setDiagnosis({ status: "loading" });
+    entrevistaAbortRef.current?.abort();
+    setChat({ phase: "writing" });
     setRegens(0);
   };
 
@@ -1116,6 +1264,21 @@ export function ApplicationForm() {
     if (!form) return true;
     const panel = form.querySelector<HTMLElement>("[data-active-panel]");
     if (!panel) return true;
+
+    // El paso 2 no se puede pasar hasta que el chat de entrevista termine:
+    // el reto tiene que haberse enviado y, si hubo preguntas, todas deben
+    // estar respondidas. Esto reemplaza la validación por [required] del
+    // textarea del reto, que deja de estar en el DOM una vez enviado.
+    if (role === "empresa" && step === 2 && chat.phase !== "done") {
+      setErrorMsg(
+        chat.phase === "writing"
+          ? "Cuéntanos tu reto y envíalo en el chat antes de continuar."
+          : chat.phase === "thinking"
+            ? "Dale un segundo, estamos leyendo tu reto."
+            : "Responde las preguntas del chat antes de continuar.",
+      );
+      return false;
+    }
 
     // El paso de diagnóstico no se puede pasar mientras el modelo responde:
     // todavía no hay opciones que elegir.
@@ -1325,6 +1488,34 @@ export function ApplicationForm() {
       // solo maneja strings, y así el borrador de localStorage sigue siendo
       // serializable). Acá lo volvemos objeto para Firestore.
       if (role === "empresa") {
+        // Mismo patrón que el diagnóstico: la entrevista viaja como JSON en
+        // valuesRef (el formulario solo maneja strings) y acá se vuelve
+        // objeto para Firestore. Se guarda incluso con preguntas: [] — le
+        // sirve al equipo saber que esa empresa no pasó por la
+        // profundización (ver spec, §5.6).
+        const rawEntrevistaPreguntas = data.entrevista_preguntas_json;
+        const rawEntrevistaRespuestas = data.entrevista_respuestas_json;
+        delete data.entrevista_preguntas_json;
+        delete data.entrevista_respuestas_json;
+        try {
+          const preguntas =
+            typeof rawEntrevistaPreguntas === "string" && rawEntrevistaPreguntas
+              ? JSON.parse(rawEntrevistaPreguntas)
+              : [];
+          const respuestas =
+            typeof rawEntrevistaRespuestas === "string" && rawEntrevistaRespuestas
+              ? JSON.parse(rawEntrevistaRespuestas)
+              : [];
+          data.entrevista = Array.isArray(preguntas)
+            ? { preguntas, respuestas: Array.isArray(respuestas) ? respuestas : [] }
+            : null;
+        } catch {
+          data.entrevista = null;
+        }
+        data.entrevista_fuente = data.entrevista
+          ? (data.entrevista_fuente ?? null)
+          : null;
+
         const rawDiag = data.diagnostico_json;
         delete data.diagnostico_json;
         try {
@@ -1624,7 +1815,15 @@ export function ApplicationForm() {
               {role === "aspirante" && step === 3 && <AspiranteStep3 />}
 
               {role === "empresa" && step === 1 && <EmpresaStep1 />}
-              {role === "empresa" && step === 2 && <EmpresaStep2 />}
+              {role === "empresa" && step === 2 && (
+                <EmpresaStep2
+                  chat={chat}
+                  retoInputRef={retoInputRef}
+                  onSendReto={handleSendReto}
+                  onAnswerPregunta={handleAnswerPregunta}
+                  onEditReto={handleEditReto}
+                />
+              )}
               {role === "empresa" && step === 3 && (
                 <EmpresaStep3Diagnosis
                   state={diagnostico}
@@ -2109,7 +2308,27 @@ function EmpresaStep1() {
   );
 }
 
-function EmpresaStep2() {
+/**
+ * El paso 2 fusiona el reto y la entrevista de profundización en un solo
+ * chat (ver spec, revisión tras feedback de Sebastián): la empresa escribe
+ * el reto, lo envía, y ahí mismo — sin pasar a otro paso — el agente
+ * entrevistador pregunta lo que haga falta. `chat` y los callbacks vienen
+ * de ApplicationForm porque orquestan fetch + valuesRef, igual que el resto
+ * del formulario.
+ */
+function EmpresaStep2({
+  chat,
+  retoInputRef,
+  onSendReto,
+  onAnswerPregunta,
+  onEditReto,
+}: {
+  chat: ChatState;
+  retoInputRef: React.RefObject<HTMLTextAreaElement | null>;
+  onSendReto: () => void;
+  onAnswerPregunta: (respuesta: string) => void;
+  onEditReto: () => void;
+}) {
   const ctx = useFormCtx();
   return (
     <>
@@ -2151,17 +2370,14 @@ function EmpresaStep2() {
           Describe el reto interno
           <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
-        <textarea
-          {...textProps("reto", ctx)}
-          required
-          minLength={CHALLENGE_MIN}
-          maxLength={CHALLENGE_MAX}
-          placeholder="Ej: Pasamos mucho tiempo respondiendo preguntas frecuentes de clientes..."
-          className={cn(inputCls, "min-h-[120px] resize-y leading-relaxed")}
+        <RetoChat
+          state={chat}
+          textProps={textProps("reto", ctx)}
+          retoInputRef={retoInputRef}
+          onSendReto={onSendReto}
+          onAnswerPregunta={onAnswerPregunta}
+          onEditReto={onEditReto}
         />
-        <span className="mt-2 block text-[13px] text-[var(--color-fg-subtle)]">
-          ¿Qué problema crees que podría resolverse con tecnología o IA? (mínimo 20 caracteres)
-        </span>
       </Field>
     </>
   );

@@ -5,12 +5,20 @@
  * formulario (cliente). Por eso no puede tocar `process.env` ni el SDK de
  * Vertex: el prompt y el schema viven aparte en `lib/diagnosis-prompt.ts`.
  */
+import { normalizePreguntas } from "@/lib/entrevista";
 
 export type SolutionOption = {
   paquete?: PackageName;
   titulo: string;
   descripcion: string;
   entregable: string;
+  /**
+   * Frase corta que nombra el dolor operativo concreto que esta ruta
+   * ataca ("dejar de cuadrar rutas a mano los lunes"), en vez de forzar la
+   * opción a la forma de un paquete de desarrollo. Opcional para poder
+   * seguir leyendo diagnósticos generados antes de este campo.
+   */
+  dolor_resuelto?: string;
   /** @deprecated Accepted only to read historical Firestore records. */
   duracion_semanas?: number;
 };
@@ -43,6 +51,11 @@ export type DiagnosisRequest = {
   /** Texto libre cuando area === "otro". Cadena vacía si no aplica. */
   area_otro: string;
   reto: string;
+  /**
+   * Respuestas de la empresa a las preguntas del agente entrevistador
+   * (sub-estado A del paso 3). Array vacío si la entrevista se saltó.
+   */
+  respuestas_entrevista: string[];
 };
 
 export const CHALLENGE_MIN = 20;
@@ -82,7 +95,22 @@ export function parseDiagnosisRequest(
   const area_otro =
     typeof o.area_otro === "string" ? o.area_otro.trim().slice(0, 120) : "";
 
-  return { ok: true, value: { empresa, area: normalizeArea(o.area), area_otro, reto } };
+  // Reutiliza la misma sanitización que las preguntas del entrevistador:
+  // hasta 3 respuestas, no vacías, recortadas a una longitud razonable.
+  // Este campo lo llena nuestro propio cliente (nunca es entrada directa
+  // del usuario sin pasar por el paso 3), pero igual se sanea por defensa.
+  const respuestas_entrevista = normalizePreguntas(o.respuestas_entrevista);
+
+  return {
+    ok: true,
+    value: {
+      empresa,
+      area: normalizeArea(o.area),
+      area_otro,
+      reto,
+      respuestas_entrevista,
+    },
+  };
 }
 
 function isSolutionOption(v: unknown): v is SolutionOption {
@@ -95,6 +123,11 @@ function isSolutionOption(v: unknown): v is SolutionOption {
     o.descripcion.trim().length > 0 &&
     typeof o.entregable === "string" &&
     o.entregable.trim().length > 0 &&
+    // dolor_resuelto es opcional (registros previos a este campo no lo
+    // traen), pero si viene debe ser un string no vacío — no basura.
+    (o.dolor_resuelto === undefined ||
+      (typeof o.dolor_resuelto === "string" &&
+        o.dolor_resuelto.trim().length > 0)) &&
     ((typeof o.paquete === "string" &&
       (PACKAGE_NAMES as readonly string[]).includes(o.paquete)) ||
       (typeof o.duracion_semanas === "number" &&
@@ -146,6 +179,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Un semillero recopila tus preguntas repetidas y arma un asistente que responde con la información real de tu negocio, conectado al canal que ya usas.",
       entregable: "Asistente funcional en tu canal de atención, con panel para actualizar respuestas.",
       paquete: "Chispa",
+      dolor_resuelto: "Responder lo mismo una y otra vez",
     },
     {
       titulo: "Tablero de conversaciones",
@@ -153,6 +187,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Centralizamos lo que llega por distintos canales en un solo tablero, con etiquetas y prioridades, para que tu equipo deje de saltar entre apps.",
       entregable: "Tablero web con bandeja unificada y reporte semanal de volumen.",
       paquete: "Impulso",
+      dolor_resuelto: "Saltar entre apps para atender un mismo caso",
     },
     {
       titulo: "Mapa del recorrido de soporte",
@@ -160,6 +195,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Antes de automatizar, medimos: dónde se traba tu atención, qué toma más tiempo y qué se puede resolver solo. Termina en un plan priorizado.",
       entregable: "Diagnóstico documentado con métricas y roadmap de automatización.",
       paquete: "Celda",
+      dolor_resuelto: "No saber con certeza dónde se traba tu atención",
     },
   ],
   operaciones: [
@@ -169,6 +205,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Elegimos el proceso manual que más horas te consume y lo automatizamos punta a punta, conectando las herramientas que ya usas.",
       entregable: "Flujo automatizado en producción con documentación de uso.",
       paquete: "Chispa",
+      dolor_resuelto: "La tarea manual que más horas le roba a tu equipo",
     },
     {
       titulo: "Herramienta interna a medida",
@@ -176,6 +213,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Reemplazamos ese archivo compartido que todos editan por una herramienta web con roles, historial y validaciones.",
       entregable: "Aplicación interna desplegada, con manual y capacitación al equipo.",
       paquete: "Impulso",
+      dolor_resuelto: "El archivo compartido que todos editan y se daña",
     },
     {
       titulo: "Mapa de procesos y plan de mejora",
@@ -183,6 +221,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Levantamos cómo trabaja hoy tu equipo, detectamos los cuellos de botella y priorizamos qué conviene atacar primero.",
       entregable: "Mapa de procesos documentado y plan priorizado de automatización.",
       paquete: "Celda",
+      dolor_resuelto: "No saber por dónde empezar a automatizar",
     },
   ],
   datos: [
@@ -192,6 +231,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Conectamos tus fuentes de datos actuales y armamos un tablero que se actualiza solo, con los indicadores que de verdad usas para decidir.",
       entregable: "Tablero web con datos en vivo y definición escrita de cada indicador.",
       paquete: "Chispa",
+      dolor_resuelto: "Revisar varias fuentes a mano para decidir algo",
     },
     {
       titulo: "Reportes automáticos",
@@ -199,6 +239,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Ese reporte que alguien arma a mano cada semana pasa a generarse y enviarse solo, siempre con el mismo formato.",
       entregable: "Reporte programado con envío automático y plantilla versionada.",
       paquete: "Impulso",
+      dolor_resuelto: "El reporte que alguien arma a mano cada semana",
     },
     {
       titulo: "Ordenar la casa de los datos",
@@ -206,6 +247,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Revisamos de dónde salen tus datos, limpiamos duplicados e inconsistencias y dejamos una base confiable para construir encima.",
       entregable: "Base de datos consolidada y documentación de fuentes.",
       paquete: "Celda",
+      dolor_resuelto: "No confiar en tus propios datos duplicados",
     },
   ],
   marketing: [
@@ -215,6 +257,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Diseñamos y construimos una página enfocada en una sola acción, con analítica configurada desde el día uno para saber qué funciona.",
       entregable: "Landing publicada, responsive, con métricas de conversión activas.",
       paquete: "Chispa",
+      dolor_resuelto: "No saber qué tan bien convierte tu página hoy",
     },
     {
       titulo: "Automatización del seguimiento comercial",
@@ -222,6 +265,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Conectamos tus formularios con tu CRM y armamos el seguimiento automático, para que ningún prospecto se enfríe por olvido.",
       entregable: "Flujo de captación y seguimiento integrado, con tablero de estados.",
       paquete: "Impulso",
+      dolor_resuelto: "Que un lead se enfríe porque nadie le escribió a tiempo",
     },
     {
       titulo: "Auditoría digital y plan",
@@ -229,6 +273,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Revisamos tu presencia actual — sitio, velocidad, analítica, contenidos — y armamos un plan priorizado por impacto.",
       entregable: "Informe de auditoría con plan de acción priorizado.",
       paquete: "Celda",
+      dolor_resuelto: "No saber qué de tu presencia digital vale la pena arreglar primero",
     },
   ],
   otro: [
@@ -238,6 +283,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Construimos una versión mínima y funcional de lo que tienes en mente, suficiente para ponerla frente a usuarios reales y aprender.",
       entregable: "Prototipo navegable desplegado y documento de aprendizajes.",
       paquete: "Chispa",
+      dolor_resuelto: "No tener nada tangible para poner frente a usuarios reales",
     },
     {
       titulo: "Descubrimiento técnico",
@@ -245,6 +291,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Una dupla junior + mentor Senior levanta tu situación actual, define el alcance real del reto y propone por dónde empezar.",
       entregable: "Documento de alcance con opciones técnicas y esfuerzo estimado.",
       paquete: "Impulso",
+      dolor_resuelto: "No tener claro por dónde empezar",
     },
     {
       titulo: "Célula de desarrollo dedicada",
@@ -252,6 +299,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
         "Un joven talento acompañado por un mentor Senior trabaja tu reto en ciclos cortos, con entregas revisables cada semana.",
       entregable: "Entregas semanales funcionales y traspaso documentado al cierre.",
       paquete: "Cantera",
+      dolor_resuelto: "Necesitar manos dedicadas a un reto de mayor alcance",
     },
   ],
 };
