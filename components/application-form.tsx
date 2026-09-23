@@ -60,6 +60,7 @@ import {
 } from "@/components/empresas/diagnosis-panel";
 import { RetoChat, type ChatState } from "@/components/empresas/reto-chat";
 import {
+  AREA_LABELS,
   CHALLENGE_MAX,
   CHALLENGE_MIN,
   fallbackFor,
@@ -1152,7 +1153,11 @@ export function ApplicationForm() {
     }
     setErrorMsg(null);
     valuesRef.current.reto = value;
-    setDefaults((d) => ({ ...d, reto: value }));
+    // Captura todo el panel (no solo el reto) para que ctx.defaults quede al
+    // día con área/área_otro — RetoChat colapsa el selector de área en un
+    // resumen de una línea apenas arranca el chat, y necesita leer el valor
+    // elegido desde ahí.
+    captureCurrentPanel();
     setChat({ phase: "thinking", reto: value });
     void requestEntrevista(value);
   };
@@ -2330,6 +2335,18 @@ function EmpresaStep2({
   onEditReto: () => void;
 }) {
   const ctx = useFormCtx();
+  // Una vez que el chat arranca (reto enviado), el selector de área se
+  // colapsa a una línea con la opción elegida — cinco radios completos ya
+  // no aportan nada y empujan el chat hacia abajo. "Cambiar opción" reusa
+  // el mismo reinicio que "Cambiar el reto" (onEditReto), porque cambiar de
+  // área sin reformular el reto no tendría sentido: la entrevista ya se
+  // pidió con la combinación anterior.
+  const isWriting = chat.phase === "writing";
+  const areaValue = normalizeArea(ctx.defaults.area);
+  const areaLabel =
+    areaValue === "otro" && ctx.defaults.area_otro
+      ? ctx.defaults.area_otro
+      : AREA_LABELS[areaValue];
   return (
     <>
       <PanelHeader
@@ -2346,23 +2363,38 @@ function EmpresaStep2({
           ¿Qué área te gustaría potenciar?
           <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
-        <div className="flex flex-col gap-2.5">
-          <Radio name="area" value="cs" label="Servicio al cliente / Soporte" required />
-          <Radio
-            name="area"
-            value="operaciones"
-            label="Procesos internos / Operaciones"
-          />
-          <Radio name="area" value="datos" label="Análisis de datos / Reportes" />
-          <Radio name="area" value="marketing" label="Marketing / Ventas" />
-          <Radio
-            name="area"
-            value="otro"
-            label="Otro"
-            withOtherInput
-            otherName="area_otro"
-          />
-        </div>
+        {isWriting ? (
+          <div className="flex flex-col gap-2.5">
+            <Radio name="area" value="cs" label="Servicio al cliente / Soporte" required />
+            <Radio
+              name="area"
+              value="operaciones"
+              label="Procesos internos / Operaciones"
+            />
+            <Radio name="area" value="datos" label="Análisis de datos / Reportes" />
+            <Radio name="area" value="marketing" label="Marketing / Ventas" />
+            <Radio
+              name="area"
+              value="otro"
+              label="Otro"
+              withOtherInput
+              otherName="area_otro"
+            />
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-teal)] px-4 py-3">
+            <span className="text-[14px] font-semibold text-[var(--color-ink)]">
+              {areaLabel}
+            </span>
+            <button
+              type="button"
+              onClick={onEditReto}
+              className="flex-shrink-0 text-[13px] font-semibold text-[var(--color-ink)] underline-offset-4 hover:underline"
+            >
+              Cambiar opción
+            </button>
+          </div>
+        )}
       </Field>
 
       <Field>
