@@ -59,6 +59,10 @@ import {
   type DiagnosisState,
 } from "@/components/empresas/diagnosis-panel";
 import {
+  EntrevistaPanel,
+  type EntrevistaState,
+} from "@/components/empresas/entrevista-panel";
+import {
   CHALLENGE_MAX,
   CHALLENGE_MIN,
   fallbackFor,
@@ -66,6 +70,7 @@ import {
   normalizeArea,
   type Diagnosis,
 } from "@/lib/diagnosis";
+import { normalizePreguntas } from "@/lib/entrevista";
 
 // Easing canónico del sitio
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -859,6 +864,16 @@ export function ApplicationForm() {
   // Aborta la petición anterior si el usuario regenera antes de que llegue.
   const diagAbortRef = useRef<AbortController | null>(null);
 
+  // ---- Entrevista IA (sub-estado A del paso 3 de empresas) ----
+  // Vive antes del diagnóstico dentro del MISMO paso 3 — no es un paso
+  // aparte del wizard. Transiciona a "skipped" al confirmar respuestas (o
+  // automáticamente si no hubo preguntas), momento en el que el paso 3
+  // pasa a mostrar el DiagnosisPanel de siempre.
+  const [entrevista, setEntrevista] = useState<EntrevistaState>({
+    status: "loading",
+  });
+  const entrevistaAbortRef = useRef<AbortController | null>(null);
+
   // Borrador detectado al montar (banner "Tienes un borrador guardado").
   const [draftPrompt, setDraftPrompt] = useState<FormDraft | null>(null);
   // Nombre del CV que tenía un borrador restaurado — recordatorio de re-subir.
@@ -994,6 +1009,17 @@ export function ApplicationForm() {
       ctrl.abort();
     }, CLIENT_TIMEOUT_MS);
 
+    // Respuestas de la entrevista (si hubo): viajan como JSON en valuesRef,
+    // igual que el diagnóstico mismo — solo strings sobreviven entre pasos.
+    let respuestas_entrevista: string[] = [];
+    try {
+      const raw = v.entrevista_respuestas_json;
+      const parsed = typeof raw === "string" && raw ? JSON.parse(raw) : [];
+      respuestas_entrevista = normalizePreguntas(parsed);
+    } catch {
+      respuestas_entrevista = [];
+    }
+
     try {
       const res = await fetch("/api/diagnostico", {
         method: "POST",
@@ -1004,6 +1030,7 @@ export function ApplicationForm() {
           area,
           area_otro: v.area_otro ?? "",
           reto: v.reto ?? "",
+          respuestas_entrevista,
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1042,6 +1069,96 @@ export function ApplicationForm() {
     void requestDiagnosis();
   };
 
+  /**
+   * Pide las preguntas de profundización al endpoint. Nunca lanza: un array
+   * vacío (por decisión del modelo o por cualquier fallo) se interpreta como
+   * "saltar la entrevista" y dispara el diagnóstico directo, sin que la
+   * empresa vea un paso vacío ni un error.
+   */
+  const requestEntrevista = async () => {
+    entrevistaAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    entrevistaAbortRef.current = ctrl;
+
+    setEntrevista({ status: "loading" });
+    valuesRef.current.entrevista_preguntas_json = "[]";
+    valuesRef.current.entrevista_respuestas_json = "[]";
+    valuesRef.current.entrevista_fuente = "fallback";
+
+    const v = valuesRef.current;
+    const area = normalizeArea(v.area);
+
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      ctrl.abort();
+    }, CLIENT_TIMEOUT_MS);
+
+    // Salta la entrevista y pasa directo al diagnóstico. Se llama tanto en
+    // el camino feliz (el modelo decidió que no hacen falta preguntas) como
+    // en cualquier fallo — el paso 3 nunca se queda esperando algo que no
+    // va a llegar.
+    const skip = (fuente: "ia" | "fallback") => {
+      clearTimeout(timer);
+      valuesRef.current.entrevista_preguntas_json = "[]";
+      valuesRef.current.entrevista_respuestas_json = "[]";
+      valuesRef.current.entrevista_fuente = fuente;
+      setEntrevista({ status: "skipped" });
+      setRegens(0);
+      void requestDiagnosis();
+    };
+
+    try {
+      const res = await fetch("/api/entrevista", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: ctrl.signal,
+        body: JSON.stringify({
+          empresa: v.empresa ?? "",
+          area,
+          area_otro: v.area_otro ?? "",
+          reto: v.reto ?? "",
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const fuente = json.fuente === "ia" ? "ia" : "fallback";
+      const preguntas = normalizePreguntas(json.preguntas);
+      if (preguntas.length === 0) {
+        skip(fuente);
+        return;
+      }
+      clearTimeout(timer);
+      valuesRef.current.entrevista_preguntas_json = JSON.stringify(preguntas);
+      setEntrevista({ status: "ready", preguntas, fuente });
+    } catch (err) {
+      clearTimeout(timer);
+      if (ctrl.signal.aborted && !timedOut) return;
+      console.error("Error pidiendo entrevista:", err);
+      skip("fallback");
+    }
+  };
+
+  /**
+   * Confirma las respuestas de la entrevista (paso 3, sub-estado A → B):
+   * valida que estén completas, las captura, y dispara el diagnóstico. No
+   * avanza el wizard — sigue en el paso 3, solo cambia el sub-estado.
+   */
+  const handleConfirmEntrevista = () => {
+    if (!validateCurrentPanel()) return;
+    captureCurrentPanel();
+    if (entrevista.status !== "ready") return;
+    const respuestas = entrevista.preguntas.map(
+      (_, i) => valuesRef.current[`entrevista_respuesta_${i}`]?.trim() ?? "",
+    );
+    valuesRef.current.entrevista_preguntas_json = JSON.stringify(entrevista.preguntas);
+    valuesRef.current.entrevista_respuestas_json = JSON.stringify(respuestas);
+    valuesRef.current.entrevista_fuente = entrevista.fuente;
+    setEntrevista({ status: "skipped" });
+    setRegens(0);
+    void requestDiagnosis();
+  };
+
   const steps = useMemo(
     () => (role === "aspirante" ? ASPIRANTE_STEPS : EMPRESA_STEPS),
     [role],
@@ -1053,14 +1170,15 @@ export function ApplicationForm() {
     if (next < 1 || next > steps.length) return;
     // ANTES de cambiar de paso, capturar valores del panel actual
     captureCurrentPanel();
-    // Entrando al paso de diagnóstico desde el reto → pedirlo.
+    // Entrando al paso 3 desde el reto → arranca la entrevista (sub-estado
+    // A). El diagnóstico (sub-estado B) se dispara después, al confirmar
+    // las respuestas o al saltarse la entrevista — ver requestEntrevista.
     // Va acá (y no en handleNext) para cubrir también el submit accidental
     // y el Enter, que también navegan vía goTo. La guarda depende solo del
     // destino y la dirección (parámetros de goTo), nunca del `step`
     // cerrado sobre el closure, que puede quedar desactualizado.
     if (role === "empresa" && next === 3 && dir === "forward") {
-      setRegens(0);
-      void requestDiagnosis();
+      void requestEntrevista();
     }
     lastTransitionAtRef.current = Date.now();
     setDirection(dir);
@@ -1085,6 +1203,8 @@ export function ApplicationForm() {
     setDefaults({}); // limpia el snapshot también
     diagAbortRef.current?.abort();
     setDiagnosis({ status: "loading" });
+    entrevistaAbortRef.current?.abort();
+    setEntrevista({ status: "loading" });
     setRegens(0);
   };
 
@@ -1117,9 +1237,21 @@ export function ApplicationForm() {
     const panel = form.querySelector<HTMLElement>("[data-active-panel]");
     if (!panel) return true;
 
-    // El paso de diagnóstico no se puede pasar mientras el modelo responde:
-    // todavía no hay opciones que elegir.
-    if (role === "empresa" && step === 3 && diagnostico.status === "loading") {
+    // El paso 3 no se puede pasar mientras cualquiera de los dos agentes
+    // está respondiendo. La entrevista bloquea primero (sub-estado A); el
+    // diagnóstico solo importa una vez que la entrevista ya se confirmó o
+    // se saltó (sub-estado B) — si no, `diagnostico.status` todavía trae su
+    // valor inicial "loading" sin que se haya pedido nada.
+    if (role === "empresa" && step === 3 && entrevista.status === "loading") {
+      setErrorMsg("Dale un segundo, estamos preparando algunas preguntas.");
+      return false;
+    }
+    if (
+      role === "empresa" &&
+      step === 3 &&
+      entrevista.status === "skipped" &&
+      diagnostico.status === "loading"
+    ) {
       setErrorMsg("Dale un segundo, todavía estamos leyendo tu reto.");
       return false;
     }
@@ -1249,6 +1381,20 @@ export function ApplicationForm() {
     goTo(step + 1, "forward");
   };
 
+  /**
+   * Acción primaria del paso actual: normalmente avanza al siguiente paso,
+   * pero en el paso 3 de empresas, mientras la entrevista espera respuestas
+   * sin confirmar, confirma esas respuestas en vez de navegar. La usan
+   * tanto el botón "Continuar"/"Ver mi diagnóstico" como el Enter.
+   */
+  const handlePrimaryAction = () => {
+    if (role === "empresa" && step === 3 && entrevista.status === "ready") {
+      handleConfirmEntrevista();
+      return;
+    }
+    handleNext();
+  };
+
   const handleBack = () => goTo(step - 1, "back");
 
   // ---- File upload feedback ----
@@ -1274,10 +1420,11 @@ export function ApplicationForm() {
     if (e.key !== "Enter") return;
     // Permitir Enter en textarea (saltos de línea naturales)
     if (e.target instanceof HTMLTextAreaElement) return;
-    // En pasos intermedios: bloquear submit, avanzar paso
+    // En pasos intermedios: bloquear submit, avanzar paso (o confirmar la
+    // entrevista, si es ese el sub-estado activo del paso 3).
     if (step < steps.length) {
       e.preventDefault();
-      handleNext();
+      handlePrimaryAction();
     }
   };
 
@@ -1325,6 +1472,34 @@ export function ApplicationForm() {
       // solo maneja strings, y así el borrador de localStorage sigue siendo
       // serializable). Acá lo volvemos objeto para Firestore.
       if (role === "empresa") {
+        // Mismo patrón que el diagnóstico: la entrevista viaja como JSON en
+        // valuesRef (el formulario solo maneja strings) y acá se vuelve
+        // objeto para Firestore. Se guarda incluso con preguntas: [] — le
+        // sirve al equipo saber que esa empresa no pasó por la
+        // profundización (ver spec, §5.6).
+        const rawEntrevistaPreguntas = data.entrevista_preguntas_json;
+        const rawEntrevistaRespuestas = data.entrevista_respuestas_json;
+        delete data.entrevista_preguntas_json;
+        delete data.entrevista_respuestas_json;
+        try {
+          const preguntas =
+            typeof rawEntrevistaPreguntas === "string" && rawEntrevistaPreguntas
+              ? JSON.parse(rawEntrevistaPreguntas)
+              : [];
+          const respuestas =
+            typeof rawEntrevistaRespuestas === "string" && rawEntrevistaRespuestas
+              ? JSON.parse(rawEntrevistaRespuestas)
+              : [];
+          data.entrevista = Array.isArray(preguntas)
+            ? { preguntas, respuestas: Array.isArray(respuestas) ? respuestas : [] }
+            : null;
+        } catch {
+          data.entrevista = null;
+        }
+        data.entrevista_fuente = data.entrevista
+          ? (data.entrevista_fuente ?? null)
+          : null;
+
         const rawDiag = data.diagnostico_json;
         delete data.diagnostico_json;
         try {
@@ -1625,7 +1800,10 @@ export function ApplicationForm() {
 
               {role === "empresa" && step === 1 && <EmpresaStep1 />}
               {role === "empresa" && step === 2 && <EmpresaStep2 />}
-              {role === "empresa" && step === 3 && (
+              {role === "empresa" && step === 3 && entrevista.status !== "skipped" && (
+                <EmpresaStep3Entrevista state={entrevista} />
+              )}
+              {role === "empresa" && step === 3 && entrevista.status === "skipped" && (
                 <EmpresaStep3Diagnosis
                   state={diagnostico}
                   generation={regens}
@@ -1683,11 +1861,13 @@ export function ApplicationForm() {
               <button
                 key="btn-next"
                 type="button"
-                onClick={handleNext}
+                onClick={handlePrimaryAction}
                 className="toon-btn w-full justify-center sm:ml-auto sm:w-auto"
                 style={{ background: "var(--color-ink)", color: "#fff" }}
               >
-                Continuar
+                {role === "empresa" && step === 3 && entrevista.status === "ready"
+                  ? "Ver mi diagnóstico"
+                  : "Continuar"}
                 <motion.span
                   animate={{ x: [0, 3, 0] }}
                   transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
@@ -2164,6 +2344,24 @@ function EmpresaStep2() {
         </span>
       </Field>
     </>
+  );
+}
+
+/**
+ * Wrapper del sub-estado de entrevista (paso 3, antes del diagnóstico): vive
+ * acá por la misma razón que EmpresaStep3Diagnosis — necesita useFormCtx,
+ * privado de este archivo. Reusa `textProps` tal cual, con nombres de campo
+ * `entrevista_respuesta_{i}` para que las respuestas se persistan entre
+ * transiciones igual que cualquier otro input del formulario.
+ */
+function EmpresaStep3Entrevista({ state }: { state: EntrevistaState }) {
+  const ctx = useFormCtx();
+  return (
+    <EntrevistaPanel
+      loading={state.status === "loading"}
+      preguntas={state.status === "ready" ? state.preguntas : []}
+      textProps={(name) => textProps(name, ctx)}
+    />
   );
 }
 

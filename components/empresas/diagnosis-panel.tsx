@@ -11,7 +11,7 @@
 
 import type { ChangeEventHandler } from "react";
 import { motion } from "framer-motion";
-import { Package, ShieldCheck, RefreshCw, Loader2 } from "lucide-react";
+import { Package, ShieldCheck, RefreshCw, Loader2, Target } from "lucide-react";
 import { diagnosisCopy } from "@/lib/data";
 import type { Diagnosis, DiagnosisSource } from "@/lib/diagnosis";
 
@@ -135,6 +135,12 @@ export function DiagnosisPanel({
               <span className="h-2 w-2 rounded-full bg-white opacity-0 peer-checked:opacity-100" />
             </span>
             <span className="min-w-0 flex-1">
+              {op.dolor_resuelto && (
+                <span className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-[var(--color-ink)] bg-[var(--color-bg-teal)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--color-ink)]">
+                  <Target size={11} className="flex-shrink-0" />
+                  {op.dolor_resuelto}
+                </span>
+              )}
               <span className="block font-display text-[15px] font-bold leading-snug text-[var(--color-ink)]">
                 {op.titulo}
               </span>

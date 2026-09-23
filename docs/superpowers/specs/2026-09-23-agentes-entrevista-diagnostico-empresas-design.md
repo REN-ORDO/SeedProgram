@@ -1,7 +1,7 @@
 # Agentes IA de entrevista y diagnóstico para empresas
 
 **Fecha:** 2026-09-23
-**Estado:** propuesto (pendiente de aprobación de Sebastián)
+**Estado:** implementado (pendiente de revisión de Sebastián y de probar con credenciales reales de Vertex)
 **Autor:** Claude + Sebastián (REN-ORDO) — origen: conversación de WhatsApp del 22/9 con Sra. Fanny y
 Ordo, más la conversación de Ordo con Luis Carlos (CooWeb) el mismo día sobre el alcance real de
 los servicios.
@@ -229,9 +229,11 @@ para que el equipo sepa que esa empresa no pasó por la fase de profundización.
 
 ### 5.7 Admin
 
-`components/admin/postulacion-detail.tsx` suma, antes del bloque de diagnóstico ya existente, un
-bloque con las preguntas y respuestas de la entrevista (si las hubo). Si `entrevista === null`, no
-se renderiza nada — no todos los registros antiguos van a tenerlo.
+`app/admin/empresas/[id]/page.tsx` (la configuración de secciones que consume el `PostulacionDetail`
+genérico de `components/admin/postulacion-detail.tsx`) suma, antes de la sección de diagnóstico ya
+existente, una sección "Entrevista IA" con las preguntas y respuestas (si las hubo). Si el registro
+es anterior a este cambio y no trae `entrevista`, se muestra un texto indicándolo — mismo patrón que
+ya usa el bloque de diagnóstico para registros previos a esa feature.
 
 ---
 
@@ -242,6 +244,7 @@ se renderiza nada — no todos los registros antiguos van a tenerlo.
 | Archivo | Responsabilidad |
 |---|---|
 | `app/api/entrevista/route.ts` | HTTP: valida, limita, llama a Vertex, responde preguntas |
+| `lib/entrevista.ts` | Núcleo de dominio compartido cliente/servidor: `normalizePreguntas` — mismo patrón que `lib/diagnosis.ts` frente a `lib/diagnosis-prompt.ts` |
 | `lib/entrevista-prompt.ts` | Prompt y response schema del agente entrevistador |
 | `components/empresas/entrevista-panel.tsx` | UI del sub-estado de entrevista dentro del paso 3 |
 
@@ -253,7 +256,7 @@ se renderiza nada — no todos los registros antiguos van a tenerlo.
 | `lib/diagnosis.ts` | `isSolutionOption` exige `dolor_resuelto` no vacío; `DiagnosisRequest` suma `respuestas_entrevista` |
 | `lib/data.ts` | Copy del sub-estado de entrevista (sin catálogo de servicios — descartado, ver §5.4) |
 | `components/application-form.tsx` | `requestEntrevista()`, estado `EntrevistaState`, reorganización de `EmpresaStep3Diagnosis`, payload de envío con `entrevista` |
-| `components/admin/postulacion-detail.tsx` | Bloque de preguntas/respuestas de la entrevista |
+| `app/admin/empresas/[id]/page.tsx` | Sección "Entrevista IA" con preguntas/respuestas; ajuste del bloque de diagnóstico para mostrar `dolor_resuelto` |
 | `.env.example` | Sin cambios — reutiliza `GOOGLE_SERVICE_ACCOUNT_JSON` y `VERTEX_MODEL` ya existentes |
 
 ---

@@ -53,13 +53,75 @@ function DiagnosisField({
             <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
               {op.descripcion}
             </p>
-            <p className="mt-1.5 text-xs text-[var(--color-ink)]">
-              {op.entregable} · {op.duracion_semanas} semanas
+            {op.dolor_resuelto && (
+              <p className="mt-1.5 text-xs font-bold text-[var(--color-accent-strong)]">
+                Dolor: {op.dolor_resuelto}
+              </p>
+            )}
+            <p className="mt-1 text-xs text-[var(--color-ink)]">
+              {op.entregable}
+              {op.paquete ? ` · Paquete: ${op.paquete}` : ""}
             </p>
           </li>
         ))}
       </ul>
     </div>
+  );
+}
+
+/** Forma mínima que persiste el paso 3, sub-estado A. Se valida en el
+ *  propio `format` — no hay guard compartido porque es un shape simple y
+ *  privado de esta pantalla. */
+type Entrevista = { preguntas: unknown; respuestas: unknown };
+
+function isEntrevista(v: unknown): v is Entrevista {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return Array.isArray(o.preguntas);
+}
+
+/** Bloque de "Entrevista IA": preguntas de profundización + respuestas de
+ *  la empresa, si las hubo. */
+function EntrevistaField({
+  entrevista,
+  fuente,
+}: {
+  entrevista: Entrevista;
+  fuente: unknown;
+}) {
+  const preguntas = Array.isArray(entrevista.preguntas)
+    ? (entrevista.preguntas as unknown[])
+    : [];
+  const respuestas = Array.isArray(entrevista.respuestas)
+    ? (entrevista.respuestas as unknown[])
+    : [];
+
+  if (preguntas.length === 0) {
+    return (
+      <p className="text-sm text-[var(--color-fg-muted)]">
+        {fuente === "fallback"
+          ? "El agente entrevistador no respondió a tiempo — se pasó directo al diagnóstico."
+          : "El reto ya era lo bastante específico — el agente no hizo preguntas extra."}
+      </p>
+    );
+  }
+
+  return (
+    <ul className="flex flex-col gap-2">
+      {preguntas.map((pregunta, i) => (
+        <li
+          key={i}
+          className="rounded-xl border-2 border-dashed border-[var(--color-bg-soft)] p-3"
+        >
+          <div className="font-display text-sm font-bold">
+            {String(pregunta)}
+          </div>
+          <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
+            {respuestas[i] ? String(respuestas[i]) : "— (sin respuesta)"}
+          </p>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -100,6 +162,22 @@ const sections: FieldSection[] = [
           ) : (
             "—"
           ),
+      },
+    ],
+  },
+  {
+    title: "Entrevista IA",
+    fields: [
+      {
+        key: "entrevista",
+        label: "Preguntas de profundización",
+        fullWidth: true,
+        format: (v, data) => {
+          if (!isEntrevista(v)) {
+            return "— (esta postulación se envió antes de la entrevista IA)";
+          }
+          return <EntrevistaField entrevista={v} fuente={data.entrevista_fuente} />;
+        },
       },
     ],
   },

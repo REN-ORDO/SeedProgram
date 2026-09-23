@@ -697,6 +697,12 @@ export const empresaCTA = {
 // Diagnóstico IA (paso 3 del formulario de empresas)
 // ============================================================
 
+export const entrevistaCopy = {
+  title: "Un par de preguntas más",
+  desc: "Para proponerte algo que sirva de verdad, no algo genérico.",
+  loading: "Un par de preguntas más…",
+};
+
 export const diagnosisCopy = {
   title: "Esto es lo que vemos",
   desc: "Leímos tu reto y armamos tres rutas posibles con un paquete recomendado. Elige la que mejor abra la conversación.",
