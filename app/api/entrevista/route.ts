@@ -141,7 +141,11 @@ async function generateWithVertex(req: DiagnosisRequest): Promise<string[] | nul
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
         temperature: 0.6,
-        maxOutputTokens: 1024,
+        // Mismo ajuste que /api/diagnostico: el thinking de Gemini 2.5 Flash
+        // resta del presupuesto de maxOutputTokens y puede truncar el JSON.
+        // Esta tarea (decidir 0-3 preguntas cortas) tampoco lo necesita.
+        thinkingConfig: { thinkingBudget: 0 },
+        maxOutputTokens: 2048,
       },
     });
 
