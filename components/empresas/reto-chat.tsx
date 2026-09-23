@@ -83,6 +83,11 @@ function TypingBubble() {
   );
 }
 
+/** Largo mínimo de una respuesta del chat. No es para exigir una redacción
+ *  larga — es para frenar "a", "sa", ruido de una tecla que no aporta nada
+ *  a la entrevista y ensucia el contexto que después lee el solucionador. */
+const MIN_RESPUESTA_LEN = 5;
+
 /** Input de respuesta dentro del chat: texto + botón enviar + Enter envía. */
 function ReplyInput({
   placeholder,
@@ -92,46 +97,68 @@ function ReplyInput({
   onSend: (value: string) => void;
 }) {
   const [value, setValue] = useState("");
+  const [tooShort, setTooShort] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const send = () => {
     const trimmed = value.trim();
-    if (!trimmed) return;
+    if (trimmed.length < MIN_RESPUESTA_LEN) {
+      setTooShort(true);
+      inputRef.current?.focus();
+      return;
+    }
     onSend(trimmed);
     setValue("");
+    setTooShort(false);
     inputRef.current?.focus();
   };
 
   return (
-    <div className="flex gap-2">
-      <input
-        ref={inputRef}
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            // stopPropagation: sin esto, el Enter también dispara el
-            // handleKeyDown del <form> (que intenta avanzar de paso) justo
-            // antes de que el estado de la respuesta recién enviada se
-            // actualice.
-            e.preventDefault();
-            e.stopPropagation();
-            send();
-          }
-        }}
-        maxLength={500}
-        placeholder={placeholder}
-        className={cn(inputCls, "py-2.5 text-[14px]")}
-      />
-      <button
-        type="button"
-        onClick={send}
-        aria-label="Enviar respuesta"
-        className="flex flex-shrink-0 items-center justify-center rounded-xl border-2 border-[var(--color-ink)] bg-[var(--color-ink)] px-3.5 text-white shadow-[3px_3px_0_var(--color-ink)] transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-ink)]"
-      >
-        <Send size={16} />
-      </button>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex gap-2">
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            // El aviso desaparece apenas escribe de nuevo — no se queda
+            // pegado después de corregir.
+            if (tooShort) setTooShort(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              // stopPropagation: sin esto, el Enter también dispara el
+              // handleKeyDown del <form> (que intenta avanzar de paso) justo
+              // antes de que el estado de la respuesta recién enviada se
+              // actualice.
+              e.preventDefault();
+              e.stopPropagation();
+              send();
+            }
+          }}
+          maxLength={500}
+          placeholder={placeholder}
+          className={cn(
+            inputCls,
+            "py-2.5 text-[14px]",
+            tooShort && "border-red-500 shadow-[3px_3px_0_#ef4444] focus:shadow-[3px_3px_0_#ef4444]",
+          )}
+        />
+        <button
+          type="button"
+          onClick={send}
+          aria-label="Enviar respuesta"
+          className="flex flex-shrink-0 items-center justify-center rounded-xl border-2 border-[var(--color-ink)] bg-[var(--color-ink)] px-3.5 text-white shadow-[3px_3px_0_var(--color-ink)] transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-ink)]"
+        >
+          <Send size={16} />
+        </button>
+      </div>
+      {tooShort && (
+        <span className="text-[12px] font-medium text-red-600">
+          Cuéntanos un poco más — al menos {MIN_RESPUESTA_LEN} caracteres.
+        </span>
+      )}
     </div>
   );
 }
@@ -143,6 +170,7 @@ export function RetoChat({
   onSendReto,
   onAnswerPregunta,
   onEditReto,
+  canEditReto,
 }: {
   state: ChatState;
   /** Props del textarea del reto (defaultValue + onChange), ya resueltas
@@ -156,6 +184,10 @@ export function RetoChat({
   onSendReto: () => void;
   onAnswerPregunta: (respuesta: string) => void;
   onEditReto: () => void;
+  /** false tras agotar MAX_RETO_EDITS — "Cambiar el reto" dispara una
+   *  llamada real a /api/entrevista, así que tiene el mismo tope que
+   *  "Ver otras opciones" en el diagnóstico. */
+  canEditReto: boolean;
 }) {
   if (state.phase === "writing") {
     return (
@@ -225,14 +257,21 @@ export function RetoChat({
                 : "Con esto ya tengo una buena idea de tu reto."}
             </span>
           </Bubble>
-          <button
-            type="button"
-            onClick={onEditReto}
-            className="inline-flex w-fit items-center gap-1.5 text-[13px] font-semibold text-[var(--color-fg-muted)] underline-offset-4 transition-colors hover:text-[var(--color-ink)] hover:underline"
-          >
-            <Pencil size={13} />
-            Cambiar el reto
-          </button>
+          {canEditReto ? (
+            <button
+              type="button"
+              onClick={onEditReto}
+              className="inline-flex w-fit items-center gap-1.5 text-[13px] font-semibold text-[var(--color-fg-muted)] underline-offset-4 transition-colors hover:text-[var(--color-ink)] hover:underline"
+            >
+              <Pencil size={13} />
+              Cambiar el reto
+            </button>
+          ) : (
+            <span className="inline-flex w-fit items-center gap-1.5 text-[13px] font-semibold text-[var(--color-fg-subtle)]">
+              <Pencil size={13} />
+              Sigamos con esto — un Senior revisará el detalle contigo
+            </span>
+          )}
         </>
       )}
     </div>

@@ -60,6 +60,7 @@ import {
 } from "@/components/empresas/diagnosis-panel";
 import { RetoChat, type ChatState } from "@/components/empresas/reto-chat";
 import {
+  AREA_LABELS,
   CHALLENGE_MAX,
   CHALLENGE_MIN,
   fallbackFor,
@@ -868,6 +869,12 @@ export function ApplicationForm() {
   // diagnóstico, sin cambios respecto al flujo original.
   const [chat, setChat] = useState<ChatState>({ phase: "writing" });
   const entrevistaAbortRef = useRef<AbortController | null>(null);
+  // Cuántas veces reformuló el reto tras cerrar una conversación. Tope de 2
+  // por la misma razón que MAX_REGENS: "Cambiar el reto" dispara una llamada
+  // real a /api/entrevista, no es gratis. Vive por sesión de formulario, no
+  // por paso — no se resetea al navegar entre pasos, solo al cambiar de rol.
+  const [retoEdits, setRetoEdits] = useState(0);
+  const MAX_RETO_EDITS = 2;
   // Lectura imperativa del textarea del reto: `onSendReto` necesita el
   // valor más fresco en el momento del click, sin esperar a que el estado
   // no controlado (valuesRef) se sincronice.
@@ -1152,7 +1159,11 @@ export function ApplicationForm() {
     }
     setErrorMsg(null);
     valuesRef.current.reto = value;
-    setDefaults((d) => ({ ...d, reto: value }));
+    // Captura todo el panel (no solo el reto) para que ctx.defaults quede al
+    // día con área/área_otro — RetoChat colapsa el selector de área en un
+    // resumen de una línea apenas arranca el chat, y necesita leer el valor
+    // elegido desde ahí.
+    captureCurrentPanel();
     setChat({ phase: "thinking", reto: value });
     void requestEntrevista(value);
   };
@@ -1177,8 +1188,12 @@ export function ApplicationForm() {
   };
 
   /** Vuelve al reto en blanco (pre-rellenado con lo ya escrito) para que la
-   * empresa lo edite y dispare una nueva entrevista. */
+   * empresa lo edite y dispare una nueva entrevista. Bloqueado tras
+   * MAX_RETO_EDITS — el botón ya no se muestra en ese punto (ver RetoChat),
+   * pero la guarda queda acá también por si algo dispara el callback igual. */
   const handleEditReto = () => {
+    if (retoEdits >= MAX_RETO_EDITS) return;
+    setRetoEdits((n) => n + 1);
     entrevistaAbortRef.current?.abort();
     valuesRef.current.entrevista_preguntas_json = "[]";
     valuesRef.current.entrevista_respuestas_json = "[]";
@@ -1233,6 +1248,7 @@ export function ApplicationForm() {
     setDiagnosis({ status: "loading" });
     entrevistaAbortRef.current?.abort();
     setChat({ phase: "writing" });
+    setRetoEdits(0);
     setRegens(0);
   };
 
@@ -1822,6 +1838,7 @@ export function ApplicationForm() {
                   onSendReto={handleSendReto}
                   onAnswerPregunta={handleAnswerPregunta}
                   onEditReto={handleEditReto}
+                  canEditReto={retoEdits < MAX_RETO_EDITS}
                 />
               )}
               {role === "empresa" && step === 3 && (
@@ -2322,14 +2339,28 @@ function EmpresaStep2({
   onSendReto,
   onAnswerPregunta,
   onEditReto,
+  canEditReto,
 }: {
   chat: ChatState;
   retoInputRef: React.RefObject<HTMLTextAreaElement | null>;
   onSendReto: () => void;
   onAnswerPregunta: (respuesta: string) => void;
   onEditReto: () => void;
+  canEditReto: boolean;
 }) {
   const ctx = useFormCtx();
+  // Una vez que el chat arranca (reto enviado), el selector de área se
+  // colapsa a una línea con la opción elegida — cinco radios completos ya
+  // no aportan nada y empujan el chat hacia abajo. "Cambiar opción" reusa
+  // el mismo reinicio que "Cambiar el reto" (onEditReto), porque cambiar de
+  // área sin reformular el reto no tendría sentido: la entrevista ya se
+  // pidió con la combinación anterior.
+  const isWriting = chat.phase === "writing";
+  const areaValue = normalizeArea(ctx.defaults.area);
+  const areaLabel =
+    areaValue === "otro" && ctx.defaults.area_otro
+      ? ctx.defaults.area_otro
+      : AREA_LABELS[areaValue];
   return (
     <>
       <PanelHeader
@@ -2346,23 +2377,40 @@ function EmpresaStep2({
           ¿Qué área te gustaría potenciar?
           <span className="ml-0.5 text-[var(--color-accent-strong)]">*</span>
         </label>
-        <div className="flex flex-col gap-2.5">
-          <Radio name="area" value="cs" label="Servicio al cliente / Soporte" required />
-          <Radio
-            name="area"
-            value="operaciones"
-            label="Procesos internos / Operaciones"
-          />
-          <Radio name="area" value="datos" label="Análisis de datos / Reportes" />
-          <Radio name="area" value="marketing" label="Marketing / Ventas" />
-          <Radio
-            name="area"
-            value="otro"
-            label="Otro"
-            withOtherInput
-            otherName="area_otro"
-          />
-        </div>
+        {isWriting ? (
+          <div className="flex flex-col gap-2.5">
+            <Radio name="area" value="cs" label="Servicio al cliente / Soporte" required />
+            <Radio
+              name="area"
+              value="operaciones"
+              label="Procesos internos / Operaciones"
+            />
+            <Radio name="area" value="datos" label="Análisis de datos / Reportes" />
+            <Radio name="area" value="marketing" label="Marketing / Ventas" />
+            <Radio
+              name="area"
+              value="otro"
+              label="Otro"
+              withOtherInput
+              otherName="area_otro"
+            />
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-[var(--color-ink)] bg-[var(--color-bg-teal)] px-4 py-3">
+            <span className="text-[14px] font-semibold text-[var(--color-ink)]">
+              {areaLabel}
+            </span>
+            {canEditReto && (
+              <button
+                type="button"
+                onClick={onEditReto}
+                className="flex-shrink-0 text-[13px] font-semibold text-[var(--color-ink)] underline-offset-4 hover:underline"
+              >
+                Cambiar opción
+              </button>
+            )}
+          </div>
+        )}
       </Field>
 
       <Field>
@@ -2377,6 +2425,7 @@ function EmpresaStep2({
           onSendReto={onSendReto}
           onAnswerPregunta={onAnswerPregunta}
           onEditReto={onEditReto}
+          canEditReto={canEditReto}
         />
       </Field>
     </>
