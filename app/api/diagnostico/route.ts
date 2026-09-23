@@ -174,7 +174,15 @@ async function generateWithVertex(req: DiagnosisRequest): Promise<Diagnosis | nu
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
         temperature: 0.8,
-        maxOutputTokens: 2048,
+        // Gemini 2.5 Flash "piensa" antes de responder por defecto, y esos
+        // tokens de thinking se descuentan del mismo presupuesto que
+        // maxOutputTokens — con salida JSON de 3 opciones eso venía
+        // truncando el JSON a mitad de un string (SyntaxError: Unterminated
+        // string), visto en logs de producción. Esta tarea no necesita
+        // razonamiento profundo, así que se desactiva del todo y se sube el
+        // margen como defensa extra.
+        thinkingConfig: { thinkingBudget: 0 },
+        maxOutputTokens: 4096,
       },
     });
 
