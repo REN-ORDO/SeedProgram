@@ -2,7 +2,9 @@
 
 **Fecha:** 2026-09-23
 **Estado:** propuesto (pendiente de aprobación de Sebastián)
-**Autor:** Claude + Sebastián (REN-ORDO) — origen: conversación de WhatsApp del 22/9 con Sra. Fanny y Ordo
+**Autor:** Claude + Sebastián (REN-ORDO) — origen: conversación de WhatsApp del 22/9 con Sra. Fanny y
+Ordo, más la conversación de Ordo con Luis Carlos (CooWeb) el mismo día sobre el alcance real de
+los servicios.
 **Depende de:** `docs/superpowers/specs/2026-08-17-diagnostico-ia-empresas-design.md` (aprobado, implementado)
 
 ---
@@ -11,22 +13,33 @@
 
 El diagnóstico actual (paso 3 del wizard de empresas) hace **una sola llamada** a Vertex AI con el
 texto libre que la empresa escribió en el paso 2. No hay profundización: si el reto es corto o
-ambiguo, las tres rutas de solución salen genéricas. Además, el prompt asume siempre que la
-solución pasa por un semillero de desarrollo (`lib/diagnosis-prompt.ts`), aunque el problema real
-de la empresa sea, por ejemplo, de marketing — un área que CooWeb también cubre pero que el
-diagnóstico de hoy nunca menciona.
+ambiguo, las tres rutas de solución salen genéricas. Además, el prompt fuerza siempre la forma de
+un paquete de desarrollo con semillero (`lib/diagnosis-prompt.ts`), aunque el problema real de la
+empresa no se resuelva mejor así.
 
 Sebastián lo resume así en la conversación de origen: *"el objetivo es realmente entender el
 problema y brindar una solución real... además de esto, mostrar también soluciones no solo
 tecnológicas... si por ejemplo necesito marketing, me sugiera que nosotros como CooWeb también
 hacemos marketing"*.
 
+**Corrección de alcance tras hablar con Luis Carlos (CooWeb):** la hipótesis inicial de este spec
+era un catálogo cerrado de líneas de servicio (desarrollo, marketing, etc.). Ordo le preguntó
+directamente si los servicios de CooWeb se limitan a eso, y la respuesta fue que no hay una lista
+cerrada — el posicionamiento de CooWeb es *"todo lo de IA"*: cualquier tarea operativa dolorosa se
+puede resolver aplicando IA, y el pitch comercial (ver hooks por sector que compartió Luis Carlos)
+se arma **por el dolor de la empresa, no por una categoría de servicio predefinida**. Esto cambia
+el diseño de §5.3/§5.4 más abajo: no hay catálogo que mantener ni que esperar — el agente
+solucionador debe razonar en términos de "qué tarea le duele a esta empresa", no de "a cuál de
+nuestras N líneas de servicio pertenece este reto".
+
 ## 2. Objetivo
 
 - Que el diagnóstico se sienta como que alguien preguntó antes de responder, no como una
   plantilla rellenada con lo primero que se leyó.
-- Que la recomendación pueda apuntar a cualquier línea de servicio real de CooWeb, no solo a un
-  paquete de desarrollo con un semillero.
+- Que la recomendación se ancle al **dolor operativo real** de la empresa (la tarea que más horas
+  le roba, el proceso que se cae, lo que nadie quiere hacer a mano) y no se fuerce siempre a la
+  forma de un paquete de desarrollo con semillero — sin necesitar un catálogo cerrado de líneas de
+  servicio, porque CooWeb no vende por categoría, vende por problema resuelto con IA.
 - Mantener intacto el principio ya establecido en el spec anterior: **la IA nunca bloquea el envío
   del formulario**, y **nunca se mencionan precios, montos ni porcentajes**.
 - No agregar un paso visible al wizard — sigue en 4 pasos.
@@ -143,40 +156,44 @@ El system prompt establece:
 
 ### 5.3 Prompt del agente solucionador — extensión de `lib/diagnosis-prompt.ts`
 
+**Reemplaza el enfoque de catálogo cerrado** que tenía la primera versión de este spec. Tras
+confirmar con Luis Carlos que CooWeb no vende por línea de servicio fija sino por "cualquier dolor
+resuelto con IA", el prompt no necesita — ni debe — mapear el reto a una lista predefinida.
+
 Cambios sobre el prompt actual:
 
 1. **Nuevo dato de entrada:** `respuestas_entrevista: string[]` se inyecta en `buildUserPrompt`
    junto con `empresa`, `area` y `reto`, como contexto adicional delimitado (mismas reglas de
    seguridad que ya aplican al `reto`).
-2. **Catálogo de servicios CooWeb** (ver §5.4) se inyecta en el `SYSTEM_PROMPT` como lista cerrada
-   de líneas de servicio reales. Se instruye al modelo: *"si la ruta que mejor resuelve el problema
-   no es un semillero de desarrollo, dilo explícitamente y señala qué línea de servicio de CooWeb
-   aplica, usando exactamente los nombres del catálogo — no inventes líneas de servicio que no
-   estén en la lista."*
-3. **`RESPONSE_SCHEMA` se extiende:** cada opción suma un campo opcional
-   `servicio_cooweb?: string` (uno de los nombres del catálogo) además del `paquete` técnico
-   existente. Una opción puede tener paquete técnico, servicio CooWeb, o ambos si la solución
-   combina desarrollo con otra línea (como en el mockup del PDF: "Rediseño del proceso de
-   atención").
+2. **El `SYSTEM_PROMPT` cambia de eje:** en vez de "elige un paquete de desarrollo", se instruye
+   *"identifica el dolor operativo concreto detrás del reto — la tarea repetitiva, el cuello de
+   botella, lo que le roba horas al equipo — y propone cómo resolverlo con IA aplicada. No fuerces
+   la solución a la forma de un semillero de desarrollo si el dolor real es de otra naturaleza
+   (proceso, datos, atención, ventas, etc.); nómbralo en lenguaje llano, como lo haría un
+   consultor que ya resolvió ese mismo dolor en otra empresa del sector."* Esto reutiliza
+   directamente el tono de los "hooks por sector" que compartió Luis Carlos (logística, retail,
+   salud, inmobiliaria, contable, RRHH…) como referencia de estilo, sin convertirlos en una lista
+   cerrada — son ejemplos de tono, no categorías a las que haya que encajar el reto.
+3. **`RESPONSE_SCHEMA` cambia:** el campo `paquete` (Chispa/Impulso/Celda/Cantera) se mantiene
+   porque sigue orientando la conversación comercial sobre alcance/duración, pero deja de ser lo
+   único que describe la opción. Cada opción suma un campo nuevo **obligatorio**
+   `dolor_resuelto: string` — una frase corta (máx. ~80 caracteres) que nombra el problema
+   operativo puntual que esa ruta ataca, en el lenguaje de los hooks ("dejar de cuadrar rutas a
+   mano los lunes", "que ningún lead de WhatsApp se enfríe de noche"). Esto reemplaza al
+   `servicio_cooweb` de la versión anterior del spec — no hay que validarlo contra ninguna lista
+   cerrada, es texto libre generado por el modelo a partir del reto real.
 
-`isSolutionOption` en `lib/diagnosis.ts` se relaja para aceptar `servicio_cooweb` como alternativa
-válida a `paquete` — hoy exige que toda opción traiga un paquete de los 4 nombres; con este cambio,
-una opción es válida si trae `paquete`, `servicio_cooweb`, o ambos.
+`isSolutionOption` en `lib/diagnosis.ts` se extiende para exigir `dolor_resuelto` no vacío en toda
+opción, además de la validación de `paquete` que ya existe — no se relaja nada, se agrega un campo
+requerido más.
 
-### 5.4 Catálogo de servicios CooWeb — nuevo en `lib/data.ts`
+### 5.4 Catálogo de servicios CooWeb — descartado
 
-```ts
-export const SERVICIOS_COOWEB = [
-  { nombre: "Desarrollo con semillero", area: "cs" },
-  { nombre: "Marketing digital", area: "marketing" },
-  // … Sebastián completa la lista real; hoy no existe documentada en el repo.
-] as const;
-```
-
-**Este catálogo no existe hoy en el repo** (confirmado por búsqueda en `lib/data.ts` y
-`CLAUDE.md`) — es el bloqueante real para implementar §5.3. Sin esta lista, el modelo no tiene de
-dónde sacar los nombres de servicios no técnicos y el prompt tendría que inventarlos, lo cual viola
-la regla de "no alucinar qué ofrece CooWeb".
+La versión anterior de este spec proponía un `SERVICIOS_COOWEB` cerrado en `lib/data.ts` y lo
+marcaba como bloqueante pendiente de que Sebastián lo completara. Ya no aplica: Luis Carlos
+confirmó que no existe tal lista porque el modelo de negocio de CooWeb es resolver el dolor que
+traiga la empresa, no venderle desde un catálogo de categorías. **Esto elimina el bloqueante** que
+tenía la versión anterior — la implementación puede arrancar sin esperar ninguna lista externa.
 
 ### 5.5 UI — orquestación en `components/application-form.tsx`
 
@@ -232,9 +249,9 @@ se renderiza nada — no todos los registros antiguos van a tenerlo.
 
 | Archivo | Cambio |
 |---|---|
-| `lib/diagnosis-prompt.ts` | Inyecta `respuestas_entrevista` y el catálogo de servicios en el prompt; extiende `RESPONSE_SCHEMA` con `servicio_cooweb` |
-| `lib/diagnosis.ts` | `isSolutionOption` acepta `servicio_cooweb` como alternativa a `paquete`; `DiagnosisRequest` suma `respuestas_entrevista` |
-| `lib/data.ts` | Nuevo `SERVICIOS_COOWEB`, copy del sub-estado de entrevista |
+| `lib/diagnosis-prompt.ts` | Inyecta `respuestas_entrevista`; cambia el eje del `SYSTEM_PROMPT` de "paquete de desarrollo" a "dolor operativo resuelto con IA"; extiende `RESPONSE_SCHEMA` con `dolor_resuelto` |
+| `lib/diagnosis.ts` | `isSolutionOption` exige `dolor_resuelto` no vacío; `DiagnosisRequest` suma `respuestas_entrevista` |
+| `lib/data.ts` | Copy del sub-estado de entrevista (sin catálogo de servicios — descartado, ver §5.4) |
 | `components/application-form.tsx` | `requestEntrevista()`, estado `EntrevistaState`, reorganización de `EmpresaStep3Diagnosis`, payload de envío con `entrevista` |
 | `components/admin/postulacion-detail.tsx` | Bloque de preguntas/respuestas de la entrevista |
 | `.env.example` | Sin cambios — reutiliza `GOOGLE_SERVICE_ACCOUNT_JSON` y `VERTEX_MODEL` ya existentes |
@@ -262,34 +279,39 @@ Verificación manual (no hay suite de tests en el proyecto):
    diagnóstico.
 2. Mismo flujo con un reto largo y específico → el agente entrevistador puede devolver 0 preguntas
    y pasar directo al diagnóstico, sin pantalla intermedia visible más que el loading.
-3. Reto de un área no técnica (ej. marketing) → al menos una de las tres opciones del diagnóstico
-   señala `servicio_cooweb` en vez de (o además de) un `paquete` técnico.
+3. Reto de un área no técnica (ej. marketing, atención al cliente, logística) → las tres opciones
+   del diagnóstico describen el `dolor_resuelto` en lenguaje llano y específico al reto, no en
+   términos de "desarrollo de software" genérico.
 4. Quitar `GOOGLE_SERVICE_ACCOUNT_JSON` → la entrevista se salta sola, el diagnóstico cae a
    fallback, el envío funciona igual.
 5. El contador de pasos del wizard se mantiene en "3 de 4" durante todo el paso 3, tanto en el
    sub-estado de entrevista como en el de diagnóstico.
 6. Enviar → Firestore trae `entrevista` y `diagnostico` como campos separados.
-7. El diagnóstico sigue sin mencionar montos, precios ni porcentajes, incluyendo cuando recomienda
-   un `servicio_cooweb`.
+7. El diagnóstico sigue sin mencionar montos, precios ni porcentajes, incluyendo cuando el
+   `dolor_resuelto` es de un área no técnica.
 
 ---
 
 ## 9. Riesgos asumidos
 
-- **Bloqueante real: el catálogo de servicios CooWeb no técnicos no existe documentado hoy.**
-  Sebastián dijo en la conversación de origen que "CooWeb ya cubre la gran mayoría de los campos",
-  pero eso no está escrito en ningún archivo del repo. Este spec no se puede implementar hasta que
-  exista `SERVICIOS_COOWEB` con nombres reales — es la primera tarea, antes que el código.
+- **Sin catálogo cerrado, el modelo tiene más margen para desviarse.** Al pedirle "nombra el dolor
+  en lenguaje llano" en vez de "elige de esta lista", el riesgo se mueve de "alucinar una línea de
+  servicio inexistente" a "describir un dolor genérico o poco creíble". Se mitiga con los ejemplos
+  de tono de los hooks de Luis Carlos dentro del prompt (§5.3) y con el mismo principio de
+  honestidad que ya rige el resto del prompt: si el reto es vago, el `dolor_resuelto` debe
+  reflejar esa vaguedad en vez de inventar precisión que no hay.
 - **Doble costo de llamada a Vertex por postulación.** Cada empresa que llega al paso 3 ahora
   dispara dos llamadas en vez de una (salvo cuando el entrevistador decide no preguntar nada). Se
   mitiga porque ambos endpoints comparten el mismo modelo Flash (barato) y el mismo rate limit por
   IP ya existente — el tope de 8 llamadas/hora ahora es compartido por dos endpoints con mapas
   separados, así que en el peor caso son 16 llamadas/hora por IP en vez de 8. Vale la pena
   revisarlo si se ve abuso.
-- **Los fallbacks estáticos por área (`FALLBACKS` en `lib/diagnosis.ts`) no conocen el catálogo de
-  servicios cruzados.** Cuando el diagnóstico cae a fallback, las opciones vuelven a ser
-  puramente técnicas — es una regresión aceptada para el caso fallback, ya cubierta por el aviso de
-  "un mentor Senior revisará tu caso personalmente" que ya existe en ese copy.
+- **Los fallbacks estáticos por área (`FALLBACKS` en `lib/diagnosis.ts`) son genéricos por
+  construcción.** Cuando el diagnóstico cae a fallback, las opciones vuelven a ser plantillas fijas
+  sin `dolor_resuelto` específico al reto — es una regresión aceptada para el caso fallback, ya
+  cubierta por el aviso de "un mentor Senior revisará tu caso personalmente" que ya existe en ese
+  copy. Requiere sumar un `dolor_resuelto` genérico por opción en `FALLBACKS` para que el nuevo
+  campo obligatorio del schema no quede vacío en ese camino.
 - **Prompt injection vía las respuestas de la entrevista.** Igual que con `reto`, las respuestas
   libres de la empresa a las preguntas del entrevistador viajan como datos delimitados hacia el
   agente solucionador — mismo tratamiento de seguridad que ya aplica el prompt actual.
