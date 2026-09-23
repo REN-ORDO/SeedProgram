@@ -170,6 +170,7 @@ export function RetoChat({
   onSendReto,
   onAnswerPregunta,
   onEditReto,
+  canEditReto,
 }: {
   state: ChatState;
   /** Props del textarea del reto (defaultValue + onChange), ya resueltas
@@ -183,6 +184,10 @@ export function RetoChat({
   onSendReto: () => void;
   onAnswerPregunta: (respuesta: string) => void;
   onEditReto: () => void;
+  /** false tras agotar MAX_RETO_EDITS — "Cambiar el reto" dispara una
+   *  llamada real a /api/entrevista, así que tiene el mismo tope que
+   *  "Ver otras opciones" en el diagnóstico. */
+  canEditReto: boolean;
 }) {
   if (state.phase === "writing") {
     return (
@@ -252,14 +257,21 @@ export function RetoChat({
                 : "Con esto ya tengo una buena idea de tu reto."}
             </span>
           </Bubble>
-          <button
-            type="button"
-            onClick={onEditReto}
-            className="inline-flex w-fit items-center gap-1.5 text-[13px] font-semibold text-[var(--color-fg-muted)] underline-offset-4 transition-colors hover:text-[var(--color-ink)] hover:underline"
-          >
-            <Pencil size={13} />
-            Cambiar el reto
-          </button>
+          {canEditReto ? (
+            <button
+              type="button"
+              onClick={onEditReto}
+              className="inline-flex w-fit items-center gap-1.5 text-[13px] font-semibold text-[var(--color-fg-muted)] underline-offset-4 transition-colors hover:text-[var(--color-ink)] hover:underline"
+            >
+              <Pencil size={13} />
+              Cambiar el reto
+            </button>
+          ) : (
+            <span className="inline-flex w-fit items-center gap-1.5 text-[13px] font-semibold text-[var(--color-fg-subtle)]">
+              <Pencil size={13} />
+              Sigamos con esto — un Senior revisará el detalle contigo
+            </span>
+          )}
         </>
       )}
     </div>

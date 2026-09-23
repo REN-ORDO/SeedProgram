@@ -869,6 +869,12 @@ export function ApplicationForm() {
   // diagnóstico, sin cambios respecto al flujo original.
   const [chat, setChat] = useState<ChatState>({ phase: "writing" });
   const entrevistaAbortRef = useRef<AbortController | null>(null);
+  // Cuántas veces reformuló el reto tras cerrar una conversación. Tope de 2
+  // por la misma razón que MAX_REGENS: "Cambiar el reto" dispara una llamada
+  // real a /api/entrevista, no es gratis. Vive por sesión de formulario, no
+  // por paso — no se resetea al navegar entre pasos, solo al cambiar de rol.
+  const [retoEdits, setRetoEdits] = useState(0);
+  const MAX_RETO_EDITS = 2;
   // Lectura imperativa del textarea del reto: `onSendReto` necesita el
   // valor más fresco en el momento del click, sin esperar a que el estado
   // no controlado (valuesRef) se sincronice.
@@ -1182,8 +1188,12 @@ export function ApplicationForm() {
   };
 
   /** Vuelve al reto en blanco (pre-rellenado con lo ya escrito) para que la
-   * empresa lo edite y dispare una nueva entrevista. */
+   * empresa lo edite y dispare una nueva entrevista. Bloqueado tras
+   * MAX_RETO_EDITS — el botón ya no se muestra en ese punto (ver RetoChat),
+   * pero la guarda queda acá también por si algo dispara el callback igual. */
   const handleEditReto = () => {
+    if (retoEdits >= MAX_RETO_EDITS) return;
+    setRetoEdits((n) => n + 1);
     entrevistaAbortRef.current?.abort();
     valuesRef.current.entrevista_preguntas_json = "[]";
     valuesRef.current.entrevista_respuestas_json = "[]";
@@ -1238,6 +1248,7 @@ export function ApplicationForm() {
     setDiagnosis({ status: "loading" });
     entrevistaAbortRef.current?.abort();
     setChat({ phase: "writing" });
+    setRetoEdits(0);
     setRegens(0);
   };
 
@@ -1827,6 +1838,7 @@ export function ApplicationForm() {
                   onSendReto={handleSendReto}
                   onAnswerPregunta={handleAnswerPregunta}
                   onEditReto={handleEditReto}
+                  canEditReto={retoEdits < MAX_RETO_EDITS}
                 />
               )}
               {role === "empresa" && step === 3 && (
@@ -2327,12 +2339,14 @@ function EmpresaStep2({
   onSendReto,
   onAnswerPregunta,
   onEditReto,
+  canEditReto,
 }: {
   chat: ChatState;
   retoInputRef: React.RefObject<HTMLTextAreaElement | null>;
   onSendReto: () => void;
   onAnswerPregunta: (respuesta: string) => void;
   onEditReto: () => void;
+  canEditReto: boolean;
 }) {
   const ctx = useFormCtx();
   // Una vez que el chat arranca (reto enviado), el selector de área se
@@ -2386,13 +2400,15 @@ function EmpresaStep2({
             <span className="text-[14px] font-semibold text-[var(--color-ink)]">
               {areaLabel}
             </span>
-            <button
-              type="button"
-              onClick={onEditReto}
-              className="flex-shrink-0 text-[13px] font-semibold text-[var(--color-ink)] underline-offset-4 hover:underline"
-            >
-              Cambiar opción
-            </button>
+            {canEditReto && (
+              <button
+                type="button"
+                onClick={onEditReto}
+                className="flex-shrink-0 text-[13px] font-semibold text-[var(--color-ink)] underline-offset-4 hover:underline"
+              >
+                Cambiar opción
+              </button>
+            )}
           </div>
         )}
       </Field>
@@ -2409,6 +2425,7 @@ function EmpresaStep2({
           onSendReto={onSendReto}
           onAnswerPregunta={onAnswerPregunta}
           onEditReto={onEditReto}
+          canEditReto={canEditReto}
         />
       </Field>
     </>
