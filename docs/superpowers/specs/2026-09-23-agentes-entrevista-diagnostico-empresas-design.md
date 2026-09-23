@@ -9,6 +9,58 @@ los servicios.
 
 ---
 
+## 0. Revisión 2 (23/9, tarde) — el reto y la entrevista se fusionan en un chat
+
+Tras implementar la Opción B tal como describen las §4-5.5 originales (entrevista como sub-estado
+del paso 3), Sebastián dio feedback directo:
+
+> *"siento que el reto y el entrevistador deberían ser iguales... yo lo visualizo como un chat que
+> toma requerimientos de forma inteligente, que en vez de escribir el reto y seguir a un paso 2.5,
+> directamente el chat en el mismo paso del reto analice lo que le mencionó la empresa y ahí mismo
+> le haga las preguntas. Ojo, tienen que ser preguntas realmente útiles."*
+
+Esto cambia dónde vive la entrevista — **del paso 3 al paso 2** — y cómo se ve: un chat con
+burbujas (empresa a la derecha, agente a la izquierda), no el panel de tarjetas Q&A que describían
+las §4 y §5.5 originales. El selector de área se mantiene como radio aparte, arriba del chat — no
+se conversacionaliza.
+
+**Las §4, 5.1 (UI), 5.5 y 5.7 de más abajo describen la versión ANTERIOR (entrevista como paso 3.A)
+y quedan desactualizadas en la parte de UI/orquestación** — se dejan tal cual para no reescribir el
+documento entero, pero el flujo real implementado es este:
+
+```
+1. Empresa  →  2. Reto + entrevista (chat con burbujas, un solo paso)  →  3. Diagnóstico  →  4. Modalidad  →  envío
+```
+
+Paso 2: la empresa elige el área (radio) y escribe el reto en un textarea. Al pulsar "Enviar"
+(botón propio del chat, no el "Continuar" del wizard), el reto se convierte en una burbuja propia y
+se llama a `/api/entrevista` — sin cambios en el endpoint ni en el contrato §5.1-§5.2 originales,
+solo en cuándo y desde dónde se llama. Si hay preguntas, se revelan una por una en burbujas del
+agente, cada una con su input de respuesta; al responder la última, el chat queda "hecho" y aparece
+un cierre breve ("Perfecto, ya tengo lo que necesito") más un enlace para "Cambiar el reto" que
+reinicia la conversación. El botón "Continuar" del wizard (siempre visible, sin texto especial)
+queda bloqueado mientras el chat no llegue a ese estado — igual que cualquier otro paso con campos
+requeridos sin completar.
+
+Paso 3 vuelve a ser exactamente el diagnóstico de siempre (una sola pantalla, una sola llamada a
+`/api/diagnostico`), disparado al entrar al paso — sin sub-estados. Las respuestas de la entrevista
+viajan igual que antes (`respuestas_entrevista: string[]` en el body), solo que ahora se recolectan
+en el paso 2 en vez del paso 3.
+
+**Archivos que cambian respecto a §6 más abajo:**
+
+| Archivo | Cambio |
+|---|---|
+| `components/empresas/reto-chat.tsx` (nuevo) | Reemplaza a `components/empresas/entrevista-panel.tsx` (eliminado). Chat con burbujas, máquina de estados `writing → thinking → asking → done`. |
+| `components/application-form.tsx` | La orquestación de `/api/entrevista` se mueve del `goTo` (entrada al paso 3) al chat del paso 2 (`handleSendReto`, `handleAnswerPregunta`, `handleEditReto`). `EmpresaStep3Diagnosis` vuelve a ser el único contenido del paso 3, sin `EmpresaStep3Entrevista`. |
+
+Todo lo demás del spec (el prompt del entrevistador, el nuevo eje "dolor operativo" del
+solucionador, el catálogo descartado, la persistencia en Firestore, los campos `entrevista`/
+`entrevista_fuente`) sigue exactamente igual — este cambio es solo de UI/orquestación, no de los
+agentes en sí.
+
+---
+
 ## 1. Problema
 
 El diagnóstico actual (paso 3 del wizard de empresas) hace **una sola llamada** a Vertex AI con el
