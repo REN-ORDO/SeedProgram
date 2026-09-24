@@ -92,7 +92,7 @@ export const SaberHacer = () => {
         </div>
 
         {/* Torn paper headline */}
-        <TornPaper style={{ left: 50, width: 980, top: -900 + paper * 1020, opacity: frame < s(3.5) ? 0 : 1, transform: `rotate(${-1.2 * paper}deg)` }}>
+        <TornPaper style={{ left: 50, width: 980, top: -900 + paper * 1020, opacity: frame < s(3.5) ? 0 : 1, transform: `rotate(${-1.2 - (1 - paper) * 7}deg)` }}>
           <div style={{ textAlign: "center", color: colors.navy }}>
             <div style={{ fontFamily: fonts.sans, fontWeight: 900, fontSize: 150, lineHeight: 0.95, letterSpacing: -3 }}>SABER ≠</div>
             <div style={{ position: "relative", display: "inline-block", marginTop: 6 }}>
