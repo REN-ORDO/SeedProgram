@@ -67,11 +67,13 @@ const RecycledTexture = () => (
   </svg>
 );
 
-export const TornPaper = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
-  // Soft offset shadow: neo-brutalist signature, slightly blurred.
-  <div style={{ position: "absolute", filter: "drop-shadow(12px 14px 3px rgba(15,23,42,0.18))", ...style }}>
+type Props = { children: ReactNode; style?: CSSProperties; padding?: string; shadow?: string };
+
+// Default: soft blurred offset shadow. Pass `shadow` for the hard navy neo-brutalist variant.
+export const TornPaper = ({ children, style, padding = "90px 70px", shadow = "drop-shadow(12px 14px 3px rgba(15,23,42,0.18))" }: Props) => (
+  <div style={{ position: "absolute", filter: shadow, ...style }}>
     <div style={{ background: "#FFFDF8", clipPath: rimClip }}>
-      <div style={{ position: "relative", background: "#F8F3EA", clipPath: bodyClip, padding: "90px 70px" }}>
+      <div style={{ position: "relative", background: "#F8F3EA", clipPath: bodyClip, padding }}>
         <RecycledTexture />
         <div style={{ position: "relative" }}>{children}</div>
       </div>

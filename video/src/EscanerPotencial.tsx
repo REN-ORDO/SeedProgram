@@ -40,15 +40,15 @@ export const EscanerPotencial = () => {
   const bounce = interpolate(frame, [s(3), s(3.15), s(3.35), s(3.55)], [1, 1.05, 0.98, 1], clamp);
   const clear = frame >= s(3);
 
-  // Beat 4 (5.0–6.5s): editorial close. Polaroid tucks down, torn paper headline falls in.
-  const shift = interpolate(frame, [s(5), s(5.5)], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
-  const paper = sp(s(5), 13);
-  const scriptIn = interpolate(frame, [s(5.35), s(5.75)], [0, 1], clamp);
-  const underline = interpolate(frame, [s(5.6), s(6.1)], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
-  const subIn = interpolate(frame, [s(5.7), s(6.1)], [0, 1], clamp);
+  // Beat 4 (3.5–4.2s): small torn paper lands on top; polaroid stays the hero. 4.2–6.5s holds still.
+  const shift = interpolate(frame, [s(3.5), s(4.1)], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
+  const paper = sp(s(3.5), 12);
+  const scriptIn = interpolate(frame, [s(3.7), s(4.0)], [0, 1], clamp);
+  const underline = interpolate(frame, [s(3.8), s(4.2)], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
+  const subIn = interpolate(frame, [s(3.9), s(4.2)], [0, 1], clamp);
 
-  const polaTop = (H - POLA_H) / 2 + 30 - (1 - enter) * 900 + shift * 350;
-  const polaScale = bounce * (1 - shift * 0.34);
+  const polaTop = (H - POLA_H) / 2 + 30 - (1 - enter) * 900 + shift * 190;
+  const polaScale = bounce * (1 - shift * 0.13);
 
   return (
     <AbsoluteFill>
@@ -125,20 +125,22 @@ export const EscanerPotencial = () => {
           </div>
         </div>
 
-        {/* Torn paper headline */}
-        <TornPaper style={{ left: 60, width: 960, top: -760 + paper * 800, opacity: frame < s(5) ? 0 : 1, transform: `rotate(${1.2 + (1 - paper) * 7}deg)` }}>
+        {/* Torn paper headline: small, top, taped-by-hand tilt */}
+        <TornPaper
+          padding="44px 40px"
+          shadow="drop-shadow(10px 10px 0 #0F172A)"
+          style={{ left: (W - W * 0.78) / 2, width: W * 0.78, top: H * 0.08 - (1 - paper) * 500, opacity: frame < s(3.5) ? 0 : 1, transform: `rotate(-1.5deg)` }}
+        >
           <div style={{ textAlign: "center", color: colors.navy }}>
-            <div style={{ fontFamily: fonts.sans, fontWeight: 900, fontSize: 140, lineHeight: 0.95, letterSpacing: -3 }}>POTENCIAL</div>
-            <div style={{ position: "relative", display: "inline-block", marginTop: 4 }}>
-              <div style={{ fontFamily: fonts.script, fontWeight: 700, fontSize: 150, color: colors.teal, lineHeight: 1, whiteSpace: "nowrap", opacity: scriptIn, transform: `translateY(${(1 - scriptIn) * 20}px) rotate(-3deg)` }}>
+            <div style={{ fontFamily: fonts.sans, fontWeight: 900, fontSize: 96, lineHeight: 0.95, letterSpacing: -2 }}>POTENCIAL</div>
+            <div style={{ position: "relative", display: "inline-block", marginTop: 2 }}>
+              <div style={{ fontFamily: fonts.script, fontWeight: 700, fontSize: 84, color: colors.teal, lineHeight: 1, whiteSpace: "nowrap", opacity: scriptIn, transform: `translateY(${(1 - scriptIn) * 12}px) rotate(-3deg)` }}>
                 VISIBLE
               </div>
-              <BrushLine viewBox="0 0 600 40" d="M10 25 C 150 8, 400 10, 590 22" progress={underline} width={10} style={{ left: "-4%", width: "108%", bottom: -16, height: 40 }} />
+              <BrushLine viewBox="0 0 600 40" d="M10 25 C 150 8, 400 10, 590 22" progress={underline} width={6} style={{ left: "-4%", width: "108%", bottom: -10, height: 30 }} />
             </div>
-            <div style={{ fontFamily: fonts.sans, fontSize: 38, lineHeight: 1.35, marginTop: 40, opacity: subIn }}>
-              No es falta de talento,
-              <br />
-              <b>es falta de oportunidades.</b>
+            <div style={{ fontFamily: fonts.sans, fontSize: 26, lineHeight: 1.3, marginTop: 22, opacity: subIn }}>
+              No es falta de talento, <b>es falta de oportunidades.</b>
             </div>
           </div>
         </TornPaper>
