@@ -115,7 +115,7 @@ export const SaberHacer = () => {
           <Circuit />
         </div>
       </AbsoluteFill>
-      <CornerMark />
+      <CornerMark delay={5.2} />
     </AbsoluteFill>
   );
 };

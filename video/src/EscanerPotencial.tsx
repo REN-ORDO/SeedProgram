@@ -145,7 +145,7 @@ export const EscanerPotencial = () => {
           </div>
         </TornPaper>
       </Canvas>
-      <CornerMark />
+      <CornerMark delay={4.2} />
     </AbsoluteFill>
   );
 };

@@ -1,4 +1,4 @@
-import { Img, staticFile } from "remotion";
+import { Img, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 
 // logo-cooweb.png has white margins around the blue circle (~860px of 1254px): crop to the circle.
 export const Isotipo = ({ size }: { size: number }) => {
@@ -10,9 +10,21 @@ export const Isotipo = ({ size }: { size: number }) => {
   );
 };
 
-// Isotipo-only brand mark (manual p.5, videos 1–4): bottom-right of the full frame.
-export const CornerMark = ({ size = 64, margin = 32 }: { size?: number; margin?: number }) => (
-  <div style={{ position: "absolute", right: margin, bottom: margin }}>
-    <Isotipo size={size} />
-  </div>
-);
+// Isotipo-only brand mark (manual p.5, videos 1–4): rolls in from the right edge at `delay` seconds.
+export const CornerMark = ({ size = 64, margin = 32, delay = 0 }: { size?: number; margin?: number; delay?: number }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const p = spring({ frame: frame - Math.round(delay * fps), fps, config: { damping: 11 } });
+  return (
+    <div
+      style={{
+        position: "absolute",
+        right: margin,
+        bottom: margin,
+        transform: `translateX(${(1 - p) * (size + margin * 2)}px) rotate(${(1 - p) * 220}deg)`,
+      }}
+    >
+      <Isotipo size={size} />
+    </div>
+  );
+};
