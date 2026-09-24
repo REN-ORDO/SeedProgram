@@ -16,6 +16,7 @@ npm run still         # póster PNG del frame final
 - `src/EscanerPotencial.tsx` — Video 2 · Escáner de potencial (4:5 + 9:16). Antes/después placeholder en `components/ChaosBoard.tsx`.
 - `src/QuizReto.tsx` — Video 3 · Quiz Reto Real (4:5 + 9:16).
 - `src/FlashcardMentor.tsx` — Video 4 · Flashcard de mentoría (4:5 + 9:16).
+- `src/CierreCrecer.tsx` — Video 5 · Cierre institucional con lockup completo (4:5 + 9:16).
 
 **Fotos:** `Polaroid` muestra un placeholder. Para usar fotos reales, ponlas en `public/photos/` y reemplaza el bloque interno por `<Img src={staticFile("photos/...")} />`.
 
