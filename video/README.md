@@ -12,7 +12,8 @@ npm run still         # póster PNG del frame final
 
 - `src/tokens.ts` — paleta oficial y fuentes (locales en `public/fonts`).
 - `src/components/` — piezas reutilizables: papel, polaroid, cinta, doodles, blobs, brush, papel rasgado.
-- `src/SaberHacer.tsx` — guion #2 (0–1.5s hook · 1.5–3.5s recursos · 3.5–6.5s titular).
+- `src/SaberHacer.tsx` — Video 1 · SABER ≠ SABER HACER (9:16 + 4:5).
+- `src/EscanerPotencial.tsx` — Video 2 · Escáner de potencial (4:5 + 9:16). Antes/después placeholder en `components/ChaosBoard.tsx`.
 
 **Fotos:** `Polaroid` muestra un placeholder. Para usar fotos reales, ponlas en `public/photos/` y reemplaza el bloque interno por `<Img src={staticFile("photos/...")} />`.
 

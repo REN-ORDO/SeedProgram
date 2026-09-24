@@ -1,11 +1,11 @@
-import { CSSProperties } from "react";
+import { CSSProperties, ReactNode } from "react";
 import { colors, fonts } from "../tokens";
 
-type Props = { width: number; rotate: number; bw?: boolean; label: string; style?: CSSProperties };
+type Props = { width: number; rotate: number; bw?: boolean; label?: string; photoRatio?: number; style?: CSSProperties; children?: ReactNode };
 
 // Placeholder photo: swap the inner block for <Img src={staticFile(...)} /> when real photos exist.
-export const Polaroid = ({ width, rotate, bw, label, style }: Props) => {
-  const photoH = width * 1.12;
+export const Polaroid = ({ width, rotate, bw, label, photoRatio = 1.12, style, children }: Props) => {
+  const photoH = width * photoRatio;
   return (
     <div
       style={{
@@ -18,6 +18,9 @@ export const Polaroid = ({ width, rotate, bw, label, style }: Props) => {
         ...style,
       }}
     >
+      {children ? (
+        <div style={{ height: photoH, position: "relative", overflow: "hidden" }}>{children}</div>
+      ) : (
       <div
         style={{
           height: photoH,
@@ -41,6 +44,7 @@ export const Polaroid = ({ width, rotate, bw, label, style }: Props) => {
         <div style={{ fontSize: width * 0.06, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>{label}</div>
         <div style={{ fontSize: width * 0.045, opacity: 0.8 }}>foto real · placeholder</div>
       </div>
+      )}
     </div>
   );
 };
