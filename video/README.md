@@ -14,6 +14,7 @@ npm run still         # póster PNG del frame final
 - `src/components/` — piezas reutilizables: papel, polaroid, cinta, doodles, blobs, brush, papel rasgado.
 - `src/SaberHacer.tsx` — Video 1 · SABER ≠ SABER HACER (9:16 + 4:5).
 - `src/EscanerPotencial.tsx` — Video 2 · Escáner de potencial (4:5 + 9:16). Antes/después placeholder en `components/ChaosBoard.tsx`.
+- `src/QuizReto.tsx` — Video 3 · Quiz Reto Real (4:5 + 9:16).
 
 **Fotos:** `Polaroid` muestra un placeholder. Para usar fotos reales, ponlas en `public/photos/` y reemplaza el bloque interno por `<Img src={staticFile("photos/...")} />`.
 

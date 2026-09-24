@@ -7,6 +7,7 @@
     "render:feed": "remotion render src/index.ts SaberHacerFeed out/saber-hacer-feed.mp4",
     "render:escaner": "remotion render src/index.ts EscanerPotencial out/escaner-potencial.mp4",
     "render:escaner-story": "remotion render src/index.ts EscanerPotencialStory out/escaner-potencial-story.mp4",
+    "render:quiz": "remotion render src/index.ts QuizReto out/quiz-reto.mp4",
     "still": "remotion still src/index.ts SaberHacer out/saber-hacer.png --frame=194"
   },
   "dependencies": {
