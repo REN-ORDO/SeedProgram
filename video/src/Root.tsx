@@ -2,6 +2,7 @@ import { Composition } from "remotion";
 import { SaberHacer } from "./SaberHacer";
 import { EscanerPotencial } from "./EscanerPotencial";
 import { QuizReto } from "./QuizReto";
+import { FlashcardMentor } from "./FlashcardMentor";
 import { DURATION, FPS } from "./tokens";
 
 export const Root = () => (
@@ -12,5 +13,7 @@ export const Root = () => (
     <Composition id="EscanerPotencialStory" component={EscanerPotencial} durationInFrames={DURATION} fps={FPS} width={1080} height={1920} />
     <Composition id="QuizReto" component={QuizReto} durationInFrames={DURATION} fps={FPS} width={1080} height={1350} />
     <Composition id="QuizRetoStory" component={QuizReto} durationInFrames={DURATION} fps={FPS} width={1080} height={1920} />
+    <Composition id="FlashcardMentor" component={FlashcardMentor} durationInFrames={DURATION} fps={FPS} width={1080} height={1350} />
+    <Composition id="FlashcardMentorStory" component={FlashcardMentor} durationInFrames={DURATION} fps={FPS} width={1080} height={1920} />
   </>
 );
