@@ -113,10 +113,7 @@ export const SaberHacer = () => {
         <div style={{ position: "absolute", bottom: 90, width: W, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, opacity: subIn }}>
           <div style={{ fontFamily: fonts.sans, fontWeight: 700, fontSize: 36, color: colors.navy, letterSpacing: 3 }}>Semillero by CooWeb</div>
           <div style={{ fontFamily: fonts.sans, fontSize: 26, color: colors.teal }}>Aprende · Colabora · Crece</div>
-          {/* Isotipo PNG has white margins: crop to the blue circle (~860px of 1254px) */}
-          <div style={{ width: 72, height: 72, borderRadius: "50%", overflow: "hidden", marginTop: 6, position: "relative" }}>
-            <Img src={staticFile("logo-cooweb.png")} style={{ position: "absolute", width: 105, left: -16.5, top: -15 }} />
-          </div>
+          <Img src={staticFile("isotipo-cooweb.png")} style={{ height: 84, marginTop: 6 }} />
         </div>
 
         {/* Circuit doodle bottom-left */}
