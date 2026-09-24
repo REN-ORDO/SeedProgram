@@ -1,0 +1,20 @@
+{
+  "name": "semillero-video",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts SaberHacer out/saber-hacer.mp4",
+    "render:feed": "remotion render src/index.ts SaberHacerFeed out/saber-hacer-feed.mp4",
+    "still": "remotion still src/index.ts SaberHacer out/saber-hacer.png --frame=194"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.528",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.528"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}
