@@ -97,7 +97,6 @@ export const EscanerPotencial = () => {
                 background: "linear-gradient(to bottom, rgba(94,234,212,0) 40%, rgba(94,234,212,0.28))",
               }}
             />
-            <div style={{ position: "absolute", left: 14, top: 10, fontFamily: fonts.sans, fontSize: 18, color: "#64748B" }}>foto real · placeholder</div>
           </Polaroid>
           <Tape color="cream" width={190} rotate={-4} style={{ left: (POLA_W - 190) / 2, top: -26 }} />
 
