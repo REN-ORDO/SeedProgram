@@ -6,7 +6,7 @@ import { Tape } from "./components/Tape";
 import { Blob } from "./components/OrganicBlobs";
 import { BrushLine } from "./components/BrushLine";
 import { TornPaper } from "./components/TornPaper";
-import { Isotipo } from "./components/Isotipo";
+import { CornerMark } from "./components/Isotipo";
 import { Sparkle } from "./components/Doodles";
 import { ChaosNotebook, ClearBoard } from "./components/ChaosBoard";
 import { colors, fonts, FPS } from "./tokens";
@@ -144,13 +144,8 @@ export const EscanerPotencial = () => {
             </div>
           </div>
         </TornPaper>
-
-        {/* Endorsement in CooWeb Blue */}
-        <div style={{ position: "absolute", bottom: 60, width: W, display: "flex", justifyContent: "center", alignItems: "center", gap: 14, opacity: subIn }}>
-          <Isotipo size={56} />
-          <div style={{ fontFamily: fonts.sans, fontWeight: 700, fontSize: 32, color: colors.cooweb, letterSpacing: 2 }}>Semillero by CooWeb</div>
-        </div>
       </Canvas>
+      <CornerMark />
     </AbsoluteFill>
   );
 };

@@ -9,3 +9,10 @@ export const Isotipo = ({ size }: { size: number }) => {
     </div>
   );
 };
+
+// Isotipo-only brand mark (manual p.5, videos 1–4): bottom-right of the full frame.
+export const CornerMark = ({ size = 64, margin = 32 }: { size?: number; margin?: number }) => (
+  <div style={{ position: "absolute", right: margin, bottom: margin }}>
+    <Isotipo size={size} />
+  </div>
+);

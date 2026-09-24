@@ -6,7 +6,7 @@ import { Arrow, Bulb, Circle, Circuit, DotGrid, Sparkle } from "./components/Doo
 import { Blob } from "./components/OrganicBlobs";
 import { BrushLine } from "./components/BrushLine";
 import { TornPaper } from "./components/TornPaper";
-import { Isotipo } from "./components/Isotipo";
+import { CornerMark } from "./components/Isotipo";
 import { colors, fonts, FPS } from "./tokens";
 
 const s = (sec: number) => Math.round(sec * FPS);
@@ -110,18 +110,12 @@ export const SaberHacer = () => {
           </div>
         </TornPaper>
 
-        {/* Endorsement: small, central safe zone */}
-        <div style={{ position: "absolute", bottom: 90, width: W, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, opacity: subIn }}>
-          <div style={{ fontFamily: fonts.sans, fontWeight: 700, fontSize: 36, color: colors.navy, letterSpacing: 3 }}>Semillero by CooWeb</div>
-          <div style={{ fontFamily: fonts.sans, fontSize: 26, color: colors.teal }}>Aprende · Colabora · Crece</div>
-          <Isotipo size={80} />
-        </div>
-
         {/* Circuit doodle bottom-left */}
         <div style={{ position: "absolute", left: 60, bottom: 250, opacity: beat2(12) * 0.8 * (1 - shift) }}>
           <Circuit />
         </div>
       </AbsoluteFill>
+      <CornerMark />
     </AbsoluteFill>
   );
 };
