@@ -10,7 +10,7 @@ export const Isotipo = ({ size }: { size: number }) => {
   );
 };
 
-// Isotipo-only brand mark (manual p.5, videos 1–4): rolls in from the right edge at `delay` seconds.
+// Isotipo-only brand mark (manual p.5, videos 1–4): rolls in from the left edge at `delay` seconds.
 export const CornerMark = ({ size = 64, margin = 32, delay = 0 }: { size?: number; margin?: number; delay?: number }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -19,9 +19,9 @@ export const CornerMark = ({ size = 64, margin = 32, delay = 0 }: { size?: numbe
     <div
       style={{
         position: "absolute",
-        right: margin,
+        left: margin,
         bottom: margin,
-        transform: `translateX(${(1 - p) * (size + margin * 2)}px) rotate(${(1 - p) * 220}deg)`,
+        transform: `translateX(${-(1 - p) * (size + margin * 2)}px) rotate(${-(1 - p) * 220}deg)`,
       }}
     >
       <Isotipo size={size} />
