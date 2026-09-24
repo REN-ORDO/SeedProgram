@@ -1,4 +1,4 @@
-import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig, Easing } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig, Easing } from "remotion";
 import { PaperBackground } from "./components/PaperBackground";
 import { Polaroid } from "./components/Polaroid";
 import { Tape } from "./components/Tape";
@@ -6,6 +6,7 @@ import { Arrow, Bulb, Circle, Circuit, DotGrid, Sparkle } from "./components/Doo
 import { Blob } from "./components/OrganicBlobs";
 import { BrushLine } from "./components/BrushLine";
 import { TornPaper } from "./components/TornPaper";
+import { Isotipo } from "./components/Isotipo";
 import { colors, fonts, FPS } from "./tokens";
 
 const s = (sec: number) => Math.round(sec * FPS);
@@ -113,7 +114,7 @@ export const SaberHacer = () => {
         <div style={{ position: "absolute", bottom: 90, width: W, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, opacity: subIn }}>
           <div style={{ fontFamily: fonts.sans, fontWeight: 700, fontSize: 36, color: colors.navy, letterSpacing: 3 }}>Semillero by CooWeb</div>
           <div style={{ fontFamily: fonts.sans, fontSize: 26, color: colors.teal }}>Aprende · Colabora · Crece</div>
-          <Img src={staticFile("isotipo-cooweb.png")} style={{ height: 84, marginTop: 6 }} />
+          <Isotipo size={80} />
         </div>
 
         {/* Circuit doodle bottom-left */}
