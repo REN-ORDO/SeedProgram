@@ -1,3 +1,5 @@
+import type { PackageName } from "@/lib/diagnosis";
+
 export type NavItem = { href: string; label: string; index: string };
 
 export const navItems: NavItem[] = [
@@ -627,6 +629,70 @@ export const empresaPaquetes: EmpresaPaquete[] = [
   },
 ];
 
+/** Celda de la tabla comparativa: true = incluido, false = no incluido, texto = detalle. */
+export type PaqueteComparativoValue = true | false | string;
+
+export type PaqueteComparativoRow = {
+  label: string;
+  values: Record<PackageName, PaqueteComparativoValue>;
+};
+
+/** Qué incluye (y qué no) cada paquete. No incluye montos: la inversión se define con el cliente. */
+export const paqueteComparativo: PaqueteComparativoRow[] = [
+  {
+    label: "Semilleros",
+    values: { Chispa: "1", Impulso: "2", Celda: "3", Cantera: "4" },
+  },
+  {
+    label: "Frentes en paralelo",
+    values: { Chispa: "1", Impulso: "2", Celda: "3", Cantera: "4" },
+  },
+  {
+    label: "Desarrollador Sénior de acompañamiento",
+    values: { Chispa: true, Impulso: true, Celda: true, Cantera: true },
+  },
+  {
+    label: "Dirección de arquitectura dedicada",
+    values: { Chispa: false, Impulso: false, Celda: true, Cantera: true },
+  },
+  {
+    label: "Project Manager dedicado",
+    values: { Chispa: false, Impulso: false, Celda: false, Cantera: true },
+  },
+  {
+    label: "Tokens de IA",
+    values: { Chispa: "Estándar", Impulso: "Ampliados", Celda: "Ampliados", Cantera: "Prioritarios" },
+  },
+  {
+    label: "Producto completo (Web/App MVP)",
+    values: { Chispa: false, Impulso: true, Celda: true, Cantera: true },
+  },
+  {
+    label: "Pasarela de pagos (Wompi, Bold)",
+    values: { Chispa: false, Impulso: true, Celda: true, Cantera: true },
+  },
+  {
+    label: "Panel administrativo con reportes y roles",
+    values: { Chispa: false, Impulso: true, Celda: true, Cantera: true },
+  },
+  {
+    label: "Integración con sistemas existentes",
+    values: { Chispa: "Solo CRM", Impulso: false, Celda: true, Cantera: true },
+  },
+  {
+    label: "Automatización de un proceso crítico end-to-end",
+    values: { Chispa: false, Impulso: false, Celda: true, Cantera: true },
+  },
+  {
+    label: "Mantenimiento y evolución continua",
+    values: { Chispa: false, Impulso: false, Celda: false, Cantera: true },
+  },
+  {
+    label: "Migración y refactor de sistemas legacy",
+    values: { Chispa: false, Impulso: false, Celda: false, Cantera: true },
+  },
+];
+
 export type EmpresaCaso = {
   sector: string;
   label: "Ejemplo interno" | "Ejemplo externo";
@@ -713,6 +779,12 @@ export const diagnosisCopy = {
     "Preferimos que un mentor Senior lea tu caso personalmente. Estas son rutas típicas para empezar la conversación.",
   regenerar: "Ver otras opciones",
   regenerarAgotado: "Un Senior revisará tu caso",
+};
+
+export const comparativoCopy = {
+  title: "Compara las opciones",
+  desc: "Lo que incluye cada paquete recomendado. La inversión se define contigo según el alcance real.",
+  entregable: "Entregable",
 };
 
 /**

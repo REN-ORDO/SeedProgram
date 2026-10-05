@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { Package, ShieldCheck, RefreshCw, Loader2, Target } from "lucide-react";
 import { diagnosisCopy } from "@/lib/data";
 import type { Diagnosis, DiagnosisSource } from "@/lib/diagnosis";
+import { PackageComparison } from "@/components/empresas/package-comparison";
 
 export type DiagnosisState =
   | { status: "loading" }
@@ -158,6 +159,9 @@ export function DiagnosisPanel({
           </label>
         ))}
       </div>
+
+      {/* Comparativo de paquetes */}
+      <PackageComparison opciones={data.opciones} />
 
       {/* Regenerar */}
       <button
