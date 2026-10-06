@@ -1,3 +1,5 @@
+import type { PackageName } from "@/lib/diagnosis";
+
 export type NavItem = { href: string; label: string; index: string };
 
 export const navItems: NavItem[] = [
@@ -627,6 +629,53 @@ export const empresaPaquetes: EmpresaPaquete[] = [
   },
 ];
 
+/** Celda de la tabla comparativa: true = incluido, false = no incluido, texto = detalle. */
+export type PaqueteComparativoValue = true | false | string;
+
+export type PaqueteComparativoRow = {
+  label: string;
+  values: Record<PackageName, PaqueteComparativoValue>;
+};
+
+/**
+ * Qué incluye (y qué no) cada paquete. No incluye montos: la inversión se define con el cliente.
+ * Semilleros y frentes no van aquí: ya se muestran en el resumen de equipo de cada tarjeta.
+ */
+export const paqueteComparativo: PaqueteComparativoRow[] = [
+  {
+    label: "Desarrollador Sénior de acompañamiento",
+    values: { Chispa: true, Impulso: true, Celda: true, Cantera: true },
+  },
+  {
+    label: "Dirección de arquitectura dedicada",
+    values: { Chispa: false, Impulso: false, Celda: true, Cantera: true },
+  },
+  {
+    label: "Project Manager dedicado",
+    values: { Chispa: false, Impulso: false, Celda: false, Cantera: true },
+  },
+  {
+    label: "Tokens de IA",
+    values: { Chispa: "Estándar", Impulso: "Ampliados", Celda: "Ampliados", Cantera: "Prioritarios" },
+  },
+  {
+    label: "Pasarela de pagos (Wompi, Bold)",
+    values: { Chispa: false, Impulso: true, Celda: true, Cantera: true },
+  },
+  {
+    label: "Panel administrativo con reportes y roles",
+    values: { Chispa: false, Impulso: true, Celda: true, Cantera: true },
+  },
+  {
+    label: "Integración con sistemas existentes",
+    values: { Chispa: "Solo CRM", Impulso: false, Celda: true, Cantera: true },
+  },
+  {
+    label: "Automatización de un proceso crítico end-to-end",
+    values: { Chispa: false, Impulso: false, Celda: true, Cantera: true },
+  },
+];
+
 export type EmpresaCaso = {
   sector: string;
   label: "Ejemplo interno" | "Ejemplo externo";
@@ -713,6 +762,54 @@ export const diagnosisCopy = {
     "Preferimos que un mentor Senior lea tu caso personalmente. Estas son rutas típicas para empezar la conversación.",
   regenerar: "Ver otras opciones",
   regenerarAgotado: "Un Senior revisará tu caso",
+};
+
+export const comparativoCopy = {
+  title: "Compara las opciones",
+  desc: "Lo que incluye cada paquete recomendado. La inversión se define contigo según el alcance real.",
+  entregable: "Entregable",
+  verMas: "Ver más detalles",
+  ocultar: "Ocultar detalles",
+};
+
+/**
+ * Configuración visual de cada paquete en las tarjetas del diagnóstico.
+ * `level` (1-4) ordena las tarjetas de menor a mayor y llena los pips.
+ * Clases como literales completos: Tailwind no detecta clases concatenadas.
+ */
+export type PackageTier = {
+  kicker: string;
+  level: 1 | 2 | 3 | 4;
+  team: string;
+  /** Banda superior de la tarjeta (fondo + color de texto). */
+  band: string;
+};
+
+export const packageTiers: Record<PackageName, PackageTier> = {
+  Chispa: {
+    kicker: "Esfuerzo puntual",
+    level: 1,
+    team: "1 Semillero · 1 frente",
+    band: "bg-[var(--color-bg-teal)] text-[var(--color-ink)]",
+  },
+  Impulso: {
+    kicker: "Esfuerzo de producto",
+    level: 2,
+    team: "2 Semilleros · 2 frentes",
+    band: "bg-[var(--color-bg-sky)] text-[var(--color-ink)]",
+  },
+  Celda: {
+    kicker: "Esfuerzo robusto",
+    level: 3,
+    team: "3 Semilleros · 3 frentes · Arquitectura dedicada",
+    band: "bg-[var(--color-teal-500)] text-[var(--color-ink)]",
+  },
+  Cantera: {
+    kicker: "Esfuerzo de plataforma",
+    level: 4,
+    team: "4 Semilleros · 4 frentes · PM + Arquitectura",
+    band: "bg-[var(--color-ink)] text-white",
+  },
 };
 
 /**
