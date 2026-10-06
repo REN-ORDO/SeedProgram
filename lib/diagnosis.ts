@@ -194,7 +194,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
       descripcion:
         "Antes de automatizar, medimos: dónde se traba tu atención, qué toma más tiempo y qué se puede resolver solo. Termina en un plan priorizado.",
       entregable: "Diagnóstico documentado con métricas y roadmap de automatización.",
-      paquete: "Celda",
+      paquete: "Chispa",
       dolor_resuelto: "No saber con certeza dónde se traba tu atención",
     },
   ],
@@ -220,7 +220,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
       descripcion:
         "Levantamos cómo trabaja hoy tu equipo, detectamos los cuellos de botella y priorizamos qué conviene atacar primero.",
       entregable: "Mapa de procesos documentado y plan priorizado de automatización.",
-      paquete: "Celda",
+      paquete: "Chispa",
       dolor_resuelto: "No saber por dónde empezar a automatizar",
     },
   ],
@@ -272,7 +272,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
       descripcion:
         "Revisamos tu presencia actual — sitio, velocidad, analítica, contenidos — y armamos un plan priorizado por impacto.",
       entregable: "Informe de auditoría con plan de acción priorizado.",
-      paquete: "Celda",
+      paquete: "Chispa",
       dolor_resuelto: "No saber qué de tu presencia digital vale la pena arreglar primero",
     },
   ],
@@ -290,7 +290,7 @@ const FALLBACKS: Record<Area, SolutionOption[]> = {
       descripcion:
         "Una dupla junior + mentor Senior levanta tu situación actual, define el alcance real del reto y propone por dónde empezar.",
       entregable: "Documento de alcance con opciones técnicas y esfuerzo estimado.",
-      paquete: "Impulso",
+      paquete: "Chispa",
       dolor_resuelto: "No tener claro por dónde empezar",
     },
     {

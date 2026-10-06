@@ -24,10 +24,10 @@ export function PackageComparison({ opciones }: Props) {
 
       {/* El scroll horizontal vive en el contenedor, nunca en la página */}
       <div className="mt-3 overflow-x-auto rounded-xl border-2 border-[var(--color-ink)] bg-white shadow-[3px_3px_0_var(--color-ink)]">
-        <table className="w-full min-w-[560px] border-collapse text-left text-[13px] text-[var(--color-ink)]">
+        <table className="w-full min-w-[460px] sm:min-w-[560px] border-collapse text-left text-[13px] text-[var(--color-ink)]">
           <thead>
             <tr className="bg-[var(--color-bg-sky)]">
-              <td className="sticky left-0 z-10 w-[34%] bg-[var(--color-bg-sky)] p-3" />
+              <td className="sticky left-0 z-10 w-[112px] sm:w-[34%] bg-[var(--color-bg-sky)] p-3" />
               {columnas.map((c) => (
                 <th
                   key={c.key}
