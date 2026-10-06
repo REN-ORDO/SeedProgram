@@ -777,6 +777,7 @@ export const diagnosisCopy = {
     "Esta es una primera lectura hecha con IA. Un mentor Senior de CooWeb la revisa y acompaña todo el proceso, de principio a fin.",
   fallbackNota:
     "Preferimos que un mentor Senior lea tu caso personalmente. Estas son rutas típicas para empezar la conversación.",
+  rutasLabel: "Tus 3 rutas",
   regenerar: "Ver otras opciones",
   regenerarAgotado: "Un Senior revisará tu caso",
 };

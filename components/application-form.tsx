@@ -1710,7 +1710,13 @@ export function ApplicationForm() {
   // ============================================================
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div
+      className={cn(
+        "mx-auto w-full max-w-2xl transition-[max-width] duration-300 motion-reduce:transition-none",
+        // Solo el paso del diagnóstico (empresa, paso 3) se ensancha en desktop
+        role === "empresa" && step === 3 && "lg:max-w-6xl",
+      )}
+    >
       {/* Banner de borrador guardado.
           Sin overflow-hidden ni animación de height: eso recortaba la
           sombra offset de la caja. Solo fade + slide. El padding-bottom/right

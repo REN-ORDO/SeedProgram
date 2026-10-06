@@ -102,13 +102,15 @@ export default function PostularPage() {
         </motion.svg>
       )}
 
-      <div className="relative z-10 mx-auto max-w-2xl">
+      {/* El wrapper admite el ancho máximo del paso 3 de empresas (6xl); el
+          back link y el header conservan max-w-2xl. */}
+      <div className="relative z-10 mx-auto max-w-6xl">
         {/* Back link + mute */}
         <motion.div
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: EASE }}
-          className="mb-8 flex items-center justify-between"
+          className="mx-auto mb-8 flex max-w-2xl items-center justify-between"
         >
           <Link
             href={isEmpresa ? "/empresas" : "/"}
@@ -127,7 +129,7 @@ export default function PostularPage() {
         </motion.div>
 
         {/* Header */}
-        <header className="mb-10 text-center">
+        <header className="mx-auto mb-10 max-w-2xl text-center">
           <motion.span
             initial={{ opacity: 0, y: -10, rotate: -8 }}
             animate={{ opacity: 1, y: 0, rotate: -2 }}

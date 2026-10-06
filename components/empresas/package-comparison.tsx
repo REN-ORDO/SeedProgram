@@ -2,6 +2,15 @@ import { Check, X } from "lucide-react";
 import { comparativoCopy, paqueteComparativo } from "@/lib/data";
 import type { Diagnosis } from "@/lib/diagnosis";
 
+/**
+ * Plantilla de columnas compartida entre las tarjetas de opciones
+ * (diagnosis-panel) y esta tabla en desktop: columna de etiqueta de 180px +
+ * 3 columnas iguales. La tabla usa el mismo 180px vía `LABEL_COL_LG`.
+ * Literales completos a propósito: Tailwind no detecta clases concatenadas.
+ */
+export const OPTIONS_GRID_LG = "lg:grid-cols-[180px_repeat(3,minmax(0,1fr))]";
+export const LABEL_COL_LG = "lg:w-[180px]";
+
 type Props = { opciones: Diagnosis["opciones"] };
 
 // Tabla comparativa de las 3 opciones: qué incluye y qué no cada paquete.
@@ -24,10 +33,10 @@ export function PackageComparison({ opciones }: Props) {
 
       {/* El scroll horizontal vive en el contenedor, nunca en la página */}
       <div className="mt-3 overflow-x-auto rounded-xl border-2 border-[var(--color-ink)] bg-white shadow-[3px_3px_0_var(--color-ink)]">
-        <table className="w-full min-w-[460px] sm:min-w-[560px] border-collapse text-left text-[13px] text-[var(--color-ink)]">
+        <table className="w-full min-w-[460px] sm:min-w-[560px] lg:min-w-0 lg:table-fixed border-collapse text-left text-[13px] text-[var(--color-ink)]">
           <thead>
             <tr className="bg-[var(--color-bg-sky)]">
-              <td className="sticky left-0 z-10 w-[112px] sm:w-[34%] bg-[var(--color-bg-sky)] p-3" />
+              <td className="sticky left-0 z-10 w-[112px] sm:w-[34%] lg:w-[180px] bg-[var(--color-bg-sky)] p-3" />
               {columnas.map((c) => (
                 <th
                   key={c.key}
