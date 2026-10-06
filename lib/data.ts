@@ -637,16 +637,11 @@ export type PaqueteComparativoRow = {
   values: Record<PackageName, PaqueteComparativoValue>;
 };
 
-/** Qué incluye (y qué no) cada paquete. No incluye montos: la inversión se define con el cliente. */
+/**
+ * Qué incluye (y qué no) cada paquete. No incluye montos: la inversión se define con el cliente.
+ * Semilleros y frentes no van aquí: ya se muestran en el resumen de equipo de cada tarjeta.
+ */
 export const paqueteComparativo: PaqueteComparativoRow[] = [
-  {
-    label: "Semilleros",
-    values: { Chispa: "1", Impulso: "2", Celda: "3", Cantera: "4" },
-  },
-  {
-    label: "Frentes en paralelo",
-    values: { Chispa: "1", Impulso: "2", Celda: "3", Cantera: "4" },
-  },
   {
     label: "Desarrollador Sénior de acompañamiento",
     values: { Chispa: true, Impulso: true, Celda: true, Cantera: true },
@@ -664,10 +659,6 @@ export const paqueteComparativo: PaqueteComparativoRow[] = [
     values: { Chispa: "Estándar", Impulso: "Ampliados", Celda: "Ampliados", Cantera: "Prioritarios" },
   },
   {
-    label: "Producto completo (Web/App MVP)",
-    values: { Chispa: false, Impulso: true, Celda: true, Cantera: true },
-  },
-  {
     label: "Pasarela de pagos (Wompi, Bold)",
     values: { Chispa: false, Impulso: true, Celda: true, Cantera: true },
   },
@@ -682,14 +673,6 @@ export const paqueteComparativo: PaqueteComparativoRow[] = [
   {
     label: "Automatización de un proceso crítico end-to-end",
     values: { Chispa: false, Impulso: false, Celda: true, Cantera: true },
-  },
-  {
-    label: "Mantenimiento y evolución continua",
-    values: { Chispa: false, Impulso: false, Celda: false, Cantera: true },
-  },
-  {
-    label: "Migración y refactor de sistemas legacy",
-    values: { Chispa: false, Impulso: false, Celda: false, Cantera: true },
   },
 ];
 
@@ -777,7 +760,6 @@ export const diagnosisCopy = {
     "Esta es una primera lectura hecha con IA. Un mentor Senior de CooWeb la revisa y acompaña todo el proceso, de principio a fin.",
   fallbackNota:
     "Preferimos que un mentor Senior lea tu caso personalmente. Estas son rutas típicas para empezar la conversación.",
-  rutasLabel: "Tus 3 rutas",
   regenerar: "Ver otras opciones",
   regenerarAgotado: "Un Senior revisará tu caso",
 };
@@ -786,6 +768,48 @@ export const comparativoCopy = {
   title: "Compara las opciones",
   desc: "Lo que incluye cada paquete recomendado. La inversión se define contigo según el alcance real.",
   entregable: "Entregable",
+  verMas: "Ver más detalles",
+  ocultar: "Ocultar detalles",
+};
+
+/**
+ * Configuración visual de cada paquete en las tarjetas del diagnóstico.
+ * `level` (1-4) ordena las tarjetas de menor a mayor y llena los pips.
+ * Clases como literales completos: Tailwind no detecta clases concatenadas.
+ */
+export type PackageTier = {
+  kicker: string;
+  level: 1 | 2 | 3 | 4;
+  team: string;
+  /** Banda superior de la tarjeta (fondo + color de texto). */
+  band: string;
+};
+
+export const packageTiers: Record<PackageName, PackageTier> = {
+  Chispa: {
+    kicker: "Esfuerzo puntual",
+    level: 1,
+    team: "1 Semillero · 1 frente",
+    band: "bg-[var(--color-bg-teal)] text-[var(--color-ink)]",
+  },
+  Impulso: {
+    kicker: "Esfuerzo de producto",
+    level: 2,
+    team: "2 Semilleros · 2 frentes",
+    band: "bg-[var(--color-bg-sky)] text-[var(--color-ink)]",
+  },
+  Celda: {
+    kicker: "Esfuerzo robusto",
+    level: 3,
+    team: "3 Semilleros · 3 frentes · Arquitectura dedicada",
+    band: "bg-[var(--color-teal-500)] text-[var(--color-ink)]",
+  },
+  Cantera: {
+    kicker: "Esfuerzo de plataforma",
+    level: 4,
+    team: "4 Semilleros · 4 frentes · PM + Arquitectura",
+    band: "bg-[var(--color-ink)] text-white",
+  },
 };
 
 /**
